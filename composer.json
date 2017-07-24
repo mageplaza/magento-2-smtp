@@ -1,16 +1,27 @@
 {
     "name": "mageplaza/module-smtp",
-    "description": "This source file is subject to the Mageplaza License that is bundled with this package in the file LICENSE.txt. It is also available through the world-wide-web at this URL: https://www.mageplaza.com/LICENSE.txt",
+    "description": "SMTP Extension for Magento 2 helps the owner of store simply install SMTP (Simple Mail Transfer Protocol) server which transmits the messages into codes or numbers",
+    "license": "Mageplaza License",
+    "type": "magento2-module",
+    "version": "1.0.0",
     "authors": [
         {
             "email": "hi@mageplaza.com",
-            "name": "Mageplaza"
+            "name": "Mageplaza",
+            "homepage": "https://www.mageplaza.com",
+            "role": "Leader"
         }
     ],
     "minimum-stability": "dev",
     "require": {
         "mageplaza/module-core": "*"
     },
+    "keywords": [
+      "magento 2",
+      "mageplaza",
+      "smtp",
+      "email settings"
+    ],
     "autoload": {
         "psr-4": {
             "Mageplaza\\Smtp\\": ""
