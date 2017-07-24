@@ -13,7 +13,19 @@ Every day you send and receive so many even more hundreds of emails, however, yo
 - Get Support: https://github.com/mageplaza/magento-2-smtp/issues
 
 
-Highlight features:
+## How to install SMTP Extension
+
+Install via composer
+
+Run the following command in Magento 2 root folder
+
+```
+composer require mageplaza/module-smtp
+php bin/magento setup:upgrade
+php bin/magento setup:static-content:deploy
+```
+
+## Highlight features:
 
 ### Flexible Configurations
 
