@@ -1,0 +1,22 @@
+{
+    "name": "mageplaza/module-smtp",
+    "description": "This source file is subject to the Mageplaza License that is bundled with this package in the file LICENSE.txt. It is also available through the world-wide-web at this URL: https://www.mageplaza.com/LICENSE.txt",
+    "authors": [
+        {
+            "email": "hi@mageplaza.com",
+            "name": "Mageplaza"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "mageplaza/module-core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mageplaza\\Smtp\\": ""
+        },
+        "files": [
+            "registration.php"
+        ]
+    }
+}

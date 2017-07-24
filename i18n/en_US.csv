@@ -1,0 +1,82 @@
+"- Choose a SMTP Provider -","- Choose a SMTP Provider -"
+Mailgun,Mailgun
+Mandrill,Mandrill
+"Send In Blue","Send In Blue"
+"Send Grid","Send Grid"
+"Elastic Email","Elastic Email"
+SparkPost,SparkPost
+Mailjet,Mailjet
+Postmark,Postmark
+"AOL Mail","AOL Mail"
+Comcast,Comcast
+GMX,GMX
+Gmail,Gmail
+Hotmail,Hotmail
+Mail.com,Mail.com
+"O2 Mail","O2 Mail"
+Office365,Office365
+Orange,Orange
+Outlook,Outlook
+"Yahoo Mail","Yahoo Mail"
+"Yahoo Mail Plus","Yahoo Mail Plus"
+"Yahoo AU/NZ","Yahoo AU/NZ"
+AT&T,AT&T
+"NTL @ntlworld.com","NTL @ntlworld.com"
+"BT Connect","BT Connect"
+"zoho Mail","zoho Mail"
+Verizon,Verizon
+"BT Openworld","BT Openworld"
+"O2 Online Deutschland","O2 Online Deutschland"
+Back,Back
+Success,Success
+"Something went wrong.","Something went wrong."
+"TEST EMAIL from Custom SMTP","TEST EMAIL from Custom SMTP"
+"Sent successfully! Please check your email box.","Sent successfully! Please check your email box."
+"Test Error","Test Error"
+"Emails Log","Emails Log"
+Mageplaza,Mageplaza
+Smtp,Smtp
+Email,Email
+PLAIN,PLAIN
+Login,Login
+CRAM-MD5,CRAM-MD5
+None,None
+SSL,SSL
+TLS,TLS
+Error,Error
+View,View
+"Mageplaza Smtp","Mageplaza Smtp"
+SMTP,SMTP
+"General Configuration","General Configuration"
+"Enable Mageplaza SMTP","Enable Mageplaza SMTP"
+"Mageplaza SMTP is compatible with default Magento SMTP and other email modules.","Mageplaza SMTP is compatible with default Magento SMTP and other email modules."
+"SMTP Configuration Options","SMTP Configuration Options"
+"SMTP Provider","SMTP Provider"
+"Select a Pre-defined SMTP Server","Select a Pre-defined SMTP Server"
+Autofill,Autofill
+Host,Host
+"Support Host name and ID Address","Support Host name and ID Address"
+Port,Port
+"Default ports: 25, 465, or 587. Port 465 (SSL required), Port 587 (TLS required)","Default ports: 25, 465, or 587. Port 465 (SSL required), Port 587 (TLS required)"
+Authentication,Authentication
+Username,Username
+Password,Password
+Protocol,Protocol
+"We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols.","We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols."
+"Return-Path Email","Return-Path Email"
+"Leave empty to ignore it.","Leave empty to ignore it."
+"Test Email Recipient","Test Email Recipient"
+"Test Now","Test Now"
+"Schedule Log Cleaner","Schedule Log Cleaner"
+"Clean Email Log Every","Clean Email Log Every"
+"Day(s). Default: 10. To keep them, set to 0. It will clean Email log after X day(s).","Day(s). Default: 10. To keep them, set to 0. It will clean Email log after X day(s)."
+Developer,Developer
+"Log Emails","Log Emails"
+"It will log all sent emails, you can preview it and schedule clean up.","It will log all sent emails, you can preview it and schedule clean up."
+"Developer Mode","Developer Mode"
+"If Enable, Magento will not delivery any email to receiver. This is useful for developers.","If Enable, Magento will not delivery any email to receiver. This is useful for developers."
+Clear,Clear
+ID,ID
+Subject,Subject
+Status,Status
+"Created At","Created At"

@@ -1,0 +1,43 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Smtp
+ * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
+ * @license     http://mageplaza.com/LICENSE.txt
+ */
+?>
+<div class="actions actions-provider">
+    <select id="mageplaza_smtp_provider">
+        <?php foreach ($block->getProvider() as $value => $provider) : ?>
+            <option value="<?php echo $value; ?>">
+                <?php echo $provider['label'];?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+
+    <button class="actions-provider-button" type="button" id="<?php echo $block->getHtmlId() ?>">
+        <span><?php echo $block->escapeHtml($block->getButtonLabel()) ?></span>
+    </button>
+</div>
+<script type="text/x-magento-init">
+    {
+        "#mageplaza_smtp_provider": {
+            "mageplaza/provider": {
+                "jsonDataInfo": <?php /* @escapeNotVerified */ echo $block->getDataInfo() ?>
+            }
+        }
+    }
+</script>
