@@ -90,13 +90,13 @@ class Provider extends \Magento\Config\Block\System\Config\Form\Field
 				'protocol' => 'tls'
 			],
 			[
-				'label'    => __('Send In Blue'),
+				'label'    => __('Sendinblue'),
 				'host'     => 'smtp-relay.sendinblue.com',
 				'port'     => '587',
 				'protocol' => 'tls'
 			],
 			[
-				'label'    => __('Send Grid'),
+				'label'    => __('Sendgrid'),
 				'host'     => 'smtp.sendgrid.net',
 				'port'     => '587',
 				'protocol' => 'tls'
@@ -222,7 +222,7 @@ class Provider extends \Magento\Config\Block\System\Config\Form\Field
 				'protocol' => ''
 			],
 			[
-				'label'    => __('zoho Mail'),
+				'label'    => __('Zoho Mail'),
 				'host'     => 'smtp.zoho.com',
 				'port'     => '465',
 				'protocol' => 'ssl'
