@@ -1,4 +1,4 @@
-# Magento 2 SMTP Extensions - Email Settings for Magento 2
+# Magento 2 SMTP Extension - Email Settings for Magento 2
 
 Every day you send and receive so many even more hundreds of emails, however, you actually do not know whether they come to your targeted customers or not. Therefore, **Magento 2 SMTP Extension** is come out as the solution for this problem.
 
