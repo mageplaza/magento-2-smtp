@@ -4,6 +4,9 @@ Every day you send and receive so many even more hundreds of emails, however, yo
 
 **SMTP Extension for Magento 2** helps the owner of store simply install **SMTP (Simple Mail Transfer Protocol)** server which transmits the messages into codes or numbers. Through it, messages will be delivered directly and automatically to the chosen customers. Moreover, it is also flexible configurations with 21 different *SMTP servers* such as `Gmail, Hotmail, O2 Mail, Office365, Mail.com, Send In Blue, AOL Mail Orange, GMX, Outlook, Yahoo, Comcast, or Custom SMTP` - own SMTP server, etc. 
 
+[![Latest Stable Version](https://poser.pugx.org/mageplaza/module-smtp/v/stable)](https://packagist.org/packages/mageplaza/module-smtp)
+[![Total Downloads](https://poser.pugx.org/mageplaza/module-smtp/downloads)](https://packagist.org/packages/mageplaza/module-smtp)
+
 
 ## Documentation
 
