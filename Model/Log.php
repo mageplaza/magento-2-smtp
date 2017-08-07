@@ -45,7 +45,12 @@ class Log extends \Magento\Framework\Model\AbstractModel
 		if ($message) {
 			$headers = $message->getHeaders();
 			$subject = $headers['Subject'][0];
-			$content = htmlspecialchars($message->getBodyHtml()->getRawContent());
+			$body = $message->getBodyHtml();
+			if (is_object($body)) {
+				$content = htmlspecialchars($body->getRawContent());
+			} else {
+				$content = htmlspecialchars($message->getBody()->getRawContent());
+			}
 			if ($subject) {
 				$this->setSubject($subject);
 			}
