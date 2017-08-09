@@ -51,6 +51,7 @@ class Message
 	 */
 	public function afterSetBody(\Magento\Framework\Mail\Message $subject, $result)
 	{
+		$this->registry->unregister('mageplaza_smtp_message');
 		$this->registry->register('mageplaza_smtp_message', $subject);
 
 		return $result;
