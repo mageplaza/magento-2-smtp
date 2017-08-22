@@ -38,7 +38,7 @@
                 <label>SMTP Configuration Options</label>
                 <field id="provider" translate="label comment button_label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>SMTP Provider</label>
-                    <button_label>Autofill</button_label>
+                    <button_label>Load SMTP Settings</button_label>
                     <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\Provider</frontend_model>
                     <comment>Select a Pre-defined SMTP Server</comment>
                 </field>
