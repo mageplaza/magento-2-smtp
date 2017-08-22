@@ -21,55 +21,37 @@
 
 namespace Mageplaza\Smtp\Plugin\Magento\Framework\Mail;
 
+use Mageplaza\Smtp\Application\Resource\Mail;
+use Mageplaza\Smtp\Model\LogFactory;
+
 /**
  * Class Transport
  * @package Mageplaza\Smtp\Plugin\Magento\Framework\Mail
  */
-class Transport extends \Zend_Mail_Transport_Smtp
+class Transport
 {
-	const CONFIGURATION_GROUP_SMTP = 'configuration_option';
-	const DEVELOPER_GROUP_SMTP = 'developer';
-	const GENERAL_GROUP_SMTP = 'general';
-
-	/**
-	 * @var \Mageplaza\Smtp\Helper\Data
-	 */
-	private $smtpDataHelper;
-
 	/**
 	 * @var \Mageplaza\Smtp\Model\LogFactory
 	 */
 	private $logFactory;
 
 	/**
-	 * @var \Magento\Framework\Registry
+	 * @var \Mageplaza\Smtp\Application\Resource\Mail
 	 */
-	private $registry;
+	private $resourceMail;
 
 	/**
-	 * @var \Magento\Framework\Encryption\EncryptorInterface
-	 */
-	private $encryptor;
-
-	/**
-	 * Constructor
-	 *
-	 * @param \Magento\Framework\Registry $registry
-	 * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
+	 * Transport constructor.
+	 * @param \Mageplaza\Smtp\Application\Resource\Mail $resourceMail
 	 * @param \Mageplaza\Smtp\Model\LogFactory $logFactory
-	 * @param \Mageplaza\Smtp\Helper\Data $smtpDataHelper
 	 */
 	public function __construct(
-		\Magento\Framework\Registry $registry,
-		\Magento\Framework\Encryption\EncryptorInterface $encryptor,
-		\Mageplaza\Smtp\Model\LogFactory $logFactory,
-		\Mageplaza\Smtp\Helper\Data $smtpDataHelper
+		Mail $resourceMail,
+		LogFactory $logFactory
 	)
 	{
-		$this->registry       = $registry;
-		$this->smtpDataHelper = $smtpDataHelper;
-		$this->logFactory     = $logFactory;
-		$this->encryptor      = $encryptor;
+		$this->resourceMail = $resourceMail;
+		$this->logFactory   = $logFactory;
 	}
 
 	/**
@@ -79,44 +61,12 @@ class Transport extends \Zend_Mail_Transport_Smtp
 	 */
 	public function aroundSendMessage(\Magento\Framework\Mail\TransportInterface $subject, \Closure $proceed)
 	{
-		$config = [];
-		if ($this->smtpDataHelper->getConfig(self::GENERAL_GROUP_SMTP, 'enabled')) {
-			$message = $this->registry->registry('mageplaza_smtp_message');
-			if ($host = $this->smtpDataHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'host')) {
-				$this->_host = $host;
-			}
-			if ($returnPath = $this->smtpDataHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'return_path_email')) {
-				$message->setReturnPath($returnPath);
-			}
-			if ($protocol = $this->smtpDataHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'protocol')) {
-				$config['ssl'] = $protocol;
-			}
-
-			$port = $this->smtpDataHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'port');
-			if ($port) {
-				$config['port'] = $port;
-				$this->_port    = $port;
-			}
-
-			$auth        = $this->smtpDataHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'authentication');
-			$this->_auth = $auth;
-
-			$config['auth']     = $auth;
-			$config['username'] = $this->smtpDataHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'username');
-			$config['password'] = $this->encryptor->decrypt($this->smtpDataHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'password'));
-
-			$headers    = $message->getHeaders();
-			$senderName = strip_tags($headers['From'][0], $message->getFrom());
-			if ($config['username'] && $senderName) {
-				$message->clearFrom();
-				$message->setFrom($config['username'], $senderName);
-			}
-			if (!empty($config)) {
-				$this->_config = $config;
-			}
+		if ($this->resourceMail->isModuleEnable()) {
+			$message   = $this->resourceMail->getMessage();
+			$transport = $this->resourceMail->init();
 			try {
-				if (!$this->smtpDataHelper->getConfig(self::DEVELOPER_GROUP_SMTP, 'developer_mode')) {
-					parent::send($message);
+				if (!$this->resourceMail->isDeveloperMode()) {
+					$transport->send($message);
 				}
 				$this->emailLog($message);
 			} catch (\Exception $e) {
@@ -137,7 +87,8 @@ class Transport extends \Zend_Mail_Transport_Smtp
 	 */
 	private function emailLog($message, $status = true)
 	{
-		if ($this->smtpDataHelper->getConfig(self::DEVELOPER_GROUP_SMTP, 'log_email')) {
+		if ($this->resourceMail->isEnableEmailLog()) {
+			/** @var \Mageplaza\Smtp\Model\Log $log */
 			$log = $this->logFactory->create();
 			try {
 				$log->saveLog($message, $status);
