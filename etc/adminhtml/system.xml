@@ -31,7 +31,9 @@
                 <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Mageplaza SMTP</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment>Mageplaza SMTP is compatible with default Magento SMTP and other email modules.</comment>
+                    <comment>Mageplaza SMTP is compatible with default Magento SMTP and other email modules.
+                        <![CDATA[It helps to reduce abandonment cart with <a href="https://www.mageplaza.com/magento-2-one-step-checkout-extension/" target="_blank">One Step Checkout</a> and <a href="https://www.mageplaza.com/magento-2-social-login-extension/" target="_blank">Social Login</a>]]>
+                    </comment>
                 </field>
             </group>
             <group id="configuration_option" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
