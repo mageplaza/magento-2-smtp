@@ -7,7 +7,7 @@ Every day you send and receive so many even more hundreds of emails, however, yo
 [![Latest Stable Version](https://poser.pugx.org/mageplaza/module-smtp/v/stable)](https://packagist.org/packages/mageplaza/module-smtp)
 
 
-## Documentation
+## 1. Documentation
 
 - Installation guide: https://github.com/mageplaza/magento-2-smtp#how-to-install-smtp-extension
 - User guide: https://github.com/mageplaza/magento-2-smtp/#user-guide
@@ -15,11 +15,11 @@ Every day you send and receive so many even more hundreds of emails, however, yo
 - Contribute on Github: https://github.com/mageplaza/magento-2-smtp
 - Get Support: https://github.com/mageplaza/magento-2-smtp/issues
 
-## How to install SMTP Extension
+## 2. How to install SMTP Extension
 
-Install via composer
+### Install via composer (recommend)
 
-Run the following command in Magento 2 root folder
+Run the following command in Magento 2 root folder:
 
 ```
 composer require mageplaza/module-smtp
@@ -27,7 +27,118 @@ php bin/magento setup:upgrade
 php bin/magento setup:static-content:deploy
 ```
 
-## Highlight features:
+
+
+## 4. SWEET MAGEPLAZA EXTENSIONS TO BRING YOU MORE MONEY
+
+### [✓ One Step Checkout](https://www.mageplaza.com/magento-2-one-step-checkout-extension/?utm_source=github.com&utm_medium=link&utm_campaign=related-extension)
+
+☞ ↑30% INCREASE CONVERSION RATE 
+
+☞ ↓66% DECREASE ABANDONMENT CART
+
+☞ ↓80% REDUCE CHECKOUT TIME
+
+### [✓ Layered Navigation](https://www.mageplaza.com/magento-2-layered-navigation-extension/?utm_source=github.com&utm_medium=link&utm_campaign=related-extension)
+
+☞ ↑84% USER'S FILTERING EXPERIENCE
+
+☞ ↑25% CONVERSION RATE
+
+☞ ↓67% SHOPPING TIME
+
+### [✓ Frequently Bought Together](https://www.mageplaza.com/magento-2-frequently-bought-together/?utm_source=github.com&utm_medium=link&utm_campaign=related-extension)
+
+☞ Amazon Product Recommendation Solution
+ 
+☞ AJAX loading for better performance
+
+☞ Support Custom Options and all product types
+
+
+
+### [✓ Gift Card](https://www.mageplaza.com/magento-2-gift-card-extension/?utm_source=github.com&utm_medium=link&utm_campaign=related-extension)
+
+☞ Physical, virtual or combined gift cards
+ 
+☞ Different gift card values from prices
+
+☞ Send cards via email, SMS, post office or messenger
+
+
+### [✓ Who Bought This Also Bought](https://www.mageplaza.com/magento-2-who-bought-this-also-bought/?utm_source=github.com&utm_medium=link&utm_campaign=related-extension)
+
+☞ Display on Product Page, Category Page, Shopping Cart page
+
+☞ AJAX loading for better performance.
+
+☞ Flexible layout and design.
+
+
+### [✓ Social Login](https://www.mageplaza.com/magento-2-social-login-extension/?utm_source=github.com&utm_medium=link&utm_campaign=related-extension)
+
+☞ Increase signup rate up-to 30%
+
+☞ Supports 11 Types: Facebook, Google Plus, Twitter, Linkedin, Instagram, Yahoo, Github, Foursquare, VK, Live, Amazon
+
+☞ Easy custom design fit with your store design
+
+☞ [Social Login on Github](https://github.com/mageplaza/magento-2-social-login)
+
+
+
+### [✓ Shop By Brand](https://www.mageplaza.com/magento-2-shop-by-brand/?utm_source=github.com&utm_medium=link&utm_campaign=related-extension)
+
+☞ Fully Compatible with Layered Navigation
+
+☞ Instant Search brands
+
+☞ Import brands
+
+
+
+
+### [✓ Affiliate](https://www.mageplaza.com/magento-2-affiliate-extension/?utm_source=github.com&utm_medium=link&utm_campaign=related-extension)
+
+☞ Multiple Affiliate Campaigns
+
+☞ Smart Referral Links
+
+☞ Affiliate Report
+
+
+
+
+
+## Mageplaza extensions on Magento Marketplace, Github
+
+
+☞ [Magento 2 One Step Checkout extension](https://marketplace.magento.com/mageplaza-magento-2-one-step-checkout-extension.html)
+
+☞ [Magento 2 Blog extension](https://marketplace.magento.com/mageplaza-magento-2-blog-extension.html)
+
+☞ [Magento 2 Layered Navigation extension](https://marketplace.magento.com/mageplaza-layered-navigation-m2.html)
+
+☞ [Magento One Step Checkout](https://github.com/magento-2/one-step-checkout)
+
+☞ [Magento 2 Blog on Github](https://github.com/mageplaza/magento-2-blog)
+
+☞ [Magento 2 Social Login on Github](https://github.com/mageplaza/magento-2-social-login)
+
+☞ [Magento 2 SEO on Github](https://github.com/mageplaza/magento-2-seo)
+
+☞ [Magento 2 SMTP on Github](https://github.com/mageplaza/magento-2-smtp)
+
+☞ [Magento 2 Product Slider on Github](https://github.com/mageplaza/magento-2-product-slider)
+
+☞ [Magento 2 Banner on Github](https://github.com/mageplaza/magento-2-banner-slider)
+
+
+
+
+
+
+## 4. Highlight features:
 
 ### Flexible Configurations
 
@@ -57,7 +168,7 @@ This feature allows admin test the **SMTP settings** and make sure it works for 
 - Supports flexible servers
 - Check and preview sent emails
 
-## User Guide
+## 6. User Guide
 
 
 In Magento 2, default email server of inherent hosting will be used to send unregistered emails, which means the reputation for this email is pretty low and they will be rated as untrustworthy content, as a matter of fact your precious emails will be delivered to spamming box without knocking up any notification to receiver. Imagine how enormous detriment your business is having when you couldn’t properly send such Order Confirmation, Invoice, Shipment Information,... to their inbox, but classified as spam trash and this is not a professional management.
