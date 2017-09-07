@@ -4,7 +4,8 @@
 ## Documentation
 
 - Installation guide: https://www.mageplaza.com/install-magento-2-extension/
-- Download from our Live site: https://www.mageplaza.com/
+- User guide: https://www.mageplaza.com/magento-2-smtp/user-guide.html
+- Download from our Live site: https://www.mageplaza.com/magento-2-smtp/
 - Contribute on Github: https://github.com/mageplaza/magento-2-smtp
 - Get Support: https://github.com/mageplaza/magento-2-smtp/issues
 
