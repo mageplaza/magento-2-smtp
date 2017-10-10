@@ -32,7 +32,7 @@
                     <label>Enable Mageplaza SMTP</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Mageplaza SMTP is compatible with default Magento SMTP and other email modules.
-                        <![CDATA[It helps to reduce abandonment cart with <a href="https://www.mageplaza.com/magento-2-one-step-checkout-extension/" target="_blank">One Step Checkout</a> and <a href="https://www.mageplaza.com/magento-2-social-login-extension/" target="_blank">Social Login</a>]]>
+                        <![CDATA[It helps to reduce abandonment cart with <a href="https://www.mageplaza.com/magento-2-one-step-checkout-extension/" target="_blank">One Step Checkout</a>. Fully compatible with <a href="https://www.mageplaza.com/magento-2-abandoned-cart-email/" target="_blank">Abandoned Cart Email</a>]]>
                     </comment>
                 </field>
             </group>
