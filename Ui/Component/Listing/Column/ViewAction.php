@@ -77,6 +77,7 @@ class ViewAction extends Column
 	{
 		if (isset($dataSource['data']['items'])) {
 			foreach ($dataSource['data']['items'] as & $item) {
+				$item['subject'] = iconv_mime_decode($item['subject'], 0, 'UTF-8');
 				$name = $this->getData('name');
 				if (isset($item['id'])) {
 					$item[$name]['view'] = [
