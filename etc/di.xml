@@ -21,7 +21,7 @@
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <type name="Magento\Framework\Mail\Transport">
+    <type name="Magento\Framework\Mail\TransportInterface">
         <plugin name="Mageplaza_Smtp_Plugin_Magento_Framework_Mail_Transport" sortOrder="10" type="Mageplaza\Smtp\Plugin\Magento\Framework\Mail\Transport"/>
     </type>
 
