@@ -117,9 +117,7 @@ class Index extends \Magento\Backend\App\Action
 			}
 			$transport = new \Zend_Mail_Transport_Smtp($host, $config);
 			$mail      = new \Zend_Mail();
-
 			$mail->setFrom($this->_scopeConfig->getValue('trans_email/ident_general/email',\Magento\Store\Model\ScopeInterface::SCOPE_STORE));
-      
 			$mail->addTo($params['email']);
 			$mail->setSubject(__('TEST EMAIL from Custom SMTP'));
 			$body = "
