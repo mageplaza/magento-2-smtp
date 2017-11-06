@@ -78,6 +78,12 @@ class Provider extends \Magento\Config\Block\System\Config\Form\Field
 				'host'  => ''
 			],
 			[
+				'label'    => __('Gmail, GSuite'),
+				'host'     => 'smtp.gmail.com',
+				'port'     => '465',
+				'protocol' => 'ssl'
+			],
+			[
 				'label'    => __('Mailgun'),
 				'host'     => 'smtp.mailgun.org',
 				'port'     => '587',
@@ -143,12 +149,7 @@ class Provider extends \Magento\Config\Block\System\Config\Form\Field
 				'port'     => '587',
 				'protocol' => 'tls'
 			],
-			[
-				'label'    => __('Gmail'),
-				'host'     => 'smtp.gmail.com',
-				'port'     => '465',
-				'protocol' => 'ssl'
-			],
+
 			[
 				'label'    => __('Hotmail'),
 				'host'     => 'smtp-mail.outlook.com',
