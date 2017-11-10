@@ -35,6 +35,11 @@ class Index extends \Magento\Backend\App\Action
 	const ADMIN_RESOURCE = 'Mageplaza_Smtp::smtp';
 
 	/**
+	 * @var \Magento\Framework\App\Config\ScopeConfigInterface
+	 */
+	protected $scopeConfig;
+
+	/**
 	 * @var \Magento\Framework\View\Result\PageFactory
 	 */
 	protected $resultPageFactory;
@@ -71,7 +76,8 @@ class Index extends \Magento\Backend\App\Action
 		\Magento\Framework\Json\Helper\Data $jsonHelper,
 		\Magento\Framework\Encryption\EncryptorInterface $encryptor,
 		\Psr\Log\LoggerInterface $logger,
-		\Mageplaza\Smtp\Helper\Data $smtpDataHelper
+		\Mageplaza\Smtp\Helper\Data $smtpDataHelper,
+		\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
 	)
 	{
 		$this->resultPageFactory = $resultPageFactory;
@@ -79,6 +85,7 @@ class Index extends \Magento\Backend\App\Action
 		$this->logger            = $logger;
 		$this->encryptor         = $encryptor;
 		$this->smtpDataHelper    = $smtpDataHelper;
+		$this->_scopeConfig      = $scopeConfig;
 		parent::__construct($context);
 	}
 
@@ -110,9 +117,10 @@ class Index extends \Magento\Backend\App\Action
 			}
 			$transport = new \Zend_Mail_Transport_Smtp($host, $config);
 			$mail      = new \Zend_Mail();
-			if ($params['username']) {
-				$mail->setFrom($config['username']);
-			}
+			$mail->setFrom(
+				$this->_scopeConfig->getValue('trans_email/ident_general/email',\Magento\Store\Model\ScopeInterface::SCOPE_STORE),
+				$this->_scopeConfig->getValue('trans_email/ident_general/name',\Magento\Store\Model\ScopeInterface::SCOPE_STORE)
+			);
 			$mail->addTo($params['email']);
 			$mail->setSubject(__('TEST EMAIL from Custom SMTP'));
 			$body = "
