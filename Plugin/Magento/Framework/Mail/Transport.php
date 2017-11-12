@@ -21,7 +21,7 @@
 
 namespace Mageplaza\Smtp\Plugin\Magento\Framework\Mail;
 
-use Mageplaza\Smtp\Application\Resource\Mail;
+use Mageplaza\Smtp\Rse\Resource\Mail;
 use Mageplaza\Smtp\Model\LogFactory;
 
 /**
@@ -36,13 +36,13 @@ class Transport
 	private $logFactory;
 
 	/**
-	 * @var \Mageplaza\Smtp\Application\Resource\Mail
+	 * @var \Mageplaza\Smtp\Application\Rse\Mail
 	 */
 	private $resourceMail;
 
 	/**
 	 * Transport constructor.
-	 * @param \Mageplaza\Smtp\Application\Resource\Mail $resourceMail
+	 * @param \Mageplaza\Smtp\Application\Rse\Mail $resourceMail
 	 * @param \Mageplaza\Smtp\Model\LogFactory $logFactory
 	 */
 	public function __construct(

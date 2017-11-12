@@ -3,7 +3,7 @@
     "description": "SMTP Extension for Magento 2 helps the owner of store simply install SMTP (Simple Mail Transfer Protocol) server which transmits the messages into codes or numbers",
     "license": "Mageplaza License",
     "type": "magento2-module",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "authors": [
         {
             "email": "hi@mageplaza.com",

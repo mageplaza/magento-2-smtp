@@ -19,7 +19,7 @@
  * @license     http://mageplaza.com/LICENSE.txt
  */
 
-namespace Mageplaza\Smtp\Application\Resource;
+namespace Mageplaza\Smtp\Application\Rse;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -28,7 +28,7 @@ use Mageplaza\Smtp\Helper\Data;
 
 /**
  * Class Mail
- * @package Mageplaza\Smtp\Application\Resource
+ * @package Mageplaza\Smtp\Application\Rse
  */
 class Mail extends \Zend_Application_Resource_Mail
 {
