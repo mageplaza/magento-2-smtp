@@ -21,7 +21,7 @@
 
 namespace Mageplaza\Smtp\Plugin\Magento\Framework\Mail;
 
-use Mageplaza\Smtp\Rse\Resource\Mail;
+use Mageplaza\Smtp\Application\Rse\Mail;
 use Mageplaza\Smtp\Model\LogFactory;
 
 /**
