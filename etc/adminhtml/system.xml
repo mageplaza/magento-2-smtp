@@ -42,7 +42,7 @@
                     <label>SMTP Provider</label>
                     <button_label>Load Settings</button_label>
                     <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\Provider</frontend_model>
-                    <comment>Select a Pre-defined SMTP Server</comment>
+                    <comment>Select a Pre-defined SMTP Server, then click Load Settings.</comment>
                 </field>
                 <field id="host" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Host</label>
