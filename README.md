@@ -29,6 +29,40 @@ php bin/magento setup:static-content:deploy
 
 
 
+
+
+## 3. Highlight features:
+
+### Flexible Configurations
+
+It is easy for the store owner to reset the data or the information of any attributes with many options. Depending on your purposes, Mails will be configured simply and much faster.
+
+### SMTP Debug mode
+
+Before the emails are sent, they will be tested by running the test email from this extension to be sure that emails exact content is sent to desired customers. If there is any mistake, the emails will be logged them to correct the errors but we are not necessary to recheck all the settings.
+Moreover, by this **Debug mode**, owners can manage, preview or review the time the email created. You are also able to delete the logging or it can be done automatically after a period of time.
+
+### Email logging
+
+All the emails sent out from your store will be kept in this log on **Magento 2 SMTP extension**. The Admin totally can recheck the content of the email and it was sent to whom. Furthermore, you also check the time sent and the current status whether it is pending, in process or failed in the list. Especially, you can clear the log of the mail like the debug mode, manually or let it be after a certain time.
+
+### Test email
+
+This feature allows admin test the **SMTP settings** and make sure it works for current store.
+
+## Full features of the SMTP Extension for Magento 2
+
+- Use Your Own SMTP Server 
+- Sending the test emails before sending officially
+- Ensure all emails will be sent to desired customers 
+- Email logging with detailed view of every letter
+- Delete email log manually
+- Debug mode by SMTP email settings to test
+- Supports flexible servers
+- Check and preview sent emails
+
+
+
 ## 4. SWEET MAGEPLAZA EXTENSIONS TO BRING YOU MORE MONEY
 
 ### [✓ One Step Checkout](https://www.mageplaza.com/magento-2-one-step-checkout-extension/?utm_source=github.com&utm_medium=link&utm_campaign=related-extension)
@@ -107,38 +141,6 @@ php bin/magento setup:static-content:deploy
 ☞ Affiliate Report
 
 
-
-
-
-## 4. Highlight features:
-
-### Flexible Configurations
-
-It is easy for the store owner to reset the data or the information of any attributes with many options. Depending on your purposes, Mails will be configured simply and much faster.
-
-### SMTP Debug mode
-
-Before the emails are sent, they will be tested by running the test email from this extension to be sure that emails exact content is sent to desired customers. If there is any mistake, the emails will be logged them to correct the errors but we are not necessary to recheck all the settings.
-Moreover, by this **Debug mode**, owners can manage, preview or review the time the email created. You are also able to delete the logging or it can be done automatically after a period of time.
-
-### Email logging
-
-All the emails sent out from your store will be kept in this log on **Magento 2 SMTP extension**. The Admin totally can recheck the content of the email and it was sent to whom. Furthermore, you also check the time sent and the current status whether it is pending, in process or failed in the list. Especially, you can clear the log of the mail like the debug mode, manually or let it be after a certain time.
-
-### Test email
-
-This feature allows admin test the **SMTP settings** and make sure it works for current store.
-
-## Full features of the SMTP Extension for Magento 2
-
-- Use Your Own SMTP Server 
-- Sending the test emails before sending officially
-- Ensure all emails will be sent to desired customers 
-- Email logging with detailed view of every letter
-- Delete email log manually
-- Debug mode by SMTP email settings to test
-- Supports flexible servers
-- Check and preview sent emails
 
 ## 6. User Guide
 
