@@ -74,7 +74,7 @@ class Mail extends \Zend_Application_Resource_Mail
 			$options['host'] = $host;
 		}
 
-		if ($protocol = $smtpHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'protocol')) {
+		if (($protocol = $smtpHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'protocol')) !== '') {
 			$options['ssl'] = $protocol;
 		}
 

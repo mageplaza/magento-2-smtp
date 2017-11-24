@@ -36,7 +36,7 @@ class Protocol implements \Magento\Framework\Option\ArrayInterface
 	{
 		$options = [
 			[
-				'value' => 'none',
+				'value' => '',
 				'label' => __('None')
 			],
 			[

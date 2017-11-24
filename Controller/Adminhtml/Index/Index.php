@@ -95,7 +95,7 @@ class Index extends \Magento\Backend\App\Action
 		if ($params && $params['email']) {
 			$config = [];
 			$host   = $params['host'];
-			if ($params['protocol']) {
+			if ($params['protocol'] !== '') {
 				$config['ssl'] = $params['protocol'];
 			}
 			if ($params['port']) {
