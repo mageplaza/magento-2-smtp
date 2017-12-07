@@ -6,6 +6,8 @@ Every day you send and receive so many even more hundreds of emails, however, yo
 
 [![Latest Stable Version](https://poser.pugx.org/mageplaza/module-smtp/v/stable)](https://packagist.org/packages/mageplaza/module-smtp)
 
+![smtp configuration](https://i.imgur.com/VnCM6SB.png)
+
 
 ## 1. Documentation
 
