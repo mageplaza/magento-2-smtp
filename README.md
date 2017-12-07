@@ -30,9 +30,6 @@ php bin/magento setup:static-content:deploy
 ```
 
 
-
-
-
 ## 3. Highlight features:
 
 ### Flexible Configurations
@@ -50,7 +47,7 @@ All the emails sent out from your store will be kept in this log on **Magento 2 
 
 ### Test email
 
-This feature allows admin test the **SMTP settings** and make sure it works for current store.
+This feature allows admin test the [SMTP](https://github.com/magento-2/smtp) Settings and make sure it works for current store.
 
 ## Full features of the SMTP Extension for Magento 2
 
@@ -252,7 +249,7 @@ The Clean Email Log Every field limits the storage time for the email you sent. 
 
 ☞ [Magento 2 SEO on Github](https://github.com/mageplaza/magento-2-seo)
 
-☞ [Magento 2 SMTP on Github](https://github.com/mageplaza/magento-2-smtp)
+☞ [Magento 2 SMTP on Github](https://github.com/mageplaza/magento-2-smtp) 
 
 ☞ [Magento 2 Product Slider on Github](https://github.com/mageplaza/magento-2-product-slider)
 
