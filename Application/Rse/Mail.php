@@ -100,16 +100,12 @@ class Mail extends \Zend_Application_Resource_Mail
 	public function getMessage()
 	{
 		$message = $this->registry->registry('mageplaza_smtp_message');
-		if ($returnPath = $this->smtpHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'return_path_email')) {
-			$message->setReturnPath($returnPath);
-		}
-
 		$headers    = $message->getHeaders();
 		$senderName = strip_tags($headers['From'][0], $message->getFrom());
-		$userName   = $this->smtpHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'username');
-		if ($userName && $senderName) {
+		$returnPath   = $this->smtpHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'return_path_email');
+		if ($returnPath && $senderName) {
 			$message->clearFrom();
-			$message->setFrom($userName, $senderName);
+			$message->setFrom($returnPath, $senderName);
 		}
 
 		return $message;
