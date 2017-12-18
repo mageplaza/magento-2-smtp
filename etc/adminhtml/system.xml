@@ -73,6 +73,11 @@
                     <comment>Leave empty to ignore it.</comment>
                     <validate>validate-email</validate>
                 </field>
+                <field id="email_from" translate="label comment" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Set Email From</label>
+                    <comment>Leave empty to ignore it.</comment>
+                    <validate>validate-email</validate>
+                </field>
                 <field id="test_email" translate="label button_label" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Test Email Recipient</label>
                     <button_label>Test Now</button_label>
