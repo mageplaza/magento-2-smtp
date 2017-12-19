@@ -169,13 +169,25 @@
                 </item>
             </argument>
         </column>
-        <actionsColumn name="actions" class="Mageplaza\Smtp\Ui\Component\Listing\Column\ViewAction">
+        <actionsColumn name="view" class="Mageplaza\Smtp\Ui\Component\Listing\Column\ViewAction">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
-                    <item name="indexField" xsi:type="string">id</item>
-                    <item name="sortOrder" xsi:type="number">50</item>
+                    <item name="component" xsi:type="string">Mageplaza_Smtp/js/grid/columns/view</item>
+                    <item name="sortable" xsi:type="boolean">false</item>
+                    <item name="altField" xsi:type="string">name</item>
+                    <item name="has_preview" xsi:type="string">1</item>
+                    <!--<item name="label" xsi:type="string" translate="true">Thumbnail</item>-->
+                    <item name="sortOrder" xsi:type="number">100</item>
                 </item>
             </argument>
         </actionsColumn>
+        <!--<actionsColumn name="actions" class="Mageplaza\Smtp\Ui\Component\Listing\Column\ViewAction">-->
+            <!--<argument name="data" xsi:type="array">-->
+                <!--<item name="config" xsi:type="array">-->
+                    <!--<item name="indexField" xsi:type="string">id</item>-->
+                    <!--<item name="sortOrder" xsi:type="number">50</item>-->
+                <!--</item>-->
+            <!--</argument>-->
+        <!--</actionsColumn>-->
     </columns>
 </listing>

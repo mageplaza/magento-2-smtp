@@ -21,11 +21,11 @@
 
 namespace Mageplaza\Smtp\Ui\Component\Listing\Column;
 
+use Magento\Cms\Block\Adminhtml\Page\Grid\Renderer\Action\UrlBuilder;
+use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
-use Magento\Cms\Block\Adminhtml\Page\Grid\Renderer\Action\UrlBuilder;
-use Magento\Framework\UrlInterface;
 
 /**
  * Class ViewAction
@@ -33,61 +33,55 @@ use Magento\Framework\UrlInterface;
  */
 class ViewAction extends Column
 {
-	/**
-	 * @var \Magento\Cms\Block\Adminhtml\Page\Grid\Renderer\Action\UrlBuilder
-	 */
-	private $actionUrlBuilder;
+    /**
+     * @var \Magento\Cms\Block\Adminhtml\Page\Grid\Renderer\Action\UrlBuilder
+     */
+    private $actionUrlBuilder;
 
-	/**
-	 * @var \Magento\Framework\UrlInterface
-	 */
-	private $urlBuilder;
+    /**
+     * @var \Magento\Framework\UrlInterface
+     */
+    private $urlBuilder;
 
-	/**
-	 * Constructor
-	 *
-	 * @param ContextInterface $context
-	 * @param UiComponentFactory $uiComponentFactory
-	 * @param UrlBuilder $actionUrlBuilder
-	 * @param UrlInterface $urlBuilder
-	 * @param array $components
-	 * @param array $data
-	 */
-	public function __construct(
-		ContextInterface $context,
-		UiComponentFactory $uiComponentFactory,
-		UrlBuilder $actionUrlBuilder,
-		UrlInterface $urlBuilder,
-		array $components = [],
-		array $data = []
-	)
-	{
-		$this->urlBuilder       = $urlBuilder;
-		$this->actionUrlBuilder = $actionUrlBuilder;
-		parent::__construct($context, $uiComponentFactory, $components, $data);
-	}
+    /**
+     * Constructor
+     *
+     * @param ContextInterface $context
+     * @param UiComponentFactory $uiComponentFactory
+     * @param UrlBuilder $actionUrlBuilder
+     * @param UrlInterface $urlBuilder
+     * @param array $components
+     * @param array $data
+     */
+    public function __construct(
+        ContextInterface $context,
+        UiComponentFactory $uiComponentFactory,
+        UrlBuilder $actionUrlBuilder,
+        UrlInterface $urlBuilder,
+        array $components = [],
+        array $data = []
+    )
+    {
+        $this->urlBuilder       = $urlBuilder;
+        $this->actionUrlBuilder = $actionUrlBuilder;
+        parent::__construct($context, $uiComponentFactory, $components, $data);
+    }
 
-	/**
-	 * Prepare Data Source
-	 *
-	 * @param array $dataSource
-	 * @return array
-	 */
-	public function prepareDataSource(array $dataSource)
-	{
-		if (isset($dataSource['data']['items'])) {
-			foreach ($dataSource['data']['items'] as & $item) {
-				$item['subject'] = iconv_mime_decode($item['subject'], 0, 'UTF-8');
-				$name = $this->getData('name');
-				if (isset($item['id'])) {
-					$item[$name]['view'] = [
-						'href'  => $this->urlBuilder->getUrl('mageplaza_smtp/index/view', ['id' => $item['id']]),
-						'label' => __('View')
-					];
-				}
-			}
-		}
+    /**
+     * Prepare Data Source
+     *
+     * @param array $dataSource
+     * @return array
+     */
+    public function prepareDataSource(array $dataSource)
+    {
+        if (isset($dataSource['data']['items'])) {
+            foreach ($dataSource['data']['items'] as & $item) {
+                $item['subject']              = iconv_mime_decode($item['subject'], 0, 'UTF-8');
+                $item[$this->getData('name')] = __('View');
+            }
+        }
 
-		return $dataSource;
-	}
+        return $dataSource;
+    }
 }
