@@ -149,7 +149,7 @@
                 <item name="options" xsi:type="object">Mageplaza\Smtp\Model\Source\Status</item>
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">select</item>
-                    <item name="component" xsi:type="string">Magento_Ui/js/grid/columns/select</item>
+                    <item name="component" xsi:type="string">Mageplaza_Smtp/js/grid/columns/status</item>
                     <item name="editor" xsi:type="string">select</item>
                     <item name="dataType" xsi:type="string">select</item>
                     <item name="label" xsi:type="string" translate="true">Status</item>
@@ -176,18 +176,9 @@
                     <item name="sortable" xsi:type="boolean">false</item>
                     <item name="altField" xsi:type="string">name</item>
                     <item name="has_preview" xsi:type="string">1</item>
-                    <!--<item name="label" xsi:type="string" translate="true">Thumbnail</item>-->
                     <item name="sortOrder" xsi:type="number">100</item>
                 </item>
             </argument>
         </actionsColumn>
-        <!--<actionsColumn name="actions" class="Mageplaza\Smtp\Ui\Component\Listing\Column\ViewAction">-->
-            <!--<argument name="data" xsi:type="array">-->
-                <!--<item name="config" xsi:type="array">-->
-                    <!--<item name="indexField" xsi:type="string">id</item>-->
-                    <!--<item name="sortOrder" xsi:type="number">50</item>-->
-                <!--</item>-->
-            <!--</argument>-->
-        <!--</actionsColumn>-->
     </columns>
 </listing>
