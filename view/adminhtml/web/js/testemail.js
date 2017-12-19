@@ -61,7 +61,7 @@ define([
                     protocol: $(this.options.protocolElem).val(),
                     username: $(this.options.usernameElem).val(),
                     password: $(this.options.passwordElem).val(),
-                    returnpath: $(this.options.returnpath).val()
+                    returnpath: $(this.options.rerutnPathElem).val()
                 },
                 dataType: 'json',
                 showLoader: true,

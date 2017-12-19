@@ -22,13 +22,13 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-        <section id="smtp" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+        <section id="smtp" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="0" showInStore="1">
             <label>SMTP</label>
             <tab>mageplaza</tab>
             <resource>Mageplaza_Smtp::configuration</resource>
-            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>General Configuration</label>
-                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Enable Mageplaza SMTP</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Mageplaza SMTP is compatible with default Magento SMTP and other email modules.<br />
@@ -36,50 +36,50 @@
                     </comment>
                 </field>
             </group>
-            <group id="configuration_option" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="configuration_option" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>SMTP Configuration Options</label>
-                <field id="provider" translate="label comment button_label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="provider" translate="label comment button_label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>SMTP Provider</label>
                     <button_label>Load Settings</button_label>
                     <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\Provider</frontend_model>
                     <comment>Select a Pre-defined SMTP Server, then click Load Settings.</comment>
                 </field>
-                <field id="host" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="host" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Host</label>
                     <comment>Support Host name and ID Address</comment>
                 </field>
-                <field id="port" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="port" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Port</label>
                     <comment>Default ports: 25, 465, or 587. Port 465 (SSL required), Port 587 (TLS required)</comment>
                 </field>
-                <field id="authentication" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="authentication" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Authentication</label>
                     <source_model>Mageplaza\Smtp\Model\Config\Source\Authentication</source_model>
                 </field>
-                <field id="username" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="username" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Username</label>
                 </field>
-                <field id="password" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="password" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Password</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
-                <field id="protocol" translate="label comment" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="protocol" translate="label comment" type="select" sortOrder="80" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Protocol</label>
                     <source_model>Mageplaza\Smtp\Model\Config\Source\Protocol</source_model>
                     <comment>We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols.</comment>
                 </field>
-                <field id="return_path_email" translate="label comment" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="return_path_email" translate="label comment" type="text" sortOrder="90" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Return-Path Email</label>
                     <comment>Leave empty to ignore it.</comment>
                     <validate>validate-email</validate>
                 </field>
-                <group id="test_email" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                <group id="test_email" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Send Test Email</label>
-                    <field id="from" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <field id="from" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                         <label>Send From</label>
                         <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
                     </field>
-                    <field id="to" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <field id="to" translate="label" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                         <label>Send To</label>
                         <comment>
                             <![CDATA[<p class="note"><span>Enter your email and click <b>Test Now</b> button to test the configuration. <br>
@@ -90,7 +90,7 @@
                         </p>]]>
                         </comment>
                     </field>
-                    <field id="sent" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <field id="sent" translate="label" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
                         <label></label>
                         <button_label>Test Now</button_label>
                         <button_url>mageplaza_smtp/index/index</button_url>
@@ -98,14 +98,14 @@
                     </field>
                 </group>
             </group>
-            <group id="developer" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="developer" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>Developer</label>
-                <field id="log_email" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="log_email" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Log Emails</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>It will log all sent emails, you can preview it and schedule clean up.</comment>
                 </field>
-                <field id="clean_email" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="clean_email" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Clean Email Log Every</label>
                     <validate>validate-number validate-zero-or-greater</validate>
                     <comment>Day(s). If empty or zero, the Email log will not be cleaned.</comment>
@@ -113,7 +113,7 @@
                         <field id="log_email">1</field>
                     </depends>
                 </field>
-                <field id="developer_mode" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="developer_mode" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Developer Mode</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>If Enable, Magento will not delivery any email to receiver. This is useful for developers.</comment>
