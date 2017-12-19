@@ -24,6 +24,6 @@
     <menu>
         <add id="Mageplaza_Smtp::smtp" title="SMTP" module="Mageplaza_Smtp" sortOrder="19" resource="Mageplaza_Smtp::smtp" parent="Mageplaza_Core::menu"/>
         <add id="Mageplaza_Smtp::log" title="Email Logs" module="Mageplaza_Smtp" sortOrder="10" parent="Mageplaza_Smtp::smtp" action="mageplaza_smtp/index/log" resource="Mageplaza_Smtp::log"/>
-        <add id="Mageplaza_Smtp::configuration_smtp" title="Configuration" module="Mageplaza_Smtp" sortOrder="20" action="adminhtml/system_config/edit/section/smtp" resource="Mageplaza_Smtp::configuration_smtp" parent="Mageplaza_Smtp::smtp"/>
+        <add id="Mageplaza_Smtp::configuration" title="Configuration" module="Mageplaza_Smtp" sortOrder="20" action="adminhtml/system_config/edit/section/smtp" resource="Mageplaza_Smtp::configuration" parent="Mageplaza_Smtp::smtp"/>
     </menu>
 </config>

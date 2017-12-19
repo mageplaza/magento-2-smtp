@@ -24,17 +24,19 @@ define([
     "jquery/ui"
 ], function ($, alert, $t) {
     "use strict";
+
     $.widget('mageplaza.testEmail', {
         options: {
             ajaxUrl: '',
-            testEmail: '#smtp_configuration_option_test_email',
-            emailElem: '#actions-test-email',
+            testEmail: '#smtp_configuration_option_test_email_sent',
+            fromEmailElem: '#smtp_configuration_option_test_email_from',
             hostElem: '#smtp_configuration_option_host',
             portElem: '#smtp_configuration_option_port',
             authenticationElem: '#smtp_configuration_option_authentication',
             protocolElem: '#smtp_configuration_option_protocol',
             usernameElem: '#smtp_configuration_option_username',
-            passwordElem: '#smtp_configuration_option_password'
+            passwordElem: '#smtp_configuration_option_password',
+            rerutnPathElem: '#smtp_configuration_option_return_path_email'
         },
         _create: function () {
             var self = this;
@@ -51,13 +53,15 @@ define([
             $.ajax({
                 url: this.options.ajaxUrl,
                 data: {
-                    email: $(this.options.emailElem).val(),
+                    from: $(this.options.fromEmailElem).val(),
+                    to: this.element.val(),
                     host: $(this.options.hostElem).val(),
                     port: $(this.options.portElem).val(),
                     authentication: $(this.options.authenticationElem).val(),
                     protocol: $(this.options.protocolElem).val(),
                     username: $(this.options.usernameElem).val(),
-                    password: $(this.options.passwordElem).val()
+                    password: $(this.options.passwordElem).val(),
+                    returnpath: $(this.options.returnpath).val()
                 },
                 dataType: 'json',
                 showLoader: true,
@@ -70,5 +74,6 @@ define([
             });
         }
     });
+
     return $.mageplaza.testEmail;
 });

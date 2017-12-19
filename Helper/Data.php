@@ -21,38 +21,50 @@
 
 namespace Mageplaza\Smtp\Helper;
 
+use Mageplaza\Core\Helper\AbstractData;
+
 /**
  * Class Data
  * @package Mageplaza\Smtp\Helper
  */
-class Data extends \Magento\Framework\App\Helper\AbstractHelper
+class Data extends AbstractData
 {
-	/**
-	 * @var \Magento\Framework\App\Config\ScopeConfigInterface
-	 */
-	protected $scopeConfig;
+    const CONFIG_MODULE_PATH = 'smtp';
 
-	/**
-	 * Constructor
-	 *
-	 * @param \Magento\Framework\App\Helper\Context $context
-	 */
-	public function __construct(
-		\Magento\Framework\App\Helper\Context $context
-	)
-	{
-		parent::__construct($context);
-		$this->scopeConfig = $context->getScopeConfig();
-	}
+    const CONFIG_GROUP_SMTP = 'configuration_option';
+    const DEVELOP_GROUP_SMTP = 'developer';
 
-	/**
-	 * Get Config
-	 *
-	 * @param null $storeId
-	 * @return mixed
-	 */
-	public function getConfig($group, $field, $storeId = null)
-	{
-		return $this->scopeConfig->getValue('smtp/' . $group . '/' . $field, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
-	}
+    /**
+     * @param null $storeId
+     * @return bool
+     */
+    public function isEnabled($storeId = null)
+    {
+        return $this->getConfigGeneral('enabled', $storeId);
+    }
+
+    /**
+     * @param string $code
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getConfigGeneral($code = '', $storeId = null)
+    {
+        $code = ($code !== '') ? '/' . $code : '';
+
+        return $this->getConfigValue(static::CONFIG_MODULE_PATH . '/general' . $code, $storeId);
+    }
+
+    /**
+     * @param $group
+     * @param $code
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getConfig($group, $code = '', $storeId = null)
+    {
+        $code = ($code !== '') ? '/' . $code : '';
+
+        return $this->getConfigValue(static::CONFIG_MODULE_PATH . '/' . $group . $code, $storeId);
+    }
 }

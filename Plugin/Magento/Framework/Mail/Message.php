@@ -21,39 +21,39 @@
 
 namespace Mageplaza\Smtp\Plugin\Magento\Framework\Mail;
 
+use Magento\Framework\Mail\Message as MailMessage;
+use Magento\Framework\Registry;
+
 /**
  * Class Message
  * @package Mageplaza\Smtp\Plugin\Magento\Framework\Mail
  */
 class Message
 {
-	/**
-	 * @var \Magento\Framework\Registry
-	 */
-	protected $registry;
+    /**
+     * @var \Magento\Framework\Registry
+     */
+    protected $registry;
 
-	/**
-	 * Constructor
-	 *
-	 * @param \Magento\Framework\Registry $registry
-	 */
-	public function __construct(
-		\Magento\Framework\Registry $registry
-	)
-	{
-		$this->registry = $registry;
-	}
+    /**
+     * Message constructor.
+     * @param \Magento\Framework\Registry $registry
+     */
+    public function __construct(Registry $registry)
+    {
+        $this->registry = $registry;
+    }
 
-	/**
-	 * Register $this
-	 *
-	 * @return $this
-	 */
-	public function afterSetBody(\Magento\Framework\Mail\Message $subject, $result)
-	{
-		$this->registry->unregister('mageplaza_smtp_message');
-		$this->registry->register('mageplaza_smtp_message', $subject);
+    /**
+     * @param \Magento\Framework\Mail\Message $subject
+     * @param $result
+     * @return mixed
+     */
+    public function afterSetBody(MailMessage $subject, $result)
+    {
+        $this->registry->unregister('mageplaza_smtp_message');
+        $this->registry->register('mageplaza_smtp_message', $subject);
 
-		return $result;
-	}
+        return $result;
+    }
 }

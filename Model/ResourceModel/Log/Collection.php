@@ -21,32 +21,33 @@
 
 namespace Mageplaza\Smtp\Model\ResourceModel\Log;
 
+use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
+
 /**
  * Class Collection
  * @package Mageplaza\Smtp\Model\ResourceModel\Log
  */
-class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
+class Collection extends AbstractCollection
 {
+    /**
+     * Define resource model
+     *
+     * @return void
+     */
+    protected function _construct()
+    {
+        $this->_init('Mageplaza\Smtp\Model\Log', 'Mageplaza\Smtp\Model\ResourceModel\Log');
+    }
 
-	/**
-	 * Truncate table emails log
-	 *
-	 * @return void
-	 */
-	public function clearLog()
-	{
-		$connection = $this->getConnection();
-		$tableName  = $this->getMainTable();
-		$connection->truncateTable($tableName);
-	}
-
-	/**
-	 * Define resource model
-	 *
-	 * @return void
-	 */
-	protected function _construct()
-	{
-		$this->_init('Mageplaza\Smtp\Model\Log', 'Mageplaza\Smtp\Model\ResourceModel\Log');
-	}
+    /**
+     * Truncate table emails log
+     *
+     * @return void
+     */
+    public function clearLog()
+    {
+        $connection = $this->getConnection();
+        $tableName  = $this->getMainTable();
+        $connection->truncateTable($tableName);
+    }
 }

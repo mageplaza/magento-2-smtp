@@ -32,124 +32,96 @@ use Mageplaza\Smtp\Helper\Data;
  */
 class Mail extends \Zend_Application_Resource_Mail
 {
-	const CONFIGURATION_GROUP_SMTP = 'configuration_option';
-	const DEVELOPER_GROUP_SMTP = 'developer';
-	const GENERAL_GROUP_SMTP = 'general';
+    /**
+     * @var \Mageplaza\Smtp\Helper\Data
+     */
+    protected $smtpHelper;
 
-	/**
-	 * @var \Mageplaza\Smtp\Helper\Data
-	 */
-	protected $smtpHelper;
+    /**
+     * @var boolean is module enable
+     */
+    protected $_moduleEnable;
 
-	/**
-	 * @var \Magento\Framework\Registry
-	 */
-	protected $registry;
+    /**
+     * @var boolean is developer mode
+     */
+    protected $_developerMode;
 
-	/**
-	 * @var boolean is module enable
-	 */
-	protected $_moduleEnable;
+    /**
+     * @var boolean is enable email log
+     */
+    protected $_emailLog;
 
-	/**
-	 * @var boolean is developer mode
-	 */
-	protected $_developerMode;
+    /**
+     * Mail constructor.
+     * @param null $options
+     */
+    public function __construct($options = null)
+    {
+        $this->smtpHelper = ObjectManager::getInstance()->get(Data::class);
+        $encryptor        = ObjectManager::getInstance()->get(EncryptorInterface::class);
 
-	/**
-	 * @var boolean is enable email log
-	 */
-	protected $_emailLog;
+        $configData = $this->smtpHelper->getConfig(Data::CONFIG_GROUP_SMTP);
+        $options    = [
+            'type'     => 'smtp',
+            'host'     => isset($configData['host']) ? $configData['host'] : '',
+            'ssl'      => isset($configData['ssl']) ? $configData['ssl'] : '',
+            'port'     => isset($configData['port']) ? $configData['port'] : '',
+            'auth'     => isset($configData['authentication']) ? $configData['authentication'] : '',
+            'username' => isset($configData['username']) ? $configData['username'] : '',
+            'password' => isset($configData['password']) ? $encryptor->decrypt($configData['password']) : '',
+        ];
 
-	/**
-	 * Mail constructor.
-	 * @param null $options
-	 */
-	public function __construct($options = null)
-	{
-		$options = ['type' => 'smtp'];
+        parent::__construct(['transport' => $options]);
+    }
 
-		$smtpHelper = ObjectManager::getInstance()->get(Data::class);
-		if ($host = $smtpHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'host')) {
-			$options['host'] = $host;
-		}
-
-		if ($protocol = $smtpHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'protocol')) {
-			$options['ssl'] = $protocol;
-		}
-
-		if ($port = $smtpHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'port')) {
-			$options['port'] = $port;
-		}
-
-		$options['auth']     = $smtpHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'authentication');
-		$options['username'] = $smtpHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'username');
-
-		$encryptor           = ObjectManager::getInstance()->get(EncryptorInterface::class);
-		$options['password'] = $encryptor->decrypt($smtpHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'password'));
-
-		$this->smtpHelper = $smtpHelper;
-		$this->registry   = ObjectManager::getInstance()->get(Registry::class);
-
-		parent::__construct(['transport' => $options]);
-	}
-
-	/**
-	 * @return \Magento\Framework\Mail\Message
-	 */
-	public function getMessage()
-	{
-		//set return-path
-		$message = $this->registry->registry('mageplaza_smtp_message');
-		if ($returnPath = $this->smtpHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'return_path_email')) {
+    /**
+     * @return \Magento\Framework\Mail\Message
+     */
+    public function getMessage()
+    {
+        $registry = ObjectManager::getInstance()->get(Registry::class);
+        $message  = $registry->registry('mageplaza_smtp_message');
+        if ($returnPath = $this->smtpHelper->getConfig(Data::CONFIG_GROUP_SMTP, 'return_path_email')) {
             $message->setReturnPath($returnPath);
         }
 
-        //set email from
-		$headers    = $message->getHeaders();
-		$senderName = strip_tags($headers['From'][0], $message->getFrom());
-		$fromPath   = $this->smtpHelper->getConfig(self::CONFIGURATION_GROUP_SMTP, 'email_from');
-		if ($fromPath && $senderName) {
-			$message->clearFrom();
-			$message->setFrom($fromPath, $senderName);
-		}
+        return $message;
+    }
 
-		return $message;
-	}
+    /**
+     * @return bool|mixed
+     */
+    public function isModuleEnable()
+    {
+        if (is_null($this->_moduleEnable)) {
+            $this->_moduleEnable = $this->smtpHelper->isEnabled();
+        }
 
-	/**
-	 * @return bool|mixed
-	 */
-	public function isModuleEnable()
-	{
-		if (is_null($this->_moduleEnable)) {
-			$this->_moduleEnable = $this->smtpHelper->getConfig(self::GENERAL_GROUP_SMTP, 'enabled');
-		}
+        return $this->_moduleEnable;
+    }
 
-		return $this->_moduleEnable;
-	}
+    /**
+     * @return bool|mixed
+     */
+    public function isDeveloperMode()
+    {
+        if (is_null($this->_developerMode)) {
+            $this->_developerMode = $this->smtpHelper->getConfig(Data::DEVELOP_GROUP_SMTP, 'developer_mode');
+        }
 
-	/**
-	 * @return bool|mixed
-	 */
-	public function isDeveloperMode()
-	{
-		if (is_null($this->_developerMode)) {
-			$this->_developerMode = $this->smtpHelper->getConfig(self::DEVELOPER_GROUP_SMTP, 'developer_mode');
-		}
+        return $this->_developerMode;
+    }
 
-		return $this->_developerMode;
-	}
+    /**
+     * @return bool|mixed
+     */
+    public function isEnableEmailLog()
+    {
+        if (is_null($this->_emailLog)) {
+            $this->_emailLog = $this->smtpHelper->getConfig(Data::DEVELOP_GROUP_SMTP, 'log_email');
+        }
 
-	/**
-	 * @return bool|mixed
-	 */
-	public function isEnableEmailLog()
-	{
-		if (is_null($this->_emailLog)) {
-			$this->_emailLog = $this->smtpHelper->getConfig(self::DEVELOPER_GROUP_SMTP, 'log_email');
-		}
-
-		return $this->_emailLog;
-	}
+        return $this->_emailLog;
+    }
 }

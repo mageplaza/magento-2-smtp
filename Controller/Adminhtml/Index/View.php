@@ -21,55 +21,61 @@
 
 namespace Mageplaza\Smtp\Controller\Adminhtml\Index;
 
+use Magento\Backend\App\Action;
+use Magento\Backend\App\Action\Context;
+use Magento\Framework\View\Result\PageFactory;
+
 /**
  * Class View
  * @package Mageplaza\Smtp\Controller\Adminhtml\Index
  */
-class View extends \Magento\Backend\App\Action
+class View extends Action
 {
-	/**
-	 * Authorization level of a basic admin session
-	 *
-	 * @see _isAllowed()
-	 */
-	const ADMIN_RESOURCE = 'Mageplaza_Smtp::smtp';
+    /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Mageplaza_Smtp::smtp';
 
-	/**
-	 * @var \Magento\Framework\View\Result\PageFactory
-	 */
-	private $resultPageFactory;
+    /**
+     * @var \Magento\Framework\View\Result\PageFactory
+     */
+    protected $resultPageFactory;
 
-	/**
-	 * Constructor
-	 *
-	 * @param \Magento\Backend\App\Action\Context $context
-	 * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
-	 */
-	public function __construct(
-		\Magento\Backend\App\Action\Context $context,
-		\Magento\Framework\View\Result\PageFactory $resultPageFactory
-	)
-	{
-		$this->resultPageFactory = $resultPageFactory;
-		parent::__construct($context);
-	}
+    /**
+     * Constructor
+     *
+     * @param \Magento\Backend\App\Action\Context $context
+     * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
+     */
+    public function __construct(
+        Context $context,
+        PageFactory $resultPageFactory
+    )
+    {
+        $this->resultPageFactory = $resultPageFactory;
 
-	/**
-	 * @return \Magento\Framework\View\Result\Page
-	 */
-	public function execute()
-	{
-		$resultPage = $this->resultPageFactory->create();
-		$resultPage->getLayout();
-		$resultPage->setActiveMenu('Mageplaza_Smtp::log');
-		//Add bread crumb
-		$resultPage->addBreadcrumb(__('Mageplaza'), __('Mageplaza'));
-		$resultPage->addBreadcrumb(__('Smtp'), __('Emails Log'));
-		$resultPage->addContent(
-			$resultPage->getLayout()->createBlock('Mageplaza\Smtp\Block\Adminhtml\View\Email')
-		);
-		$resultPage->getConfig()->getTitle()->prepend(__('Email'));
+        parent::__construct($context);
+    }
 
-		return $resultPage;
-	}
+    /**
+     * @return \Magento\Framework\View\Result\Page
+     */
+    public function execute()
+    {
+        $resultPage = $this->resultPageFactory->create();
+        $resultPage->getLayout();
+        $resultPage->setActiveMenu('Mageplaza_Smtp::log');
+
+        //Add bread crumb
+        $resultPage->addBreadcrumb(__('Mageplaza'), __('Mageplaza'));
+        $resultPage->addBreadcrumb(__('Smtp'), __('Emails Log'));
+        $resultPage->addContent(
+            $resultPage->getLayout()->createBlock('Mageplaza\Smtp\Block\Adminhtml\View\Email')
+        );
+        $resultPage->getConfig()->getTitle()->prepend(__('Email'));
+
+        return $resultPage;
+    }
 }

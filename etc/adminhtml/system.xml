@@ -28,11 +28,11 @@
             <resource>Mageplaza_Smtp::configuration</resource>
             <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>General Configuration</label>
-                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Mageplaza SMTP</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment>Mageplaza SMTP is compatible with default Magento SMTP and other email modules.
-                        <![CDATA[It helps to reduce abandonment cart with <a href="https://www.mageplaza.com/magento-2-one-step-checkout-extension/" target="_blank">One Step Checkout</a>. Fully compatible with <a href="https://www.mageplaza.com/magento-2-abandoned-cart-email/" target="_blank">Abandoned Cart Email</a>]]>
+                    <comment><![CDATA[Mageplaza SMTP is compatible with default Magento SMTP and other email modules.<br />
+                        It helps to reduce abandonment cart with <a href="https://www.mageplaza.com/magento-2-one-step-checkout-extension/" target="_blank">One Step Checkout</a>. Fully compatible with <a href="https://www.mageplaza.com/magento-2-abandoned-cart-email/" target="_blank">Abandoned Cart Email</a>]]>
                     </comment>
                 </field>
             </group>
@@ -73,24 +73,30 @@
                     <comment>Leave empty to ignore it.</comment>
                     <validate>validate-email</validate>
                 </field>
-                <field id="email_from" translate="label comment" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Set Email From</label>
-                    <comment>Leave empty to ignore it.</comment>
-                    <validate>validate-email</validate>
-                </field>
-                <field id="test_email" translate="label button_label" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Test Email Recipient</label>
-                    <button_label>Test Now</button_label>
-                    <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\Testemail</frontend_model>
-                </field>
-            </group>
-            <group id="cleaner" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Schedule Log Cleaner</label>
-                <field id="clean_email" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Clean Email Log Every</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <comment>Day(s). Default: 10. To keep them, set to 0. It will clean Email log after X day(s).</comment>
-                </field>
+                <group id="test_email" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Send Test Email</label>
+                    <field id="from" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Send From</label>
+                        <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                    </field>
+                    <field id="to" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Send To</label>
+                        <comment>
+                            <![CDATA[<p class="note"><span>Enter your email and click <b>Test Now</b> button to test the configuration. <br>
+                            Read: <br>
+                            - <a href="https://www.mageplaza.com/faqs/smtp/" target="_blank">FAQs</a><br>
+                            - <a href="https://www.mageplaza.com/faqs/smtp-connection-timed-out.html" target="_blank">Connection timed out</a>
+                        </span>
+                        </p>]]>
+                        </comment>
+                    </field>
+                    <field id="sent" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label></label>
+                        <button_label>Test Now</button_label>
+                        <button_url>mageplaza_smtp/index/index</button_url>
+                        <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\Button</frontend_model>
+                    </field>
+                </group>
             </group>
             <group id="developer" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Developer</label>
@@ -99,7 +105,15 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>It will log all sent emails, you can preview it and schedule clean up.</comment>
                 </field>
-                <field id="developer_mode" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="clean_email" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Clean Email Log Every</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment>Day(s). If empty or zero, the Email log will not be cleaned.</comment>
+                    <depends>
+                        <field id="log_email">1</field>
+                    </depends>
+                </field>
+                <field id="developer_mode" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Developer Mode</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>If Enable, Magento will not delivery any email to receiver. This is useful for developers.</comment>

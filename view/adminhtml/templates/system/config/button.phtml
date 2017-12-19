@@ -18,25 +18,19 @@
  * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
  * @license     http://mageplaza.com/LICENSE.txt
  */
+
+/** @var \Mageplaza\Smtp\Block\Adminhtml\System\Config\Button $block */
 ?>
 <div class="actions actions-test-email">
-    <input type="text" id="actions-test-email"/>
     <button class="actions-test-email" type="button" id="<?php echo $block->getHtmlId() ?>">
         <span><?php echo $block->escapeHtml($block->getButtonLabel()) ?></span>
     </button>
-    <p class="note"><span>Enter your email and click <b>Test Now</b> button to test the configuration. <br>
-    Read: <br> 
-    - <a href="https://www.mageplaza.com/faqs/smtp/" target="_blank">FAQs</a><br> 
-    - <a href="https://www.mageplaza.com/faqs/smtp-connection-timed-out.html" target="_blank">Connection timed out</a>
-    </span>
-    </p>
-    
 </div>
 <script type="text/x-magento-init">
     {
-        "#actions-test-email": {
+        "#smtp_configuration_option_test_email_to": {
             "mageplaza/testemail": {
-                "ajaxUrl": "<?php /* @escapeNotVerified */ echo $block->getAjaxUrl() ?>"
+                "ajaxUrl": "<?php /* @escapeNotVerified */ echo $block->getButtonUrl() ?>"
             }
         }
     }

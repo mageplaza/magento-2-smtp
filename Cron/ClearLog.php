@@ -21,74 +21,82 @@
 
 namespace Mageplaza\Smtp\Cron;
 
+use Magento\Framework\Stdlib\DateTime\DateTime;
+use Mageplaza\Smtp\Helper\Data;
+use Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory;
+use Psr\Log\LoggerInterface;
+
 /**
  * Class ClearLog
  * @package Mageplaza\Smtp\Cron
  */
 class ClearLog
 {
-	const CLEANER_GROUP_SMTP = 'cleaner';
-	const GENERAL_GROUP_SMTP = 'general';
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $logger;
 
-	/**
-	 * @var \Psr\Log\LoggerInterface
-	 */
-	protected $logger;
+    /**
+     * @var \Mageplaza\Smtp\Helper\Data
+     */
+    protected $helper;
 
-	/**
-	 * @var \Mageplaza\Smtp\Helper\Data
-	 */
-	private $smtpDataHelper;
+    /**
+     * @var \Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory
+     */
+    protected $collectionLog;
 
-	/**
-	 * @var \Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory
-	 */
-	private $collectionLog;
+    /**
+     * @var \Magento\Framework\Stdlib\DateTime\DateTime
+     */
+    protected $date;
 
-	/**
-	 * @var \Magento\Framework\Stdlib\DateTime\DateTime
-	 */
-	private $date;
+    /**
+     * ClearLog constructor.
+     * @param \Psr\Log\LoggerInterface $logger
+     * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
+     * @param \Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory $collectionLog
+     * @param \Mageplaza\Smtp\Helper\Data $helper
+     */
+    public function __construct(
+        LoggerInterface $logger,
+        DateTime $date,
+        CollectionFactory $collectionLog,
+        Data $helper
+    )
+    {
+        $this->logger        = $logger;
+        $this->date          = $date;
+        $this->collectionLog = $collectionLog;
+        $this->helper        = $helper;
+    }
 
-	/**
-	 * Constructor
-	 *
-	 * @param \Psr\Log\LoggerInterface $logger
-	 * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
-	 * @param \Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory $collectionLog
-	 * @param \Mageplaza\Smtp\Helper\Data $smtpDataHelper
-	 */
-	public function __construct(
-		\Psr\Log\LoggerInterface $logger,
-		\Magento\Framework\Stdlib\DateTime\DateTime $date,
-		\Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory $collectionLog,
-		\Mageplaza\Smtp\Helper\Data $smtpDataHelper
-	)
-	{
-		$this->logger         = $logger;
-		$this->date           = $date;
-		$this->collectionLog  = $collectionLog;
-		$this->smtpDataHelper = $smtpDataHelper;
-	}
+    /**
+     * Clean Email Log after X day(s)
+     *
+     * @return $this
+     */
+    public function execute()
+    {
+        if (!$this->helper->isEnabled()) {
+            return $this;
+        }
 
-	/**
-	 * Clean Email Log after X day(s)
-	 *
-	 * @return void
-	 */
-	public function execute()
-	{
-		$day = (int)$this->smtpDataHelper->getConfig(self::CLEANER_GROUP_SMTP, 'clean_email');
-		if (isset($day) && $day > 0 && $this->smtpDataHelper->getConfig(self::GENERAL_GROUP_SMTP, 'enabled')) {
-			$timeEnd = strtotime($this->date->date()) - $day * 24 * 60 * 60;
-			$logs    = $this->collectionLog->create()->addFieldToFilter('created_at', ['lteq' => date('Y-m-d H:i:s', $timeEnd)]);
-			try {
-				foreach ($logs as $log) {
-					$log->delete();
-				}
-			} catch (\Exception $e) {
-				$this->logger->critical($e);
-			}
-		}
-	}
+        $day = (int)$this->helper->getConfig(Data::DEVELOP_GROUP_SMTP, 'clean_email');
+        if (isset($day) && $day > 0) {
+            $timeEnd = strtotime($this->date->date()) - $day * 24 * 60 * 60;
+            $logs    = $this->collectionLog->create()
+                ->addFieldToFilter('created_at', ['lteq' => date('Y-m-d H:i:s', $timeEnd)]);
+            try {
+                foreach ($logs as $log) {
+                    $log->delete();
+                }
+            } catch (\Exception $e) {
+                $this->logger->critical($e);
+            }
+        }
+
+        return $this;
+    }
 }

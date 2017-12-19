@@ -1,8 +1,9 @@
 "- Choose a SMTP Provider -","- Choose a SMTP Provider -"
+"Gmail, GSuite","Gmail, GSuite"
 Mailgun,Mailgun
 Mandrill,Mandrill
-"Send In Blue","Send In Blue"
-"Send Grid","Send Grid"
+Sendinblue,Sendinblue
+Sendgrid,Sendgrid
 "Elastic Email","Elastic Email"
 SparkPost,SparkPost
 Mailjet,Mailjet
@@ -10,7 +11,6 @@ Postmark,Postmark
 "AOL Mail","AOL Mail"
 Comcast,Comcast
 GMX,GMX
-Gmail,Gmail
 Hotmail,Hotmail
 Mail.com,Mail.com
 "O2 Mail","O2 Mail"
@@ -23,7 +23,7 @@ Outlook,Outlook
 AT&T,AT&T
 "NTL @ntlworld.com","NTL @ntlworld.com"
 "BT Connect","BT Connect"
-"zoho Mail","zoho Mail"
+"Zoho Mail","Zoho Mail"
 Verizon,Verizon
 "BT Openworld","BT Openworld"
 "O2 Online Deutschland","O2 Online Deutschland"
@@ -49,11 +49,10 @@ View,View
 SMTP,SMTP
 "General Configuration","General Configuration"
 "Enable Mageplaza SMTP","Enable Mageplaza SMTP"
-"Mageplaza SMTP is compatible with default Magento SMTP and other email modules.","Mageplaza SMTP is compatible with default Magento SMTP and other email modules."
 "SMTP Configuration Options","SMTP Configuration Options"
 "SMTP Provider","SMTP Provider"
-"Select a Pre-defined SMTP Server","Select a Pre-defined SMTP Server"
-Autofill,Autofill
+"Select a Pre-defined SMTP Server, then click Load Settings.","Select a Pre-defined SMTP Server, then click Load Settings."
+"Load Settings","Load Settings"
 Host,Host
 "Support Host name and ID Address","Support Host name and ID Address"
 Port,Port
@@ -65,14 +64,14 @@ Protocol,Protocol
 "We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols.","We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols."
 "Return-Path Email","Return-Path Email"
 "Leave empty to ignore it.","Leave empty to ignore it."
-"Test Email Recipient","Test Email Recipient"
-"Test Now","Test Now"
-"Schedule Log Cleaner","Schedule Log Cleaner"
-"Clean Email Log Every","Clean Email Log Every"
-"Day(s). Default: 10. To keep them, set to 0. It will clean Email log after X day(s).","Day(s). Default: 10. To keep them, set to 0. It will clean Email log after X day(s)."
+"Send Test Email","Send Test Email"
+"Send From","Send From"
+"Send To","Send To"
 Developer,Developer
 "Log Emails","Log Emails"
 "It will log all sent emails, you can preview it and schedule clean up.","It will log all sent emails, you can preview it and schedule clean up."
+"Clean Email Log Every","Clean Email Log Every"
+"Day(s). If empty or zero, the Email log will not be cleaned.","Day(s). If empty or zero, the Email log will not be cleaned."
 "Developer Mode","Developer Mode"
 "If Enable, Magento will not delivery any email to receiver. This is useful for developers.","If Enable, Magento will not delivery any email to receiver. This is useful for developers."
 Clear,Clear

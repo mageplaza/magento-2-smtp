@@ -21,85 +21,90 @@
 
 namespace Mageplaza\Smtp\Block\Adminhtml\View;
 
+use Magento\Backend\Block\Template;
+use Magento\Backend\Block\Template\Context;
+use Mageplaza\Smtp\Model\LogFactory;
+
 /**
  * Class Email
  * @package Mageplaza\Smtp\Block\Adminhtml\View
  */
-class Email extends \Magento\Backend\Block\Template
+class Email extends Template
 {
-	/**
-	 * @var string
-	 */
-	protected $_template = 'view/email.phtml';
+    /**
+     * @var string
+     */
+    protected $_template = 'view/email.phtml';
 
-	/**
-	 * @var \Mageplaza\Smtp\Model\LogFactory
-	 */
-	private $logFactory;
+    /**
+     * @var \Mageplaza\Smtp\Model\LogFactory
+     */
+    protected $logFactory;
 
-	/**
-	 * Constructor
-	 *
-	 * @param \Magento\Backend\Block\Template\Context $context
-	 * @param \Mageplaza\Smtp\Model\LogFactory $logFactory
-	 * @param array $data
-	 */
-	public function __construct(
-		\Magento\Backend\Block\Template\Context $context,
-		\Mageplaza\Smtp\Model\LogFactory $logFactory,
-		array $data = []
-	)
-	{
-		parent::__construct($context, $data);
-		$this->logFactory = $logFactory;
-	}
+    /**
+     * Constructor
+     *
+     * @param \Magento\Backend\Block\Template\Context $context
+     * @param \Mageplaza\Smtp\Model\LogFactory $logFactory
+     * @param array $data
+     */
+    public function __construct(
+        Context $context,
+        LogFactory $logFactory,
+        array $data = []
+    )
+    {
+        parent::__construct($context, $data);
 
-	/**
-	 * Get email content
-	 *
-	 * @return string
-	 */
-	public function getContent()
-	{
-		$content = htmlspecialchars_decode($this->getLog()->getEmailContent());
-		$content = preg_replace('#<style(.*?)>(.*?)</style>#is', '', $content);
+        $this->logFactory = $logFactory;
+    }
 
-		return $content;
-	}
+    /**
+     * Get email content
+     *
+     * @return string
+     */
+    public function getContent()
+    {
+        $content = htmlspecialchars_decode($this->getLog()->getEmailContent());
+        $content = preg_replace('#<style(.*?)>(.*?)</style>#is', '', $content);
 
-	/**
-	 * Load email log by id
-	 *
-	 * @return mixed
-	 */
-	public function getLog()
-	{
-		$logId = $this->getRequest()->getParam('id');
-		$log   = $this->logFactory->create()->load($logId);
-		if ($log) {
-			return $log;
-		}
+        return $content;
+    }
 
-		return false;
-	}
+    /**
+     * Load email log by id
+     *
+     * @return mixed
+     */
+    public function getLog()
+    {
+        $logId = $this->getRequest()->getParam('id');
+        $log   = $this->logFactory->create()->load($logId);
+        if ($log) {
+            return $log;
+        }
 
-	/**
-	 * @return AbstractBlock
-	 */
-	protected function _prepareLayout()
-	{
-		if ($this->getToolbar()) {
-			$this->getToolbar()->addChild(
-				'back_button',
-				'Magento\Backend\Block\Widget\Button',
-				[
-					'label'   => __('Back'),
-					'onclick' => 'setLocation(\'' . $this->getUrl('*/*/log') . '\')',
-					'class'   => 'back'
-				]
-			);
-		}
+        return false;
+    }
 
-		return parent::_prepareLayout();
-	}
+    /**
+     * @inheritdoc
+     */
+    protected function _prepareLayout()
+    {
+        if ($this->getToolbar()) {
+            $this->getToolbar()->addChild(
+                'back_button',
+                'Magento\Backend\Block\Widget\Button',
+                [
+                    'label'   => __('Back'),
+                    'onclick' => 'setLocation(\'' . $this->getUrl('*/*/log') . '\')',
+                    'class'   => 'back'
+                ]
+            );
+        }
+
+        return parent::_prepareLayout();
+    }
 }

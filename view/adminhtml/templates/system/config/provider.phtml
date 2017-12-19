@@ -18,6 +18,8 @@
  * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
  * @license     http://mageplaza.com/LICENSE.txt
  */
+
+/** @var \Mageplaza\Smtp\Block\Adminhtml\System\Config\Provider $block */
 ?>
 <div class="actions actions-provider">
     <select id="mageplaza_smtp_provider">
@@ -28,7 +30,7 @@
         <?php endforeach; ?>
     </select>
 
-    <button class="actions-provider-button" type="button" id="<?php echo $block->getHtmlId() ?>">
+    <button class="actions-provider-button" type="button" id="<?php echo $block->getHtmlId() ?>" style="width: 19%">
         <span><?php echo $block->escapeHtml($block->getButtonLabel()) ?></span>
     </button>
 </div>

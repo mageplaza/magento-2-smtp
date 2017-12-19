@@ -21,34 +21,36 @@
 
 namespace Mageplaza\Smtp\Model\Config\Source;
 
+use Magento\Framework\Option\ArrayInterface;
+
 /**
  * Class Authentication
  * @package Mageplaza\Smtp\Model\Config\Source
  */
-class Authentication implements \Magento\Framework\Option\ArrayInterface
+class Authentication implements ArrayInterface
 {
-	/**
-	 * to option array
-	 *
-	 * @return array
-	 */
-	public function toOptionArray()
-	{
-		$options = [
-			[
-				'value' => 'plain',
-				'label' => __('PLAIN')
-			],
-			[
-				'value' => 'login',
-				'label' => __('Login')
-			],
-			[
-				'value' => 'cram-md5',
-				'label' => __('CRAM-MD5')
-			],
-		];
+    /**
+     * to option array
+     *
+     * @return array
+     */
+    public function toOptionArray()
+    {
+        $options = [
+            [
+                'value' => 'plain',
+                'label' => __('PLAIN')
+            ],
+            [
+                'value' => 'login',
+                'label' => __('Login')
+            ],
+            [
+                'value' => 'cram-md5',
+                'label' => __('CRAM-MD5')
+            ],
+        ];
 
-		return $options;
-	}
+        return $options;
+    }
 }

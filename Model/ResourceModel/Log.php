@@ -21,57 +21,54 @@
 
 namespace Mageplaza\Smtp\Model\ResourceModel;
 
+use Magento\Framework\Model\AbstractModel;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Framework\Model\ResourceModel\Db\Context;
+use Magento\Framework\Stdlib\DateTime\DateTime;
+
 /**
  * Class Log
  * @package Mageplaza\Smtp\Model\ResourceModel
  */
-class Log extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
+class Log extends AbstractDb
 {
-	/**
-	 * Date model
-	 *
-	 * @var \Magento\Framework\Stdlib\DateTime\DateTime
-	 */
-	private $date;
+    /**
+     * @var \Magento\Framework\Stdlib\DateTime\DateTime
+     */
+    protected $date;
 
-	/**
-	 * constructor
-	 *
-	 * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
-	 * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
-	 */
-	public function __construct(
-		\Magento\Framework\Stdlib\DateTime\DateTime $date,
-		\Magento\Framework\Model\ResourceModel\Db\Context $context
-	)
-	{
-		$this->date = $date;
-		parent::__construct($context);
-	}
+    /**
+     * Log constructor.
+     * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
+     */
+    public function __construct(
+        DateTime $date,
+        Context $context
+    )
+    {
+        $this->date = $date;
+        parent::__construct($context);
+    }
 
 
-	/**
-	 * Initialize resource model
-	 *
-	 * @return void
-	 */
-	public function _construct()
-	{
-		$this->_init('mageplaza_smtp_log', 'id');
-	}
+    /**
+     * @inheritdoc
+     */
+    public function _construct()
+    {
+        $this->_init('mageplaza_smtp_log', 'id');
+    }
 
-	/**
-	 * before save callback
-	 *
-	 * @param \Magento\Framework\Model\AbstractModel|\Mageplaza\Smtp\Model\Log $object
-	 * @return $this
-	 */
-	protected function _beforeSave(\Magento\Framework\Model\AbstractModel $object)
-	{
-		if ($object->isObjectNew()) {
-			$object->setCreatedAt($this->date->date());
-		}
+    /**
+     * @inheritdoc
+     */
+    protected function _beforeSave(AbstractModel $object)
+    {
+        if ($object->isObjectNew()) {
+            $object->setCreatedAt($this->date->date());
+        }
 
-		return parent::_beforeSave($object);
-	}
+        return parent::_beforeSave($object);
+    }
 }

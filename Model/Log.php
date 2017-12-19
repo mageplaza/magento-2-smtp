@@ -21,11 +21,13 @@
 
 namespace Mageplaza\Smtp\Model;
 
+use Magento\Framework\Model\AbstractModel;
+
 /**
  * Class Log
  * @package Mageplaza\Smtp\Model
  */
-class Log extends \Magento\Framework\Model\AbstractModel
+class Log extends AbstractModel
 {
 	/**
 	 * @return void
@@ -35,11 +37,12 @@ class Log extends \Magento\Framework\Model\AbstractModel
 		$this->_init('Mageplaza\Smtp\Model\ResourceModel\Log');
 	}
 
-	/**
-	 * Save emails log
-	 *
-	 * @return void
-	 */
+    /**
+     * Save email logs
+     *
+     * @param $message
+     * @param $status
+     */
 	public function saveLog($message, $status)
 	{
 		if ($message) {

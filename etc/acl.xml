@@ -34,7 +34,6 @@
                 <resource id="Mageplaza_Core::menu">
                     <resource id="Mageplaza_Smtp::smtp" title="Mageplaza Smtp" translate="title" sortOrder="10">
                         <resource id="Mageplaza_Smtp::log" title="Emails Log" translate="title" sortOrder="10" />
-                        <resource id="Mageplaza_Smtp::configuration_smtp" title="Configuration" sortOrder="20"/>
                     </resource>
                 </resource>
             </resource>

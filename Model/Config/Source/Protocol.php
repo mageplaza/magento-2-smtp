@@ -21,34 +21,36 @@
 
 namespace Mageplaza\Smtp\Model\Config\Source;
 
+use Magento\Framework\Option\ArrayInterface;
+
 /**
  * Class Protocol
  * @package Mageplaza\Smtp\Model\Config\Source
  */
-class Protocol implements \Magento\Framework\Option\ArrayInterface
+class Protocol implements ArrayInterface
 {
-	/**
-	 * to option array
-	 *
-	 * @return array
-	 */
-	public function toOptionArray()
-	{
-		$options = [
-			[
-				'value' => 'none',
-				'label' => __('None')
-			],
-			[
-				'value' => 'ssl',
-				'label' => __('SSL')
-			],
-			[
-				'value' => 'tls',
-				'label' => __('TLS')
-			],
-		];
+    /**
+     * to option array
+     *
+     * @return array
+     */
+    public function toOptionArray()
+    {
+        $options = [
+            [
+                'value' => 'none',
+                'label' => __('None')
+            ],
+            [
+                'value' => 'ssl',
+                'label' => __('SSL')
+            ],
+            [
+                'value' => 'tls',
+                'label' => __('TLS')
+            ],
+        ];
 
-		return $options;
-	}
+        return $options;
+    }
 }

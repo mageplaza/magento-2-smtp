@@ -18,10 +18,8 @@
  * @license     http://mageplaza.com/LICENSE.txt
  */
 var config = {
-    map: {
-        '*': {
-            'mageplaza/testemail': 'Mageplaza_Smtp/js/testemail',
-            'mageplaza/provider': 'Mageplaza_Smtp/js/provider'
-        }
+    paths: {
+        'mageplaza/testemail': 'Mageplaza_Smtp/js/testemail',
+        'mageplaza/provider': 'Mageplaza_Smtp/js/provider'
     }
 };

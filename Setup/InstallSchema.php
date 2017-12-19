@@ -21,6 +21,7 @@
 
 namespace Mageplaza\Smtp\Setup;
 
+use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\InstallSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
@@ -31,65 +32,38 @@ use Magento\Framework\Setup\SchemaSetupInterface;
  */
 class InstallSchema implements InstallSchemaInterface
 {
-	/**
-	 * install tables
-	 *
-	 * @param \Magento\Framework\Setup\SchemaSetupInterface $setup
-	 * @param \Magento\Framework\Setup\ModuleContextInterface $context
-	 *
-	 * @return void
-	 * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
-	 */
-	public function install(
-		SchemaSetupInterface $setup,
-		ModuleContextInterface $context
-	)
-	{
-		$installer = $setup;
-		$installer->startSetup();
-		if (!$installer->tableExists('mageplaza_smtp_log') && version_compare($context->getVersion(), '1.0.0') < 0) {
-			$table = $installer->getConnection()->newTable($installer->getTable('mageplaza_smtp_log'))
-				->addColumn(
-					'id',
-					\Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
-					null,
-					[
-						'identity' => true,
-						'nullable' => false,
-						'primary'  => true,
-						'unsigned' => true,
-					],
-					'Log ID'
-				)->addColumn(
-					'subject',
-					\Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
-					255,
-					['nullable => false'],
-					'Email Subject'
-				)->addColumn(
-					'email_content',
-					\Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
-					'64k',
-					[],
-					'Email Content'
-				)->addColumn(
-					'status',
-					\Magento\Framework\DB\Ddl\Table::TYPE_SMALLINT,
-					1,
-					['nullable' => false],
-					'Status'
-				)->addColumn(
-					'created_at',
-					\Magento\Framework\DB\Ddl\Table::TYPE_TIMESTAMP,
-					null,
-					[],
-					'Created At'
-				)->addIndex(
-					$installer->getIdxName('mageplaza_smtp_log', ['status']),
-					['status']
-				);
-			$installer->getConnection()->createTable($table);
-		}
-		$installer->endSetup();
-	}
+    /**
+     * install tables
+     *
+     * @param \Magento\Framework\Setup\SchemaSetupInterface $setup
+     * @param \Magento\Framework\Setup\ModuleContextInterface $context
+     *
+     * @return void
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     */
+    public function install(SchemaSetupInterface $setup, ModuleContextInterface $context)
+    {
+        $installer = $setup;
+        $installer->startSetup();
+
+        if (!$installer->tableExists('mageplaza_smtp_log')) {
+            $table = $installer->getConnection()
+                ->newTable($installer->getTable('mageplaza_smtp_log'))
+                ->addColumn('id', Table::TYPE_INTEGER, null, [
+                    'identity' => true,
+                    'nullable' => false,
+                    'primary'  => true,
+                    'unsigned' => true,
+                ], 'Log ID')
+                ->addColumn('subject', Table::TYPE_TEXT, 255, ['nullable => false'], 'Email Subject')
+                ->addColumn('email_content', Table::TYPE_TEXT, '64k', [], 'Email Content')
+                ->addColumn('status', Table::TYPE_SMALLINT, 1, ['nullable' => false], 'Status')
+                ->addColumn('created_at', Table::TYPE_TIMESTAMP, null, [], 'Created At')
+                ->addIndex($installer->getIdxName('mageplaza_smtp_log', ['status']), ['status']);
+
+            $installer->getConnection()->createTable($table);
+        }
+
+        $installer->endSetup();
+    }
 }

@@ -22,6 +22,7 @@ define([
     "jquery/ui"
 ], function ($) {
     "use strict";
+
     $.widget('mageplaza.smtpProvider', {
         options: {
             jsonDataInfo: {}
@@ -37,6 +38,7 @@ define([
         _create: function () {
             var self = this,
                 elem = self.element.next();
+
             elem.click(function (e) {
                 e.preventDefault();
                 self._autoFill();
@@ -45,10 +47,10 @@ define([
 
         _autoFill: function () {
             var dataInfo = this.options.jsonDataInfo,
-                data = '',
                 value = parseInt(this.element.val());
+
             if (value) {
-                data = dataInfo[value];
+                var data = dataInfo[value];
                 if (data) {
                     $(this.ids.hostElm).val(data.host);
                     $(this.ids.protocolElm).val(data.protocol);
@@ -58,5 +60,6 @@ define([
             }
         }
     });
+
     return $.mageplaza.smtpProvider;
 });
