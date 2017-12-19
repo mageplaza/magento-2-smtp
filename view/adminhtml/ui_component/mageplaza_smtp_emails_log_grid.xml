@@ -38,7 +38,7 @@
     </argument>
     <dataSource name="mageplaza_smtp_emails_log_grid_data_source">
         <argument name="dataProvider" xsi:type="configurableObject">
-            <argument name="class" xsi:type="string">MageplazaSmtpGridDataProvider</argument>
+            <argument name="class" xsi:type="string">Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider</argument>
             <argument name="name" xsi:type="string">mageplaza_smtp_emails_log_grid_data_source</argument>
             <argument name="primaryFieldName" xsi:type="string">id</argument>
             <argument name="requestFieldName" xsi:type="string">id</argument>

@@ -98,7 +98,7 @@ class Mail extends \Zend_Application_Resource_Mail
         }
 
         $this->_transport = null;
-        $this->setOptions($this->_smtpOptions[$storeId]);
+        $this->setOptions(['transport' => $this->_smtpOptions[$storeId]]);
 
         return $this->init();
     }

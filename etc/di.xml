@@ -37,7 +37,7 @@
             </argument>
         </arguments>
     </type>
-    <virtualType name="Mageplaza\GiftCard\Model\ResourceModel\GiftCard\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+    <virtualType name="Mageplaza\Smtp\Model\ResourceModel\Log\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
         <arguments>
             <argument name="mainTable" xsi:type="string">mageplaza_smtp_log</argument>
             <argument name="resourceModel" xsi:type="string">Mageplaza\Smtp\Model\ResourceModel\Log</argument>
