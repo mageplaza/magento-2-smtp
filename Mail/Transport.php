@@ -19,24 +19,24 @@
  * @license     http://mageplaza.com/LICENSE.txt
  */
 
-namespace Mageplaza\Smtp\Plugin\Magento\Framework\Mail;
+namespace Mageplaza\Smtp\Mail;
 
 use Magento\Framework\Exception\MailException;
-use Magento\Framework\Mail\TransportInterface;
+use Magento\Framework\Mail\MessageInterface;
 use Magento\Framework\Phrase;
-use Mageplaza\Smtp\Application\Rse\Mail;
+use Mageplaza\Smtp\Mail\Rse\Mail;
 use Mageplaza\Smtp\Model\LogFactory;
 
 /**
  * Class Transport
- * @package Mageplaza\Smtp\Plugin\Magento\Framework\Mail
+ * @package Mageplaza\Smtp\Mail
  */
-class Transport
+class Transport extends \Magento\Framework\Mail\Transport
 {
     /**
-     * @var \Mageplaza\Smtp\Model\LogFactory
+     * @var int Store Id
      */
-    protected $logFactory;
+    protected $_storeId;
 
     /**
      * @var \Mageplaza\Smtp\Application\Rse\Mail
@@ -44,31 +44,43 @@ class Transport
     protected $resourceMail;
 
     /**
+     * @var \Mageplaza\Smtp\Model\LogFactory
+     */
+    protected $logFactory;
+
+    /**
      * Transport constructor.
-     * @param \Mageplaza\Smtp\Application\Rse\Mail $resourceMail
+     * @param \Magento\Framework\Mail\MessageInterface $message
+     * @param \Mageplaza\Smtp\Mail\Rse\Mail $resourceMail
      * @param \Mageplaza\Smtp\Model\LogFactory $logFactory
+     * @param null $parameters
      */
     public function __construct(
+        MessageInterface $message,
         Mail $resourceMail,
-        LogFactory $logFactory
+        LogFactory $logFactory,
+        $parameters = null
     )
     {
+        parent::__construct($message, $parameters);
+
         $this->resourceMail = $resourceMail;
         $this->logFactory   = $logFactory;
     }
 
     /**
-     * @param \Magento\Framework\Mail\TransportInterface $subject
-     * @param \Closure $proceed
+     * Send a mail using this transport
+     *
+     * @return void
      * @throws \Magento\Framework\Exception\MailException
      */
-    public function aroundSendMessage(TransportInterface $subject, \Closure $proceed)
+    public function sendMessage()
     {
-        if ($this->resourceMail->isModuleEnable()) {
-            $message   = $this->resourceMail->getMessage();
-            $transport = $this->resourceMail->init();
+        if ($this->resourceMail->isModuleEnable($this->_storeId)) {
+            $message   = $this->resourceMail->processMessage($this->_message, $this->_storeId);
+            $transport = $this->resourceMail->getTransport($this->_storeId);
             try {
-                if (!$this->resourceMail->isDeveloperMode()) {
+                if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
                     $transport->send($message);
                 }
                 $this->emailLog($message);
@@ -77,7 +89,7 @@ class Transport
                 throw new MailException(new Phrase($e->getMessage()), $e);
             }
         } else {
-            $proceed();
+            parent::sendMessage();
         }
     }
 
@@ -90,7 +102,7 @@ class Transport
      */
     protected function emailLog($message, $status = true)
     {
-        if ($this->resourceMail->isEnableEmailLog()) {
+        if ($this->resourceMail->isEnableEmailLog($this->_storeId)) {
             /** @var \Mageplaza\Smtp\Model\Log $log */
             $log = $this->logFactory->create();
             try {
@@ -99,5 +111,16 @@ class Transport
                 throw new MailException(new Phrase($e->getMessage()), $e);
             }
         }
+    }
+
+    /**
+     * @param $storeId
+     * @return $this
+     */
+    public function setStoreId($storeId)
+    {
+        $this->_storeId = $storeId;
+
+        return $this;
     }
 }
