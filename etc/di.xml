@@ -24,11 +24,6 @@
     <preference for="Magento\Framework\Mail\Template\TransportBuilder" type="Mageplaza\Smtp\Mail\Template\TransportBuilder"/>
     <preference for="Magento\Framework\Mail\TransportInterface" type="Mageplaza\Smtp\Mail\Transport"/>
 
-    <!--Plugin to save message to register-->
-    <type name="Magento\Framework\Mail\Message">
-        <plugin name="Mageplaza_Smtp_Plugin_Magento_Framework_Mail_Message" sortOrder="10" type="Mageplaza\Smtp\Plugin\Magento\Framework\Mail\Message"/>
-    </type>
-
     <!--Grid collection-->
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
