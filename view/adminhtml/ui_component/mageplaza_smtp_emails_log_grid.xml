@@ -92,20 +92,58 @@
                 </item>
             </argument>
         </column>
-
         <column name="subject">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
-                    <item name="dataType" xsi:type="string">text</item>
                     <item name="filter" xsi:type="string">text</item>
                     <item name="align" xsi:type="string">left</item>
                     <item name="label" xsi:type="string" translate="true">Subject</item>
                     <item name="sortOrder" xsi:type="number">20</item>
-                    <item name="type" xsi:type="string">subject</item>
                 </item>
             </argument>
         </column>
-
+        <column name="from">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="align" xsi:type="string">left</item>
+                    <item name="label" xsi:type="string" translate="true">From</item>
+                    <item name="sortOrder" xsi:type="number">21</item>
+                </item>
+            </argument>
+        </column>
+        <column name="to">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="align" xsi:type="string">left</item>
+                    <item name="label" xsi:type="string" translate="true">To</item>
+                    <item name="sortOrder" xsi:type="number">22</item>
+                </item>
+            </argument>
+        </column>
+        <column name="cc">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="align" xsi:type="string">left</item>
+                    <item name="label" xsi:type="string" translate="true">Cc</item>
+                    <item name="sortOrder" xsi:type="number">23</item>
+                    <item name="visible" xsi:type="boolean">false</item>
+                </item>
+            </argument>
+        </column>
+        <column name="bcc">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="align" xsi:type="string">left</item>
+                    <item name="label" xsi:type="string" translate="true">Bcc</item>
+                    <item name="sortOrder" xsi:type="number">24</item>
+                    <item name="visible" xsi:type="boolean">false</item>
+                </item>
+            </argument>
+        </column>
         <column name="status">
             <argument name="data" xsi:type="array">
                 <item name="options" xsi:type="object">Mageplaza\Smtp\Model\Source\Status</item>
@@ -119,7 +157,6 @@
                 </item>
             </argument>
         </column>
-
         <column name="created_at" class="Magento\Ui\Component\Listing\Columns\Date">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -132,7 +169,6 @@
                 </item>
             </argument>
         </column>
-
         <actionsColumn name="actions" class="Mageplaza\Smtp\Ui\Component\Listing\Column\ViewAction">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">

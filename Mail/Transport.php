@@ -39,7 +39,7 @@ class Transport extends \Magento\Framework\Mail\Transport
     protected $_storeId;
 
     /**
-     * @var \Mageplaza\Smtp\Application\Rse\Mail
+     * @var \Mageplaza\Smtp\Mail\Rse\Mail
      */
     protected $resourceMail;
 

@@ -47,16 +47,46 @@ class Log extends AbstractModel
 	{
 		if ($message) {
 			$headers = $message->getHeaders();
-			$subject = $headers['Subject'][0];
-			$body = $message->getBodyHtml();
-			if (is_object($body)) {
-				$content = htmlspecialchars($body->getRawContent());
-			} else {
-				$content = htmlspecialchars($message->getBody()->getRawContent());
+
+			if (isset($headers['Subject']) && isset($headers['Subject'][0])) {
+				$this->setSubject($headers['Subject'][0]);
 			}
-			if ($subject) {
-				$this->setSubject($subject);
-			}
+
+            if (isset($headers['From']) && isset($headers['From'][0])) {
+                $this->setFrom($headers['From'][0]);
+            }
+
+            if(isset($headers['To'])){
+			    $recipient = $headers['To'];
+			    if(isset($recipient['append'])){
+			        unset($recipient['append']);
+                }
+			    $this->setTo(implode(', ', $recipient));
+            }
+
+            if(isset($headers['Cc'])){
+                $cc = $headers['Cc'];
+                if(isset($cc['append'])){
+                    unset($cc['append']);
+                }
+                $this->setCc(implode(', ', $cc));
+            }
+
+            if(isset($headers['Bcc'])){
+                $bcc = $headers['Bcc'];
+                if(isset($bcc['append'])){
+                    unset($bcc['append']);
+                }
+                $this->setBcc(implode(', ', $bcc));
+            }
+
+            $body = $message->getBodyHtml();
+            if (is_object($body)) {
+                $content = htmlspecialchars($body->getRawContent());
+            } else {
+                $content = htmlspecialchars($message->getBody()->getRawContent());
+            }
+
 			$this->setEmailContent($content)
 				->setStatus($status)
 				->save();
