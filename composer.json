@@ -18,9 +18,12 @@
     },
     "keywords": [
       "magento 2",
+      "magento 2 smtp",
+      "magento smtp",
       "mageplaza",
       "smtp",
       "email settings"
+      "gmail smtp"
     ],
     "autoload": {
         "psr-4": {
