@@ -24,7 +24,7 @@
     <default>
         <smtp>
             <module>
-                <type>free</type>
+                <type>1</type>
             </module>
             <developer>
                 <clean_email>10</clean_email>
