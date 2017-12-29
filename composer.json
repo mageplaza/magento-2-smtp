@@ -22,7 +22,7 @@
       "magento smtp",
       "mageplaza",
       "smtp",
-      "email settings"
+      "email settings",
       "gmail smtp"
     ],
     "autoload": {
