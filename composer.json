@@ -14,7 +14,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "mageplaza/module-core": "^1.3.7"
+        "mageplaza/module-core": "^1.3.8"
     },
     "keywords": [
       "magento 2",
