@@ -19,6 +19,8 @@ Every day you send and receive so many even more hundreds of emails, however, yo
 
 ## 2. How to install SMTP Extension
 
+#### YOU MUST FIRST INSTALL [Mageplaza Core module](https://github.com/mageplaza/module-core)
+
 ### Install via composer (recommend)
 
 Run the following command in Magento 2 root folder:
