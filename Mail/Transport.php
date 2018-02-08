@@ -26,7 +26,6 @@ use Magento\Framework\Mail\MessageInterface;
 use Magento\Framework\Phrase;
 use Mageplaza\Smtp\Mail\Rse\Mail;
 use Mageplaza\Smtp\Model\LogFactory;
-use Magento\Framework\Mail\TransportInterface;
 /**
  * Class Transport
  * @package Mageplaza\Smtp\Mail
