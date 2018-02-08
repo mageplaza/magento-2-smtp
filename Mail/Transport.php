@@ -94,34 +94,6 @@ class Transport extends \Magento\Framework\Mail\Transport
     }
 
     /**
-     * @param TransportInterface $subject
-     * @param \Closure $proceed
-     * @throws \Exception
-     *
-     * @return null
-     */
-    public function aroundSendMessage(
-        TransportInterface $subject,
-        \Closure $proceed
-    ) {
-        if ($this->resourceMail->isModuleEnable($this->_storeId)){
-            $message   = $this->resourceMail->processMessage($this->_message, $this->_storeId);
-            $transport = $this->resourceMail->getTransport($this->_storeId);
-            try {
-                if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
-                    $transport->send($message);
-                }
-                $this->emailLog($message);
-            } catch (\Exception $e) {
-                $this->emailLog($message, false);
-                throw new MailException(new Phrase($e->getMessage()), $e);
-            }
-        } else {
-            $proceed();
-        }
-    }
-
-    /**
      * Save Email Sent
      *
      * @param $message
