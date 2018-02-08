@@ -27,6 +27,7 @@ use Magento\Framework\Phrase;
 use Mageplaza\Smtp\Mail\Rse\Mail;
 use Mageplaza\Smtp\Model\LogFactory;
 use Magento\Framework\Mail\TransportInterface;
+
 /**
  * Class Transport
  * @package Mageplaza\Smtp\Mail
@@ -65,7 +66,7 @@ class Transport extends \Magento\Framework\Mail\Transport
         parent::__construct($message, $parameters);
 
         $this->resourceMail = $resourceMail;
-        $this->logFactory   = $logFactory;
+        $this->logFactory = $logFactory;
     }
 
     /**
@@ -77,7 +78,7 @@ class Transport extends \Magento\Framework\Mail\Transport
     public function sendMessage()
     {
         if ($this->resourceMail->isModuleEnable($this->_storeId)) {
-            $message   = $this->resourceMail->processMessage($this->_message, $this->_storeId);
+            $message = $this->resourceMail->processMessage($this->_message, $this->_storeId);
             $transport = $this->resourceMail->getTransport($this->_storeId);
             try {
                 if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
@@ -103,9 +104,10 @@ class Transport extends \Magento\Framework\Mail\Transport
     public function aroundSendMessage(
         TransportInterface $subject,
         \Closure $proceed
-    ) {
-        if ($this->resourceMail->isModuleEnable($this->_storeId)){
-            $message   = $this->resourceMail->processMessage($this->_message, $this->_storeId);
+    )
+    {
+        if ($this->resourceMail->isModuleEnable($this->_storeId)) {
+            $message = $this->resourceMail->processMessage($this->_message, $this->_storeId);
             $transport = $this->resourceMail->getTransport($this->_storeId);
             try {
                 if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
@@ -149,6 +151,25 @@ class Transport extends \Magento\Framework\Mail\Transport
     {
         $this->_storeId = $storeId;
 
+        return $this;
+    }
+
+    public function addAttachment(
+        $content,
+        $mimeType = \Zend_Mime::TYPE_OCTETSTREAM,
+        $disposition = \Zend_Mime::DISPOSITION_ATTACHMENT,
+        $encoding = \Zend_Mime::ENCODING_BASE64,
+        $filename = null
+    )
+    {
+        $message = $this->resourceMail->processMessage($this->_message, $this->_storeId);
+        $message->createAttachment(
+            $content,
+            $mimeType,
+            $disposition,
+            $encoding,
+            $filename
+        );
         return $this;
     }
 }
