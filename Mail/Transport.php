@@ -32,7 +32,7 @@ use Magento\Framework\Mail\TransportInterface;
  * Class Transport
  * @package Mageplaza\Smtp\Mail
  */
-class Transport extends \Magento\Framework\Mail\Transport
+class Transport
 {
     /**
      * @var int Store Id
@@ -50,48 +50,26 @@ class Transport extends \Magento\Framework\Mail\Transport
     protected $logFactory;
 
     /**
-     * Transport constructor.
-     * @param \Magento\Framework\Mail\MessageInterface $message
-     * @param \Mageplaza\Smtp\Mail\Rse\Mail $resourceMail
-     * @param \Mageplaza\Smtp\Model\LogFactory $logFactory
-     * @param null $parameters
+     * @var \Magento\Framework\Registry $registry
      */
-    public function __construct(
-        MessageInterface $message,
-        Mail $resourceMail,
-        LogFactory $logFactory,
-        $parameters = null
-    )
-    {
-        parent::__construct($message, $parameters);
 
-        $this->resourceMail = $resourceMail;
-        $this->logFactory = $logFactory;
-    }
+    protected $registry;
 
     /**
-     * Send a mail using this transport
-     *
-     * @return void
-     * @throws \Magento\Framework\Exception\MailException
+     * Transport constructor.
+     * @param \Mageplaza\Smtp\Mail\Rse\Mail $resourceMail
+     * @param \Mageplaza\Smtp\Model\LogFactory $logFactory
+     * @param \Magento\Framework\Registry $registry
      */
-    public function sendMessage()
+    public function __construct(
+        Mail $resourceMail,
+        LogFactory $logFactory,
+        \Magento\Framework\Registry $registry
+    )
     {
-        if ($this->resourceMail->isModuleEnable($this->_storeId)) {
-            $message = $this->resourceMail->processMessage($this->_message, $this->_storeId);
-            $transport = $this->resourceMail->getTransport($this->_storeId);
-            try {
-                if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
-                    $transport->send($message);
-                }
-                $this->emailLog($message);
-            } catch (\Exception $e) {
-                $this->emailLog($message, false);
-                throw new MailException(new Phrase($e->getMessage()), $e);
-            }
-        } else {
-            parent::sendMessage();
-        }
+        $this->resourceMail = $resourceMail;
+        $this->logFactory = $logFactory;
+        $this->registry = $registry;
     }
 
     /**
@@ -106,6 +84,8 @@ class Transport extends \Magento\Framework\Mail\Transport
         \Closure $proceed
     )
     {
+        $this->_storeId = $this->registry->registry('store_id');
+        $this->_message = $subject->getMessage();
         if ($this->resourceMail->isModuleEnable($this->_storeId)) {
             $message = $this->resourceMail->processMessage($this->_message, $this->_storeId);
             $transport = $this->resourceMail->getTransport($this->_storeId);
@@ -150,7 +130,6 @@ class Transport extends \Magento\Framework\Mail\Transport
     public function setStoreId($storeId)
     {
         $this->_storeId = $storeId;
-
         return $this;
     }
 
@@ -159,11 +138,10 @@ class Transport extends \Magento\Framework\Mail\Transport
         $mimeType = \Zend_Mime::TYPE_OCTETSTREAM,
         $disposition = \Zend_Mime::DISPOSITION_ATTACHMENT,
         $encoding = \Zend_Mime::ENCODING_BASE64,
-        $filename = null
+        $filename = 'filename.pdf'
     )
     {
-        $message = $this->resourceMail->processMessage($this->_message, $this->_storeId);
-        $message->createAttachment(
+        $this->message->createAttachment(
             $content,
             $mimeType,
             $disposition,

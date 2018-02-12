@@ -21,8 +21,10 @@
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <!-- <preference for="Magento\Framework\Mail\Template\TransportBuilder" type="Mageplaza\Smtp\Mail\Template\TransportBuilder"/> -->
-    <!-- <preference for="Magento\Framework\Mail\TransportInterface" type="Mageplaza\Smtp\Mail\Transport"/> -->
+    <type name="Magento\Framework\Mail\Template\TransportBuilder">
+        <plugin name="mageplaza_mail_template_transport_builder" type="Mageplaza\Smtp\Mail\Template\TransportBuilder" sortOrder="1" disabled="false" />
+    </type>
+
     <type name="Magento\Framework\Mail\TransportInterface">
         <plugin name="mageplaza_mail_transport" type="Mageplaza\Smtp\Mail\Transport" sortOrder="1" disabled="false" />
     </type>

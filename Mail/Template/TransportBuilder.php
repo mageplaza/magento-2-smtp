@@ -25,49 +25,38 @@ namespace Mageplaza\Smtp\Mail\Template;
  * Class TransportBuilder
  * @package Mageplaza\Smtp\Mail\Template
  */
-class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
+class TransportBuilder
 {
-	/**
-	 * Get mail transport
-	 *
-	 * @return \Magento\Framework\Mail\TransportInterface
-	 */
-	public function getTransport()
-	{
-		$transport = parent::getTransport();
+    /**
+     * @var \Magento\Framework\Registry $registry
+     */
 
-		if (isset($this->templateOptions['store']) && method_exists($transport, 'setStoreId')) {
-			$transport->setStoreId($this->templateOptions['store']);
-		}
+    protected $registry;
 
-		return $transport;
-	}
+    /**
+     * @param \Magento\Framework\Registry $registry
+     */
+    public function __construct(
+        \Magento\Framework\Registry $registry
+    )
+    {
+        $this->registry = $registry;
+    }
 
-	/**
-	 * @param $content
-	 * @param string $mimeType
-	 * @param string $disposition
-	 * @param string $encoding
-	 * @param string $filename
-	 * @return $this
-	 */
-	public function addAttachment(
-		$content,
-		$mimeType = \Zend_Mime::TYPE_OCTETSTREAM,
-		$disposition = \Zend_Mime::DISPOSITION_ATTACHMENT,
-		$encoding = \Zend_Mime::ENCODING_BASE64,
-		$filename = 'mageplaza.pdf'
-	)
-	{
-		$this->message->createAttachment(
-			$content,
-			$mimeType,
-			$disposition,
-			$encoding,
-			$filename
-		);
-
-		return $this;
-	}
-
+    /**
+     * @param \Magento\Framework\Mail\Template\TransportBuilder $subject
+     * @param $templateOptions
+     * @return array
+     */
+    public function beforeSetTemplateOptions(
+        \Magento\Framework\Mail\Template\TransportBuilder $subject,
+        $templateOptions
+    ) {
+        if (array_key_exists('store', $templateOptions)) {
+            $this->registry->register('store_id', $templateOptions['store']);
+        } else {
+            $this->registry->register('store_id', null);
+        }
+        return [$templateOptions];
+    }
 }
