@@ -84,7 +84,7 @@ class Transport
         \Closure $proceed
     )
     {
-        $this->_storeId = $this->registry->registry('store_id');
+        $this->_storeId = $this->registry->registry('mp_smtp_store_id');
         $this->_message = $subject->getMessage();
         if ($this->resourceMail->isModuleEnable($this->_storeId)) {
             $message = $this->resourceMail->processMessage($this->_message, $this->_storeId);

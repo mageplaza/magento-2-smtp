@@ -52,10 +52,10 @@ class TransportBuilder
         \Magento\Framework\Mail\Template\TransportBuilder $subject,
         $templateOptions
     ) {
+
+        $this->registry->unregister('mp_smtp_store_id')
         if (array_key_exists('store', $templateOptions)) {
-            $this->registry->register('store_id', $templateOptions['store']);
-        } else {
-            $this->registry->register('store_id', null);
+            $this->registry->register('mp_smtp_store_id', $templateOptions['store']);
         }
         return [$templateOptions];
     }
