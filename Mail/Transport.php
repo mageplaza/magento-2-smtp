@@ -130,24 +130,7 @@ class Transport
     public function setStoreId($storeId)
     {
         $this->_storeId = $storeId;
-        return $this;
-    }
 
-    public function addAttachment(
-        $content,
-        $mimeType = \Zend_Mime::TYPE_OCTETSTREAM,
-        $disposition = \Zend_Mime::DISPOSITION_ATTACHMENT,
-        $encoding = \Zend_Mime::ENCODING_BASE64,
-        $filename = 'filename.pdf'
-    )
-    {
-        $this->message->createAttachment(
-            $content,
-            $mimeType,
-            $disposition,
-            $encoding,
-            $filename
-        );
         return $this;
     }
 }
