@@ -53,7 +53,7 @@ class TransportBuilder
         $templateOptions
     ) {
 
-        $this->registry->unregister('mp_smtp_store_id')
+        $this->registry->unregister('mp_smtp_store_id');
         if (array_key_exists('store', $templateOptions)) {
             $this->registry->register('mp_smtp_store_id', $templateOptions['store']);
         }
