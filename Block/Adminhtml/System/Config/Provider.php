@@ -249,6 +249,12 @@ class Provider extends Field
                 'port'     => '25',
                 'protocol' => ''
             ],
+            [
+                'label'    => __('OVH'),
+                'host'     => 'ssl0.ovh.net',
+                'port'     => '465',
+                'protocol' => 'ssl'
+            ],
         ];
 
         return $options;
