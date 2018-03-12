@@ -22,11 +22,11 @@
 namespace Mageplaza\Smtp\Mail;
 
 use Magento\Framework\Exception\MailException;
-use Magento\Framework\Mail\MessageInterface;
 use Magento\Framework\Phrase;
 use Mageplaza\Smtp\Mail\Rse\Mail;
 use Mageplaza\Smtp\Model\LogFactory;
 use Magento\Framework\Mail\TransportInterface;
+use Magento\Framework\Registry;
 
 /**
  * Class Transport
@@ -64,7 +64,7 @@ class Transport
     public function __construct(
         Mail $resourceMail,
         LogFactory $logFactory,
-        \Magento\Framework\Registry $registry
+        Registry $registry
     )
     {
         $this->resourceMail = $resourceMail;
@@ -85,7 +85,17 @@ class Transport
     )
     {
         $this->_storeId = $this->registry->registry('mp_smtp_store_id');
-        $this->_message = $subject->getMessage();
+        //Dotmailer
+        if (method_exists($subject, 'getMessage')) {
+            $this->_message = $subject->getMessage();
+        } else {
+            //For < 2.2
+            $reflection = new \ReflectionClass($subject);
+            $property = $reflection->getProperty('_message');
+            $property->setAccessible(true);
+            $this->_message = $property->getValue($subject);
+        }
+        //end Dotmailer
         if ($this->resourceMail->isModuleEnable($this->_storeId)) {
             $message = $this->resourceMail->processMessage($this->_message, $this->_storeId);
             $transport = $this->resourceMail->getTransport($this->_storeId);
