@@ -93,7 +93,7 @@
                     <field id="sent" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label></label>
                         <button_label>Test Now</button_label>
-                        <button_url>mageplaza_smtp/index/index</button_url>
+                        <button_url>mpsmtp/index/index</button_url>
                         <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\Button</frontend_model>
                     </field>
                 </group>
