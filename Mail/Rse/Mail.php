@@ -6,7 +6,7 @@
  *
  * This source file is subject to the mageplaza.com license that is
  * available through the world-wide-web at this URL:
- * https://mageplaza.com/LICENSE.txt
+ * https://www.mageplaza.com/LICENSE.txt
  *
  * DISCLAIMER
  *
@@ -15,8 +15,8 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
- * @license     http://mageplaza.com/LICENSE.txt
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
 namespace Mageplaza\Smtp\Mail\Rse;
@@ -73,7 +73,7 @@ class Mail extends \Zend_Application_Resource_Mail
     public function __construct($options = null)
     {
         $this->smtpHelper = ObjectManager::getInstance()->get(Data::class);
-        $this->encryptor  = ObjectManager::getInstance()->get(EncryptorInterface::class);
+        $this->encryptor = ObjectManager::getInstance()->get(EncryptorInterface::class);
 
         parent::__construct($options);
     }
@@ -85,13 +85,13 @@ class Mail extends \Zend_Application_Resource_Mail
     public function getTransport($storeId)
     {
         if (!isset($this->_smtpOptions[$storeId])) {
-            $configData                   = $this->smtpHelper->getConfig(Data::CONFIG_GROUP_SMTP, '', $storeId);
+            $configData = $this->smtpHelper->getConfig(Data::CONFIG_GROUP_SMTP, '', $storeId);
             $this->_smtpOptions[$storeId] = [
-                'type'     => 'smtp',
-                'host'     => isset($configData['host']) ? $configData['host'] : '',
-                'ssl'      => isset($configData['protocol']) ? $configData['protocol'] : '',
-                'port'     => isset($configData['port']) ? $configData['port'] : '',
-                'auth'     => isset($configData['authentication']) ? $configData['authentication'] : '',
+                'type' => 'smtp',
+                'host' => isset($configData['host']) ? $configData['host'] : '',
+                'ssl' => isset($configData['protocol']) ? $configData['protocol'] : '',
+                'port' => isset($configData['port']) ? $configData['port'] : '',
+                'auth' => isset($configData['authentication']) ? $configData['authentication'] : '',
                 'username' => isset($configData['username']) ? $configData['username'] : '',
                 'password' => isset($configData['password']) ? $this->encryptor->decrypt($configData['password']) : '',
             ];

@@ -6,7 +6,7 @@
  *
  * This source file is subject to the mageplaza.com license that is
  * available through the world-wide-web at this URL:
- * https://mageplaza.com/LICENSE.txt
+ * https://www.mageplaza.com/LICENSE.txt
  *
  * DISCLAIMER
  *
@@ -15,18 +15,19 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
- * @license     http://mageplaza.com/LICENSE.txt
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
 namespace Mageplaza\Smtp\Mail;
 
 use Magento\Framework\Exception\MailException;
+use Magento\Framework\Mail\TransportInterface;
 use Magento\Framework\Phrase;
+use Magento\Framework\Registry;
+use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Mail\Rse\Mail;
 use Mageplaza\Smtp\Model\LogFactory;
-use Magento\Framework\Mail\TransportInterface;
-use Magento\Framework\Registry;
 
 /**
  * Class Transport
@@ -52,24 +53,31 @@ class Transport
     /**
      * @var \Magento\Framework\Registry $registry
      */
-
     protected $registry;
 
     /**
+     * @var Data
+     */
+    protected $helper;
+
+    /**
      * Transport constructor.
-     * @param \Mageplaza\Smtp\Mail\Rse\Mail $resourceMail
-     * @param \Mageplaza\Smtp\Model\LogFactory $logFactory
-     * @param \Magento\Framework\Registry $registry
+     * @param Mail $resourceMail
+     * @param LogFactory $logFactory
+     * @param Registry $registry
+     * @param Data $helper
      */
     public function __construct(
         Mail $resourceMail,
         LogFactory $logFactory,
-        Registry $registry
+        Registry $registry,
+        Data $helper
     )
     {
         $this->resourceMail = $resourceMail;
         $this->logFactory = $logFactory;
         $this->registry = $registry;
+        $this->helper = $helper;
     }
 
     /**
@@ -85,19 +93,9 @@ class Transport
     )
     {
         $this->_storeId = $this->registry->registry('mp_smtp_store_id');
-        //Dotmailer
-        if (method_exists($subject, 'getMessage')) {
-            $this->_message = $subject->getMessage();
-        } else {
-            //For < 2.2
-            $reflection = new \ReflectionClass($subject);
-            $property = $reflection->getProperty('_message');
-            $property->setAccessible(true);
-            $this->_message = $property->getValue($subject);
-        }
-        //end Dotmailer
-        if ($this->resourceMail->isModuleEnable($this->_storeId)) {
-            $message = $this->resourceMail->processMessage($this->_message, $this->_storeId);
+        $message = $this->getMessage($subject);
+        if ($this->resourceMail->isModuleEnable($this->_storeId) && $message) {
+            $message = $this->resourceMail->processMessage($message, $this->_storeId);
             $transport = $this->resourceMail->getTransport($this->_storeId);
             try {
                 if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
@@ -110,6 +108,27 @@ class Transport
             }
         } else {
             $proceed();
+        }
+    }
+
+    /**
+     * @param $transport
+     * @return mixed|null
+     */
+    protected function getMessage($transport)
+    {
+        if ($this->helper->versionCompare('2.2.0')) {
+            return $transport->getMessage();
+        }
+
+        try {
+            $reflectionClass = new \ReflectionClass($transport);
+            $message = $reflectionClass->getProperty('_message');
+            $message->setAccessible(true);
+
+            return $message->getValue($transport);
+        } catch (\Exception $e) {
+            return null;
         }
     }
 
@@ -131,16 +150,5 @@ class Transport
                 throw new MailException(new Phrase($e->getMessage()), $e);
             }
         }
-    }
-
-    /**
-     * @param $storeId
-     * @return $this
-     */
-    public function setStoreId($storeId)
-    {
-        $this->_storeId = $storeId;
-
-        return $this;
     }
 }

@@ -7,7 +7,7 @@
  *
  * This source file is subject to the mageplaza.com license that is
  * available through the world-wide-web at this URL:
- * https://mageplaza.com/LICENSE.txt
+ * https://www.mageplaza.com/LICENSE.txt
  *
  * DISCLAIMER
  *
@@ -16,15 +16,15 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
- * @license     http://mageplaza.com/LICENSE.txt
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
  */
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <update handle="styles"/>
     <body>
         <referenceContainer name="content">
-            <uiComponent name="mageplaza_smtp_emails_log_grid"/>
+            <uiComponent name="mpsmtp_emails_log_grid"/>
         </referenceContainer>
     </body>
 </page>

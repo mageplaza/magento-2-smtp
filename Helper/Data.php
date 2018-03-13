@@ -6,7 +6,7 @@
  *
  * This source file is subject to the mageplaza.com license that is
  * available through the world-wide-web at this URL:
- * https://mageplaza.com/LICENSE.txt
+ * https://www.mageplaza.com/LICENSE.txt
  *
  * DISCLAIMER
  *
@@ -15,8 +15,8 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
- * @license     http://mageplaza.com/LICENSE.txt
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
 namespace Mageplaza\Smtp\Helper;
@@ -33,27 +33,6 @@ class Data extends AbstractData
 
     const CONFIG_GROUP_SMTP = 'configuration_option';
     const DEVELOP_GROUP_SMTP = 'developer';
-
-    /**
-     * @param null $storeId
-     * @return bool
-     */
-    public function isEnabled($storeId = null)
-    {
-        return $this->getConfigGeneral('enabled', $storeId);
-    }
-
-    /**
-     * @param string $code
-     * @param null $storeId
-     * @return mixed
-     */
-    public function getConfigGeneral($code = '', $storeId = null)
-    {
-        $code = ($code !== '') ? '/' . $code : '';
-
-        return $this->getConfigValue(static::CONFIG_MODULE_PATH . '/general' . $code, $storeId);
-    }
 
     /**
      * @param $group

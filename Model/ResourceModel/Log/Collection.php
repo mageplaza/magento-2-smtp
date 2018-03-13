@@ -6,7 +6,7 @@
  *
  * This source file is subject to the mageplaza.com license that is
  * available through the world-wide-web at this URL:
- * https://mageplaza.com/LICENSE.txt
+ * https://www.mageplaza.com/LICENSE.txt
  *
  * DISCLAIMER
  *
@@ -15,8 +15,8 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
- * @license     http://mageplaza.com/LICENSE.txt
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
 namespace Mageplaza\Smtp\Model\ResourceModel\Log;
@@ -47,7 +47,7 @@ class Collection extends AbstractCollection
     public function clearLog()
     {
         $connection = $this->getConnection();
-        $tableName  = $this->getMainTable();
+        $tableName = $this->getMainTable();
         $connection->truncateTable($tableName);
     }
 }

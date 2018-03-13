@@ -6,7 +6,7 @@
  *
  * This source file is subject to the mageplaza.com license that is
  * available through the world-wide-web at this URL:
- * https://mageplaza.com/LICENSE.txt
+ * https://www.mageplaza.com/LICENSE.txt
  *
  * DISCLAIMER
  *
@@ -15,8 +15,8 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
- * @license     http://mageplaza.com/LICENSE.txt
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
 namespace Mageplaza\Smtp\Setup;
@@ -33,13 +33,9 @@ use Magento\Framework\Setup\SchemaSetupInterface;
 class InstallSchema implements InstallSchemaInterface
 {
     /**
-     * install tables
-     *
-     * @param \Magento\Framework\Setup\SchemaSetupInterface $setup
-     * @param \Magento\Framework\Setup\ModuleContextInterface $context
-     *
-     * @return void
-     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+     * @param SchemaSetupInterface $setup
+     * @param ModuleContextInterface $context
+     * @throws \Zend_Db_Exception
      */
     public function install(SchemaSetupInterface $setup, ModuleContextInterface $context)
     {
@@ -52,7 +48,7 @@ class InstallSchema implements InstallSchemaInterface
                 ->addColumn('id', Table::TYPE_INTEGER, null, [
                     'identity' => true,
                     'nullable' => false,
-                    'primary'  => true,
+                    'primary' => true,
                     'unsigned' => true,
                 ], 'Log ID')
                 ->addColumn('subject', Table::TYPE_TEXT, 255, ['nullable => false'], 'Email Subject')

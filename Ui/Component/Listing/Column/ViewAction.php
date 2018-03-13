@@ -6,7 +6,7 @@
  *
  * This source file is subject to the mageplaza.com license that is
  * available through the world-wide-web at this URL:
- * https://mageplaza.com/LICENSE.txt
+ * https://www.mageplaza.com/LICENSE.txt
  *
  * DISCLAIMER
  *
@@ -15,8 +15,8 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
- * @license     http://mageplaza.com/LICENSE.txt
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
 namespace Mageplaza\Smtp\Ui\Component\Listing\Column;
@@ -62,7 +62,7 @@ class ViewAction extends Column
         array $data = []
     )
     {
-        $this->urlBuilder       = $urlBuilder;
+        $this->urlBuilder = $urlBuilder;
         $this->actionUrlBuilder = $actionUrlBuilder;
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
@@ -77,7 +77,7 @@ class ViewAction extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
-                $item['subject']              = iconv_mime_decode($item['subject'], 0, 'UTF-8');
+                $item['subject'] = iconv_mime_decode($item['subject'], 0, 'UTF-8');
                 $item[$this->getData('name')] = __('View');
             }
         }

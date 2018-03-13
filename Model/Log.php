@@ -6,7 +6,7 @@
  *
  * This source file is subject to the mageplaza.com license that is
  * available through the world-wide-web at this URL:
- * https://mageplaza.com/LICENSE.txt
+ * https://www.mageplaza.com/LICENSE.txt
  *
  * DISCLAIMER
  *
@@ -15,8 +15,8 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
- * @license     http://mageplaza.com/LICENSE.txt
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
 namespace Mageplaza\Smtp\Model;
@@ -29,13 +29,13 @@ use Magento\Framework\Model\AbstractModel;
  */
 class Log extends AbstractModel
 {
-	/**
-	 * @return void
-	 */
-	public function _construct()
-	{
-		$this->_init('Mageplaza\Smtp\Model\ResourceModel\Log');
-	}
+    /**
+     * @return void
+     */
+    public function _construct()
+    {
+        $this->_init('Mageplaza\Smtp\Model\ResourceModel\Log');
+    }
 
     /**
      * Save email logs
@@ -43,38 +43,38 @@ class Log extends AbstractModel
      * @param $message
      * @param $status
      */
-	public function saveLog($message, $status)
-	{
-		if ($message) {
-			$headers = $message->getHeaders();
+    public function saveLog($message, $status)
+    {
+        if ($message) {
+            $headers = $message->getHeaders();
 
-			if (isset($headers['Subject']) && isset($headers['Subject'][0])) {
-				$this->setSubject($headers['Subject'][0]);
-			}
+            if (isset($headers['Subject']) && isset($headers['Subject'][0])) {
+                $this->setSubject($headers['Subject'][0]);
+            }
 
             if (isset($headers['From']) && isset($headers['From'][0])) {
                 $this->setFrom($headers['From'][0]);
             }
 
-            if(isset($headers['To'])){
-			    $recipient = $headers['To'];
-			    if(isset($recipient['append'])){
-			        unset($recipient['append']);
+            if (isset($headers['To'])) {
+                $recipient = $headers['To'];
+                if (isset($recipient['append'])) {
+                    unset($recipient['append']);
                 }
-			    $this->setTo(implode(', ', $recipient));
+                $this->setTo(implode(', ', $recipient));
             }
 
-            if(isset($headers['Cc'])){
+            if (isset($headers['Cc'])) {
                 $cc = $headers['Cc'];
-                if(isset($cc['append'])){
+                if (isset($cc['append'])) {
                     unset($cc['append']);
                 }
                 $this->setCc(implode(', ', $cc));
             }
 
-            if(isset($headers['Bcc'])){
+            if (isset($headers['Bcc'])) {
                 $bcc = $headers['Bcc'];
-                if(isset($bcc['append'])){
+                if (isset($bcc['append'])) {
                     unset($bcc['append']);
                 }
                 $this->setBcc(implode(', ', $bcc));
@@ -87,9 +87,9 @@ class Log extends AbstractModel
                 $content = htmlspecialchars($message->getBody()->getRawContent());
             }
 
-			$this->setEmailContent($content)
-				->setStatus($status)
-				->save();
-		}
-	}
+            $this->setEmailContent($content)
+                ->setStatus($status)
+                ->save();
+        }
+    }
 }

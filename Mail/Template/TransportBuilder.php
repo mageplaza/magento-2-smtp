@@ -6,7 +6,7 @@
  *
  * This source file is subject to the mageplaza.com license that is
  * available through the world-wide-web at this URL:
- * https://mageplaza.com/LICENSE.txt
+ * https://www.mageplaza.com/LICENSE.txt
  *
  * DISCLAIMER
  *
@@ -15,11 +15,13 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
- * @license     http://mageplaza.com/LICENSE.txt
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
 namespace Mageplaza\Smtp\Mail\Template;
+
+use Magento\Framework\Registry;
 
 /**
  * Class TransportBuilder
@@ -28,17 +30,15 @@ namespace Mageplaza\Smtp\Mail\Template;
 class TransportBuilder
 {
     /**
-     * @var \Magento\Framework\Registry $registry
+     * @var Registry $registry
      */
 
     protected $registry;
 
     /**
-     * @param \Magento\Framework\Registry $registry
+     * @param Registry $registry
      */
-    public function __construct(
-        \Magento\Framework\Registry $registry
-    )
+    public function __construct(Registry $registry)
     {
         $this->registry = $registry;
     }

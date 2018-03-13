@@ -6,7 +6,7 @@
  *
  * This source file is subject to the mageplaza.com license that is
  * available through the world-wide-web at this URL:
- * https://mageplaza.com/LICENSE.txt
+ * https://www.mageplaza.com/LICENSE.txt
  *
  * DISCLAIMER
  *
@@ -15,8 +15,8 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
- * @license     http://mageplaza.com/LICENSE.txt
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
 namespace Mageplaza\Smtp\Controller\Adminhtml\Index;
@@ -96,19 +96,19 @@ class Index extends Action
     )
     {
         $this->resultPageFactory = $resultPageFactory;
-        $this->jsonHelper        = $jsonHelper;
-        $this->logger            = $logger;
-        $this->encryptor         = $encryptor;
-        $this->_senderResolver   = $senderResolver;
-        $this->smtpDataHelper    = $smtpDataHelper;
+        $this->jsonHelper = $jsonHelper;
+        $this->logger = $logger;
+        $this->encryptor = $encryptor;
+        $this->_senderResolver = $senderResolver;
+        $this->smtpDataHelper = $smtpDataHelper;
 
         parent::__construct($context);
     }
 
     /**
-     * Execute view action
-     *
-     * @return \Magento\Framework\Controller\ResultInterface
+     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
+     * @throws \Magento\Framework\Exception\MailException
+     * @throws \Zend_Mail_Exception
      */
     public function execute()
     {
@@ -117,14 +117,14 @@ class Index extends Action
         $params = $this->getRequest()->getParams();
         if ($params && $params['to']) {
             $config = [];
-            $host   = $params['host'];
+            $host = $params['host'];
             if ($params['protocol']) {
                 $config['ssl'] = $params['protocol'];
             }
             if ($params['port']) {
                 $config['port'] = $params['port'];
             }
-            $config['auth']     = $params['authentication'];
+            $config['auth'] = $params['authentication'];
             $config['username'] = $params['username'];
             if ($params['password'] == '******') {
                 $config['password'] = $this->encryptor->decrypt(
@@ -135,7 +135,7 @@ class Index extends Action
             }
 
             $transport = new \Zend_Mail_Transport_Smtp($host, $config);
-            $mail      = new \Zend_Mail();
+            $mail = new \Zend_Mail();
 
             if ($params['from']) {
                 $result = $this->_senderResolver->resolve($params['from']);
@@ -155,7 +155,7 @@ class Index extends Action
 
             try {
                 $mail->send($transport);
-                $result['status']  = true;
+                $result['status'] = true;
                 $result['content'] = __('Sent successfully! Please check your email box.');
             } catch (\Exception $e) {
                 $result['content'] = $e->getMessage();

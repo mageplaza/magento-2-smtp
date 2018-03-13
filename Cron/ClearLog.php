@@ -6,7 +6,7 @@
  *
  * This source file is subject to the mageplaza.com license that is
  * available through the world-wide-web at this URL:
- * https://mageplaza.com/LICENSE.txt
+ * https://www.mageplaza.com/LICENSE.txt
  *
  * DISCLAIMER
  *
@@ -15,8 +15,8 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017 Mageplaza (https://www.mageplaza.com/)
- * @license     http://mageplaza.com/LICENSE.txt
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
 namespace Mageplaza\Smtp\Cron;
@@ -66,10 +66,10 @@ class ClearLog
         Data $helper
     )
     {
-        $this->logger        = $logger;
-        $this->date          = $date;
+        $this->logger = $logger;
+        $this->date = $date;
         $this->collectionLog = $collectionLog;
-        $this->helper        = $helper;
+        $this->helper = $helper;
     }
 
     /**
@@ -86,7 +86,7 @@ class ClearLog
         $day = (int)$this->helper->getConfig(Data::DEVELOP_GROUP_SMTP, 'clean_email');
         if (isset($day) && $day > 0) {
             $timeEnd = strtotime($this->date->date()) - $day * 24 * 60 * 60;
-            $logs    = $this->collectionLog->create()
+            $logs = $this->collectionLog->create()
                 ->addFieldToFilter('created_at', ['lteq' => date('Y-m-d H:i:s', $timeEnd)]);
             try {
                 foreach ($logs as $log) {
