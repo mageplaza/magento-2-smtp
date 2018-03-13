@@ -23,8 +23,8 @@
 <listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Ui/etc/ui_configuration.xsd">
     <argument name="data" xsi:type="array">
         <item name="js_config" xsi:type="array">
-            <item name="provider" xsi:type="string">mageplaza_smtp_emails_log_grid.mageplaza_smtp_emails_log_grid_data_source</item>
-            <item name="deps" xsi:type="string">mageplaza_smtp_emails_log_grid.mageplaza_smtp_emails_log_grid_data_source</item>
+            <item name="provider" xsi:type="string">mpsmtp_emails_log_grid.mpsmtp_emails_log_grid_data_source</item>
+            <item name="deps" xsi:type="string">mpsmtp_emails_log_grid.mpsmtp_emails_log_grid_data_source</item>
         </item>
         <item name="spinner" xsi:type="string">emails_log_columns</item>
         <item name="buttons" xsi:type="array">
@@ -36,10 +36,10 @@
             </item>
         </item>
     </argument>
-    <dataSource name="mageplaza_smtp_emails_log_grid_data_source">
+    <dataSource name="mpsmtp_emails_log_grid_data_source">
         <argument name="dataProvider" xsi:type="configurableObject">
             <argument name="class" xsi:type="string">Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider</argument>
-            <argument name="name" xsi:type="string">mageplaza_smtp_emails_log_grid_data_source</argument>
+            <argument name="name" xsi:type="string">mpsmtp_emails_log_grid_data_source</argument>
             <argument name="primaryFieldName" xsi:type="string">id</argument>
             <argument name="requestFieldName" xsi:type="string">id</argument>
             <argument name="data" xsi:type="array">

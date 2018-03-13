@@ -32,7 +32,7 @@
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
             <argument name="collections" xsi:type="array">
-                <item name="mageplaza_smtp_emails_log_grid_data_source" xsi:type="string">Mageplaza\Smtp\Model\ResourceModel\Log\Grid\Collection</item>
+                <item name="mpsmtp_emails_log_grid_data_source" xsi:type="string">Mageplaza\Smtp\Model\ResourceModel\Log\Grid\Collection</item>
             </argument>
         </arguments>
     </type>
