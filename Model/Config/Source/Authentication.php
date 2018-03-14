@@ -50,7 +50,7 @@ class Authentication implements ArrayInterface
                 'label' => __('Login')
             ],
             [
-                'value' => 'cram-md5',
+                'value' => 'crammd5',
                 'label' => __('CRAM-MD5')
             ],
         ];
