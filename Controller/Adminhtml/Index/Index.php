@@ -29,6 +29,8 @@ use Magento\Framework\Mail\Template\SenderResolverInterface;
 use Magento\Framework\View\Result\PageFactory;
 use Mageplaza\Smtp\Helper\Data as SmtpData;
 use Psr\Log\LoggerInterface;
+use Magento\Store\Model\ScopeInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 
 /**
  * Class Index
@@ -76,6 +78,11 @@ class Index extends Action
     protected $smtpDataHelper;
 
     /**
+     * @var ScopeConfigInterface
+     */
+    protected $scopeConfig;
+
+    /**
      * Index constructor.
      * @param \Magento\Backend\App\Action\Context $context
      * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
@@ -84,6 +91,7 @@ class Index extends Action
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Magento\Framework\Mail\Template\SenderResolverInterface $senderResolver
      * @param \Mageplaza\Smtp\Helper\Data $smtpDataHelper
+     * @param ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         Context $context,
@@ -92,7 +100,8 @@ class Index extends Action
         EncryptorInterface $encryptor,
         LoggerInterface $logger,
         SenderResolverInterface $senderResolver,
-        SmtpData $smtpDataHelper
+        SmtpData $smtpDataHelper,
+        ScopeConfigInterface $scopeConfig
     )
     {
         $this->resultPageFactory = $resultPageFactory;
@@ -101,6 +110,7 @@ class Index extends Action
         $this->encryptor = $encryptor;
         $this->_senderResolver = $senderResolver;
         $this->smtpDataHelper = $smtpDataHelper;
+        $this->scopeConfig = $scopeConfig;
 
         parent::__construct($context);
     }
@@ -127,9 +137,7 @@ class Index extends Action
             $config['auth'] = $params['authentication'];
             $config['username'] = $params['username'];
             if ($params['password'] == '******') {
-                $config['password'] = $this->encryptor->decrypt(
-                    $this->smtpDataHelper->getConfig('configuration_option', 'password')
-                );
+                $config['password'] = $this->encryptor->decrypt($this->getPasswordFromConfig());
             } else {
                 $config['password'] = $params['password'];
             }
@@ -168,5 +176,28 @@ class Index extends Action
         return $this->getResponse()->representJson(
             $this->jsonHelper->jsonEncode($result)
         );
+    }
+
+    private function getPasswordFromConfig()
+    {
+        $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
+        $scopeCode = null;
+
+        $website = $this->getRequest()->getParam('website');
+        if ($website)
+        {
+            $scope = ScopeInterface::SCOPE_WEBSITE;
+            $scopeCode = $website;
+        }
+
+        $store = $this->getRequest()->getParam('store');
+        if ($store)
+        {
+            $scope = ScopeInterface::SCOPE_STORE;
+            $scopeCode = $store;
+        }
+
+        $path = sprintf('%s/configuration_option/password', \Mageplaza\Smtp\Helper\Data::CONFIG_MODULE_PATH);
+        return $this->scopeConfig->getValue($path, $scope, $scopeCode);
     }
 }
