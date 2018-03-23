@@ -93,7 +93,8 @@ class Transport
     )
     {
         $this->_storeId = $this->registry->registry('mp_smtp_store_id');
-        $message = $this->getMessage($subject);
+	$message = $this->getMessage($subject);
+        $message->setDate();
         if ($this->resourceMail->isModuleEnable($this->_storeId) && $message) {
             $message = $this->resourceMail->processMessage($message, $this->_storeId);
             $transport = $this->resourceMail->getTransport($this->_storeId);
