@@ -95,6 +95,7 @@ class Mail extends \Zend_Application_Resource_Mail
                 'username' => isset($configData['username']) ? $configData['username'] : '',
                 'password' => isset($configData['password']) ? $this->encryptor->decrypt($configData['password']) : '',
             ];
+            if(empty($this->_smtpOptions[$storeId]['ssl'])) unset($this->_smtpOptions[$storeId]['ssl']);
         }
 
         $this->_transport = null;
