@@ -60,7 +60,7 @@ class Button extends Field
         $this->addData(
             [
                 'button_label' => $originalData['button_label'],
-                'button_url' => $this->getUrl($originalData['button_url']),
+                'button_url' => $this->getUrl($originalData['button_url'], ['_current' => true]),
                 'html_id' => $element->getHtmlId(),
             ]
         );

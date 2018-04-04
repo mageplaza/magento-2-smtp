@@ -128,7 +128,7 @@ class Index extends Action
             $config['username'] = $params['username'];
             if ($params['password'] == '******') {
                 $config['password'] = $this->encryptor->decrypt(
-                    $this->smtpDataHelper->getConfig('configuration_option', 'password')
+                    $this->smtpDataHelper->getTestPassword()
                 );
             } else {
                 $config['password'] = $params['password'];
