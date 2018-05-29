@@ -4,7 +4,7 @@
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -15,7 +15,7 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
@@ -75,9 +75,9 @@ class Transport
     )
     {
         $this->resourceMail = $resourceMail;
-        $this->logFactory = $logFactory;
-        $this->registry = $registry;
-        $this->helper = $helper;
+        $this->logFactory   = $logFactory;
+        $this->registry     = $registry;
+        $this->helper       = $helper;
     }
 
     /**
@@ -93,9 +93,9 @@ class Transport
     )
     {
         $this->_storeId = $this->registry->registry('mp_smtp_store_id');
-        $message = $this->getMessage($subject);
+        $message        = $this->getMessage($subject);
         if ($this->resourceMail->isModuleEnable($this->_storeId) && $message) {
-            $message = $this->resourceMail->processMessage($message, $this->_storeId);
+            $message   = $this->resourceMail->processMessage($message, $this->_storeId);
             $transport = $this->resourceMail->getTransport($this->_storeId);
             try {
                 if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
@@ -123,7 +123,7 @@ class Transport
 
         try {
             $reflectionClass = new \ReflectionClass($transport);
-            $message = $reflectionClass->getProperty('_message');
+            $message         = $reflectionClass->getProperty('_message');
             $message->setAccessible(true);
 
             return $message->getValue($transport);

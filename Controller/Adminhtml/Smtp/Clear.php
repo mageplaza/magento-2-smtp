@@ -4,7 +4,7 @@
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -15,20 +15,21 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
-namespace Mageplaza\Smtp\Controller\Adminhtml\Index;
+namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
+use Mageplaza\Smtp\Model\ResourceModel\Log\Collection;
 use Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory;
 
 /**
  * Class Clear
- * @package Mageplaza\Smtp\Controller\Adminhtml\Index
+ * @package Mageplaza\Smtp\Controller\Adminhtml\Smtp
  */
 class Clear extends Action
 {
@@ -68,7 +69,9 @@ class Clear extends Action
     public function execute()
     {
         $resultRedirect = $this->resultRedirectFactory->create();
-        $collection = $this->collectionLog->create();
+        
+        /** @var Collection $collection */
+        $collection     = $this->collectionLog->create();
         try {
             $collection->clearLog();
             $this->messageManager->addSuccess(__('Success'));

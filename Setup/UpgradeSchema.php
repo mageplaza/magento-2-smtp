@@ -4,7 +4,7 @@
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -15,7 +15,7 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
@@ -40,39 +40,33 @@ class UpgradeSchema implements UpgradeSchemaInterface
     {
         $setup->startSetup();
 
+        $connection = $setup->getConnection();
+
         if (version_compare($context->getVersion(), '1.1.0', '<')) {
-            $setup->getConnection()
-                ->addColumn($setup->getTable('mageplaza_smtp_log'), 'from', [
-                        'type' => Table::TYPE_TEXT,
-                        'nullable' => true,
-                        'length' => 255,
-                        'comment' => 'Sender'
-                    ]
-                );
-            $setup->getConnection()
-                ->addColumn($setup->getTable('mageplaza_smtp_log'), 'to', [
-                        'type' => Table::TYPE_TEXT,
-                        'nullable' => true,
-                        'length' => 255,
-                        'comment' => 'Recipient'
-                    ]
-                );
-            $setup->getConnection()
-                ->addColumn($setup->getTable('mageplaza_smtp_log'), 'cc', [
-                        'type' => Table::TYPE_TEXT,
-                        'nullable' => true,
-                        'length' => 255,
-                        'comment' => 'Cc'
-                    ]
-                );
-            $setup->getConnection()
-                ->addColumn($setup->getTable('mageplaza_smtp_log'), 'bcc', [
-                        'type' => Table::TYPE_TEXT,
-                        'nullable' => true,
-                        'length' => 255,
-                        'comment' => 'Bcc'
-                    ]
-                );
+            $connection->addColumn($setup->getTable('mageplaza_smtp_log'), 'from', [
+                'type'     => Table::TYPE_TEXT,
+                'nullable' => true,
+                'length'   => 255,
+                'comment'  => 'Sender'
+            ]);
+            $connection->addColumn($setup->getTable('mageplaza_smtp_log'), 'to', [
+                'type'     => Table::TYPE_TEXT,
+                'nullable' => true,
+                'length'   => 255,
+                'comment'  => 'Recipient'
+            ]);
+            $connection->addColumn($setup->getTable('mageplaza_smtp_log'), 'cc', [
+                'type'     => Table::TYPE_TEXT,
+                'nullable' => true,
+                'length'   => 255,
+                'comment'  => 'Cc'
+            ]);
+            $connection->addColumn($setup->getTable('mageplaza_smtp_log'), 'bcc', [
+                'type'     => Table::TYPE_TEXT,
+                'nullable' => true,
+                'length'   => 255,
+                'comment'  => 'Bcc'
+            ]);
         }
 
         $setup->endSetup();

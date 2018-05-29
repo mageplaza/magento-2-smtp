@@ -4,7 +4,7 @@
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -15,7 +15,7 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
@@ -62,9 +62,10 @@ class ViewAction extends Column
         array $data = []
     )
     {
-        $this->urlBuilder = $urlBuilder;
-        $this->actionUrlBuilder = $actionUrlBuilder;
         parent::__construct($context, $uiComponentFactory, $components, $data);
+
+        $this->urlBuilder       = $urlBuilder;
+        $this->actionUrlBuilder = $actionUrlBuilder;
     }
 
     /**
@@ -77,9 +78,9 @@ class ViewAction extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
-                $item['subject'] = iconv_mime_decode($item['subject'], 2, 'UTF-8');
-                $item['from'] = iconv_mime_decode($item['from'], 2, 'UTF-8');
-                $item['to'] = iconv_mime_decode($item['to'], 2, 'UTF-8');
+                $item['subject']              = iconv_mime_decode($item['subject'], 2, 'UTF-8');
+                $item['from']                 = iconv_mime_decode($item['from'], 2, 'UTF-8');
+                $item['to']                   = iconv_mime_decode($item['to'], 2, 'UTF-8');
                 $item[$this->getData('name')] = __('View');
             }
         }

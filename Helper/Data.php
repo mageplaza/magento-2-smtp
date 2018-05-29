@@ -4,7 +4,7 @@
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -15,7 +15,7 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
@@ -30,20 +30,30 @@ use Mageplaza\Core\Helper\AbstractData;
 class Data extends AbstractData
 {
     const CONFIG_MODULE_PATH = 'smtp';
-
-    const CONFIG_GROUP_SMTP = 'configuration_option';
+    const CONFIG_GROUP_SMTP  = 'configuration_option';
     const DEVELOP_GROUP_SMTP = 'developer';
 
     /**
-     * @param $group
-     * @param $code
+     * @param string $code
      * @param null $storeId
      * @return mixed
      */
-    public function getConfig($group, $code = '', $storeId = null)
+    public function getSmtpConfig($code = '', $storeId = null)
     {
         $code = ($code !== '') ? '/' . $code : '';
 
-        return $this->getConfigValue(static::CONFIG_MODULE_PATH . '/' . $group . $code, $storeId);
+        return $this->getModuleConfig(self::CONFIG_GROUP_SMTP . $code, $storeId);
+    }
+
+    /**
+     * @param string $code
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getDeveloperConfig($code = '', $storeId = null)
+    {
+        $code = ($code !== '') ? '/' . $code : '';
+
+        return $this->getModuleConfig(self::DEVELOP_GROUP_SMTP . $code, $storeId);
     }
 }

@@ -1,11 +1,10 @@
-<?xml version="1.0"?>
-<!--
+<?xml version="1.0"?><!--
 /**
  * Mageplaza
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -16,14 +15,13 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
-        <add id="Mageplaza_Smtp::smtp" title="SMTP" module="Mageplaza_Smtp" sortOrder="19" resource="Mageplaza_Smtp::smtp" parent="Mageplaza_Core::menu"/>
-        <add id="Mageplaza_Smtp::log" title="Email Logs" module="Mageplaza_Smtp" sortOrder="10" parent="Mageplaza_Smtp::smtp" action="mpsmtp/index/log" resource="Mageplaza_Smtp::log"/>
-        <add id="Mageplaza_Smtp::configuration" title="Configuration" module="Mageplaza_Smtp" sortOrder="20" action="adminhtml/system_config/edit/section/smtp" resource="Mageplaza_Smtp::configuration" parent="Mageplaza_Smtp::smtp"/>
+        <add id="Mageplaza_Smtp::smtp" title="SMTP" module="Mageplaza_Smtp" sortOrder="45" resource="Mageplaza_Smtp::smtp" parent="Magento_Backend::stores"/>
+        <add id="Mageplaza_Smtp::log" title="Email Logs" module="Mageplaza_Smtp" sortOrder="10" parent="Mageplaza_Smtp::smtp" action="adminhtml/smtp/log" resource="Mageplaza_Smtp::log"/>
     </menu>
 </config>

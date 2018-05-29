@@ -4,7 +4,7 @@
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -15,7 +15,7 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
@@ -73,7 +73,7 @@ class Mail extends \Zend_Application_Resource_Mail
     public function __construct($options = null)
     {
         $this->smtpHelper = ObjectManager::getInstance()->get(Data::class);
-        $this->encryptor = ObjectManager::getInstance()->get(EncryptorInterface::class);
+        $this->encryptor  = ObjectManager::getInstance()->get(EncryptorInterface::class);
 
         parent::__construct($options);
     }
@@ -85,17 +85,19 @@ class Mail extends \Zend_Application_Resource_Mail
     public function getTransport($storeId)
     {
         if (!isset($this->_smtpOptions[$storeId])) {
-            $configData = $this->smtpHelper->getConfig(Data::CONFIG_GROUP_SMTP, '', $storeId);
+            $configData                   = $this->smtpHelper->getSmtpConfig('', $storeId);
             $this->_smtpOptions[$storeId] = [
-                'type' => 'smtp',
-                'host' => isset($configData['host']) ? $configData['host'] : '',
-                'ssl' => isset($configData['protocol']) ? $configData['protocol'] : '',
-                'port' => isset($configData['port']) ? $configData['port'] : '',
-                'auth' => isset($configData['authentication']) ? $configData['authentication'] : '',
+                'type'     => 'smtp',
+                'host'     => isset($configData['host']) ? $configData['host'] : '',
+                'port'     => isset($configData['port']) ? $configData['port'] : '',
+                'auth'     => isset($configData['authentication']) ? $configData['authentication'] : '',
                 'username' => isset($configData['username']) ? $configData['username'] : '',
                 'password' => isset($configData['password']) ? $this->encryptor->decrypt($configData['password']) : '',
             ];
-            if(empty($this->_smtpOptions[$storeId]['ssl'])) unset($this->_smtpOptions[$storeId]['ssl']);
+
+            if(isset($configData['protocol'])){
+                $this->_smtpOptions[$storeId]['ssl'] = $configData['protocol'];
+            }
         }
 
         $this->_transport = null;
@@ -111,7 +113,7 @@ class Mail extends \Zend_Application_Resource_Mail
      */
     public function processMessage($message, $storeId)
     {
-        if ($returnPath = $this->smtpHelper->getConfig(Data::CONFIG_GROUP_SMTP, 'return_path_email', $storeId)) {
+        if ($returnPath = $this->smtpHelper->getSmtpConfig('return_path_email', $storeId)) {
             $message->setReturnPath($returnPath);
         }
 
@@ -138,7 +140,7 @@ class Mail extends \Zend_Application_Resource_Mail
     public function isDeveloperMode($storeId)
     {
         if (!isset($this->_developerMode[$storeId])) {
-            $this->_developerMode[$storeId] = $this->smtpHelper->getConfig(Data::DEVELOP_GROUP_SMTP, 'developer_mode', $storeId);
+            $this->_developerMode[$storeId] = $this->smtpHelper->getDeveloperConfig('developer_mode', $storeId);
         }
 
         return $this->_developerMode[$storeId];
@@ -151,7 +153,7 @@ class Mail extends \Zend_Application_Resource_Mail
     public function isEnableEmailLog($storeId)
     {
         if (!isset($this->_emailLog[$storeId])) {
-            $this->_emailLog[$storeId] = $this->smtpHelper->getConfig(Data::DEVELOP_GROUP_SMTP, 'log_email', $storeId);
+            $this->_emailLog[$storeId] = $this->smtpHelper->getDeveloperConfig('log_email', $storeId);
         }
 
         return $this->_emailLog[$storeId];

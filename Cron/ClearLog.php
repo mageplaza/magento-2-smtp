@@ -4,7 +4,7 @@
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -15,7 +15,7 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
@@ -23,6 +23,7 @@ namespace Mageplaza\Smtp\Cron;
 
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Mageplaza\Smtp\Helper\Data;
+use Mageplaza\Smtp\Model\ResourceModel\Log\Collection;
 use Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory;
 use Psr\Log\LoggerInterface;
 
@@ -66,10 +67,10 @@ class ClearLog
         Data $helper
     )
     {
-        $this->logger = $logger;
-        $this->date = $date;
+        $this->logger        = $logger;
+        $this->date          = $date;
         $this->collectionLog = $collectionLog;
-        $this->helper = $helper;
+        $this->helper        = $helper;
     }
 
     /**
@@ -83,17 +84,20 @@ class ClearLog
             return $this;
         }
 
-        $day = (int)$this->helper->getConfig(Data::DEVELOP_GROUP_SMTP, 'clean_email');
+        $day = (int)$this->helper->getDeveloperConfig('clean_email');
         if (isset($day) && $day > 0) {
             $timeEnd = strtotime($this->date->date()) - $day * 24 * 60 * 60;
+
+            /** @var Collection $logs */
             $logs = $this->collectionLog->create()
                 ->addFieldToFilter('created_at', ['lteq' => date('Y-m-d H:i:s', $timeEnd)]);
-            try {
-                foreach ($logs as $log) {
+
+            foreach ($logs as $log) {
+                try {
                     $log->delete();
+                } catch (\Exception $e) {
+                    $this->logger->critical($e);
                 }
-            } catch (\Exception $e) {
-                $this->logger->critical($e);
             }
         }
 

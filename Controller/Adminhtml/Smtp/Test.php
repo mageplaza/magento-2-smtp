@@ -4,7 +4,7 @@
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -15,11 +15,11 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
-namespace Mageplaza\Smtp\Controller\Adminhtml\Index;
+namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
@@ -31,10 +31,10 @@ use Mageplaza\Smtp\Helper\Data as SmtpData;
 use Psr\Log\LoggerInterface;
 
 /**
- * Class Index
- * @package Mageplaza\Smtp\Controller\Adminhtml\Index
+ * Class Test
+ * @package Mageplaza\Smtp\Controller\Adminhtml\Smtp
  */
-class Index extends Action
+class Test extends Action
 {
     /**
      * Authorization level of a basic admin session
@@ -96,11 +96,11 @@ class Index extends Action
     )
     {
         $this->resultPageFactory = $resultPageFactory;
-        $this->jsonHelper = $jsonHelper;
-        $this->logger = $logger;
-        $this->encryptor = $encryptor;
-        $this->_senderResolver = $senderResolver;
-        $this->smtpDataHelper = $smtpDataHelper;
+        $this->jsonHelper        = $jsonHelper;
+        $this->logger            = $logger;
+        $this->encryptor         = $encryptor;
+        $this->_senderResolver   = $senderResolver;
+        $this->smtpDataHelper    = $smtpDataHelper;
 
         parent::__construct($context);
     }
@@ -117,25 +117,25 @@ class Index extends Action
         $params = $this->getRequest()->getParams();
         if ($params && $params['to']) {
             $config = [];
-            $host = $params['host'];
+            $host   = $params['host'];
             if ($params['protocol']) {
                 $config['ssl'] = $params['protocol'];
             }
             if ($params['port']) {
                 $config['port'] = $params['port'];
             }
-            $config['auth'] = $params['authentication'];
+            $config['auth']     = $params['authentication'];
             $config['username'] = $params['username'];
             if ($params['password'] == '******') {
                 $config['password'] = $this->encryptor->decrypt(
-                    $this->smtpDataHelper->getConfig('configuration_option', 'password')
+                    $this->smtpDataHelper->getSmtpConfig('password')
                 );
             } else {
                 $config['password'] = $params['password'];
             }
 
             $transport = new \Zend_Mail_Transport_Smtp($host, $config);
-            $mail = new \Zend_Mail();
+            $mail      = new \Zend_Mail();
 
             if ($params['from']) {
                 $result = $this->_senderResolver->resolve($params['from']);
@@ -155,7 +155,7 @@ class Index extends Action
 
             try {
                 $mail->send($transport);
-                $result['status'] = true;
+                $result['status']  = true;
                 $result['content'] = __('Sent successfully! Please check your email box.');
             } catch (\Exception $e) {
                 $result['content'] = $e->getMessage();

@@ -4,7 +4,7 @@
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -15,7 +15,7 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
@@ -48,7 +48,7 @@ class InstallSchema implements InstallSchemaInterface
                 ->addColumn('id', Table::TYPE_INTEGER, null, [
                     'identity' => true,
                     'nullable' => false,
-                    'primary' => true,
+                    'primary'  => true,
                     'unsigned' => true,
                 ], 'Log ID')
                 ->addColumn('subject', Table::TYPE_TEXT, 255, ['nullable => false'], 'Email Subject')

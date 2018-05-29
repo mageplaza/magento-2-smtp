@@ -1,11 +1,10 @@
-<?xml version="1.0"?>
-<!--
+<?xml version="1.0"?><!--
 /**
  * Mageplaza
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -16,7 +15,7 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 -->
@@ -24,16 +23,16 @@
     <acl>
         <resources>
             <resource id="Magento_Backend::admin">
+                <resource id="Mageplaza_Core::menu">
+                    <resource id="Mageplaza_Smtp::smtp" title="Mageplaza Smtp" translate="title" sortOrder="45">
+                        <resource id="Mageplaza_Smtp::log" title="Emails Log" translate="title" sortOrder="10"/>
+                    </resource>
+                </resource>
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
-                            <resource id="Mageplaza_Smtp::configuration" title="Mageplaza Smtp Module" sortOrder="1" />
+                            <resource id="Mageplaza_Smtp::configuration" title="Mageplaza Smtp"/>
                         </resource>
-                    </resource>
-                </resource>
-                <resource id="Mageplaza_Core::menu">
-                    <resource id="Mageplaza_Smtp::smtp" title="Mageplaza Smtp" translate="title" sortOrder="10">
-                        <resource id="Mageplaza_Smtp::log" title="Emails Log" translate="title" sortOrder="10" />
                     </resource>
                 </resource>
             </resource>

@@ -1,11 +1,10 @@
-<?xml version="1.0" ?>
-<!--
+<?xml version="1.0" ?><!--
 /**
  * Mageplaza
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -16,14 +15,14 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
     <router id="admin">
-        <route id="mpsmtp" frontName="mpsmtp">
-            <module before="Magento_Backend" name="Mageplaza_Smtp"/>
+        <route id="adminhtml">
+            <module name="Mageplaza_Smtp" before="Magento_Backend" />
         </route>
     </router>
 </config>

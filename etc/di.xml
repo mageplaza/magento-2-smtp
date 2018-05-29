@@ -1,11 +1,10 @@
-<?xml version="1.0" ?>
-<!--
+<?xml version="1.0" ?><!--
 /**
  * Mageplaza
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -16,18 +15,17 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Magento\Framework\Mail\Template\TransportBuilder">
-        <plugin name="mageplaza_mail_template_transport_builder" type="Mageplaza\Smtp\Mail\Template\TransportBuilder" sortOrder="1" disabled="false" />
+        <plugin name="mageplaza_mail_template_transport_builder" type="Mageplaza\Smtp\Mail\Template\TransportBuilder" sortOrder="1" disabled="false"/>
     </type>
     <type name="Magento\Framework\Mail\TransportInterface">
-        <plugin name="mageplaza_mail_transport" type="Mageplaza\Smtp\Mail\Transport" sortOrder="1" disabled="false" />
+        <plugin name="mageplaza_mail_transport" type="Mageplaza\Smtp\Mail\Transport" sortOrder="1" disabled="false"/>
     </type>
-
     <!--Grid collection-->
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
