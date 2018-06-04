@@ -27,7 +27,7 @@ use Magento\Framework\View\Result\PageFactory;
 
 /**
  * Class Log
- * @package Mageplaza\Smtp\Controller\Adminhtml\Index
+ * @package Mageplaza\Smtp\Controller\Adminhtml\Smtp
  */
 class Log extends Action
 {

@@ -78,9 +78,43 @@
                 </item>
             </argument>
         </filters>
+        <massaction name="listing_massaction" component="Magento_Ui/js/grid/tree-massactions">
+            <action name="delete">
+                <settings>
+                    <confirm>
+                        <message translate="true">Are you sure to delete selected log(s)?</message>
+                        <title translate="true">Delete items</title>
+                    </confirm>
+                    <url path="adminhtml/smtp/MassDelete"/>
+                    <type>delete</type>
+                    <label translate="true">Delete</label>
+                </settings>
+            </action>
+            <action name="resend">
+                <settings>
+                    <confirm>
+                        <message translate="true">Are you sure to resend selected log(s)?</message>
+                        <title translate="true">Resend items</title>
+                    </confirm>
+                    <url path="adminhtml/smtp/MassResend"/>
+                    <type>resend</type>
+                    <label translate="true">Resend</label>
+                </settings>
+            </action>
+        </massaction>
         <paging name="listing_paging"/>
     </listingToolbar>
     <columns name="emails_log_columns">
+        <selectionsColumn name="ids">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="resizeEnabled" xsi:type="boolean">false</item>
+                    <item name="resizeDefaultWidth" xsi:type="string">55</item>
+                    <item name="indexField" xsi:type="string">id</item>
+                    <item name="sortOrder" xsi:type="number">9</item>
+                </item>
+            </argument>
+        </selectionsColumn>
         <column name="id">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">

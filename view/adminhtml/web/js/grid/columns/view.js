@@ -14,14 +14,15 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (http://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
 define([
     'Magento_Ui/js/grid/columns/thumbnail',
     'jquery',
-    'Magento_Ui/js/modal/modal'
+    'Magento_Ui/js/modal/modal',
+    'Magento_Ui/js/modal/confirm'
 ], function (Column, $) {
     'use strict';
 
@@ -34,20 +35,56 @@ define([
         },
         modal: {},
         preview: function (row) {
-            var emailId = row.id;
-            if (typeof this.modal[emailId] === 'undefined') {
-                var modalHtml = '<iframe srcdoc="' + row['email_content'] + '" style="width: 100%; height: 100%"></iframe>';
-                this.modal[emailId] = $('<div/>')
-                    .html(modalHtml)
-                    .modal({
-                        type: 'slide',
-                        title: row['subject'],
-                        modalClass: 'mpsmtp-modal-email',
-                        innerScroll: true,
-                        buttons: []
+            if(event.target.className == 'action-menu-item mpview') {
+                var emailId = row.id;
+                if (typeof this.modal[emailId] === 'undefined') {
+                    var modalHtml = '<iframe srcdoc="' + row['email_content'] + '" style="width: 100%; height: 100%"></iframe>';
+                    this.modal[emailId] = $('<div/>')
+                        .html(modalHtml)
+                        .modal({
+                            type: 'slide',
+                            title: row['subject'],
+                            modalClass: 'mpsmtp-modal-email',
+                            innerScroll: true,
+                            buttons: []
+                        });
+                }
+                this.modal[emailId].trigger('openModal');
+            } else if(event.target.className == 'action-menu-item mpresend'){
+                require([
+                    'Magento_Ui/js/modal/confirm'
+                ], function(confirmation) {
+
+                    confirmation({
+                        title: row.view.resend.confirm.title,
+                        content: row.view.resend.confirm.message,
+                        actions: {
+                            confirm: function(){
+                                window.location.href = row.view.resend.href;
+                            },
+                            cancel: function(){},
+                            always: function(){}
+                        }
                     });
+                });
+            } else if(event.target.className == 'action-menu-item mpdelete'){
+                require([
+                    'Magento_Ui/js/modal/confirm'
+                ], function(confirmation) {
+
+                    confirmation({
+                        title: row.view.delete.confirm.title,
+                        content: row.view.delete.confirm.message,
+                        actions: {
+                            confirm: function(){
+                                window.location.href = row.view.delete.href;
+                            },
+                            cancel: function(){},
+                            always: function(){}
+                        }
+                    });
+                });
             }
-            this.modal[emailId].trigger('openModal');
         }
     });
 });

@@ -15,8 +15,25 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
+ * @copyright   Copyright (c) 2017-2018 Mageplaza (http://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 -->
-<a href="#" class="action-menu-item" text="$col.getLabel($row())"/>
+<!--<a href="#" class="action-menu-item" text="$col.getLabel($row())"/>-->
+
+<div class="action-select-wrap _active" data-bind="collapsible">
+    <button class="action-select" data-bind="i18n: 'Select', toggleCollapsible">Select</button>
+    <ul class="action-menu _active" data-bind="css: {_active: $collapsible.opened}">
+        <li>
+            <a class="action-menu-item mpview">View</a>
+        </li>
+        <li>
+            <a class="action-menu-item mpresend">Resend</a>
+        </li>
+        <li>
+            <a class="action-menu-item mpdelete">Delete</a>
+        </li>
+    </ul>
+</div>
+
+

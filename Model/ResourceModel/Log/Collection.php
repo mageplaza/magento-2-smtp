@@ -29,6 +29,11 @@ use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
  */
 class Collection extends AbstractCollection
 {
+	/**
+     * @type string
+     */
+    protected $_idFieldName = 'id';
+
     /**
      * Define resource model
      *
