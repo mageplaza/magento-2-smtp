@@ -127,9 +127,7 @@ class Test extends Action
             $config['auth']     = $params['authentication'];
             $config['username'] = $params['username'];
             if ($params['password'] == '******') {
-                $config['password'] = $this->encryptor->decrypt(
-                    $this->smtpDataHelper->getTestPassword()
-                );
+                $config['password'] = $this->smtpDataHelper->getTestPassword(true);
             } else {
                 $config['password'] = $params['password'];
             }

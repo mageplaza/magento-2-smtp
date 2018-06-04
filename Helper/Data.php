@@ -21,7 +21,6 @@
 
 namespace Mageplaza\Smtp\Helper;
 
-use Magento\Framework\App\Area;
 use Magento\Store\Model\ScopeInterface;
 use Mageplaza\Core\Helper\AbstractData;
 
@@ -34,16 +33,6 @@ class Data extends AbstractData
     const CONFIG_MODULE_PATH = 'smtp';
     const CONFIG_GROUP_SMTP  = 'configuration_option';
     const DEVELOP_GROUP_SMTP = 'developer';
-
-    /**
-     * @var \Magento\Backend\App\Config
-     */
-    protected $backendConfig;
-
-    /**
-     * @var bool
-     */
-    protected $isFrontendArea;
 
     /**
      * @param string $code
@@ -70,67 +59,25 @@ class Data extends AbstractData
     }
 
     /**
-     * Will be removed when module Core is updated
-     *
-     * @param $field
-     * @param null $scopeValue
-     * @param string $scopeType
+     * @param bool $decrypt
      * @return array|mixed
      */
-    public function getConfigValueTmp($field, $scopeValue = null, $scopeType = ScopeInterface::SCOPE_STORE)
+    public function getTestPassword($decrypt = false)
     {
-        if (!$this->isFrontend() && is_null($scopeValue)) {
-            /** @var \Magento\Backend\App\Config $backendConfig */
-            if (!$this->backendConfig) {
-                $this->backendConfig = $this->objectManager->get('Magento\Backend\App\ConfigInterface');
-            }
-
-            return $this->backendConfig->getValue($field);
-        }
-
-        return $this->scopeConfig->getValue($field, $scopeType, $scopeValue);
-    }
-
-    /**
-     * Will be removed when module Core is updated
-     *
-     * Is Admin Store
-     *
-     * @return bool
-     */
-    public function isFrontend()
-    {
-        if (!isset($this->isFrontendArea)) {
-            /** @var \Magento\Framework\App\State $state */
-            $state = $this->objectManager->get('Magento\Framework\App\State');
-
-            try {
-                $areaCode = $state->getAreaCode();
-
-                $this->isFrontendArea = ($areaCode == Area::AREA_FRONTEND);
-            } catch (\Exception $e) {
-                $this->isFrontendArea = false;
-            }
-        }
-
-        return $this->isFrontendArea;
-    }
-
-    /**
-     * @return array|mixed
-     */
-    public function getTestPassword()
-    {
-        $passwordPath = self::CONFIG_MODULE_PATH . '/' . self::CONFIG_GROUP_SMTP . '/password';
-        $websiteCode  = $this->_request->getParam('website');
-        $storeCode    = $this->_request->getParam('store');
-
-        if (!$storeCode && $websiteCode) {
-            $password = $this->getConfigValueTmp($passwordPath, $websiteCode, ScopeInterface::SCOPE_WEBSITE);
-        } else if ($storeCode) {
-            $password = $this->getConfigValueTmp($passwordPath, $storeCode);
+        if ($storeCode = $this->_request->getParam('store')) {
+            $password = $this->getSmtpConfig('password', $storeCode);
+        } else if ($websiteCode = $this->_request->getParam('website')) {
+            $passwordPath = self::CONFIG_MODULE_PATH . '/' . self::CONFIG_GROUP_SMTP . '/password';
+            $password     = $this->getConfigValue($passwordPath, $websiteCode, ScopeInterface::SCOPE_WEBSITE);
         } else {
-            $password = $this->getConfigValueTmp($passwordPath);
+            $password = $this->getSmtpConfig('password');
+        }
+
+        if($decrypt){
+            /** @var \Magento\Framework\Encryption\EncryptorInterface $encryptor */
+            $encryptor = $this->getObject(\Magento\Framework\Encryption\EncryptorInterface::class);
+
+            return $encryptor->decrypt($password);
         }
 
         return $password;
