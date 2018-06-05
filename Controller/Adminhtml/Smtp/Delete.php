@@ -43,12 +43,13 @@ class Delete extends Action
      * @param LogFactory $logFactory
      */
     public function __construct(
-        Action\Context $context,
-        LogFactory $logFactory
+        LogFactory $logFactory,
+        Action\Context $context
     )
     {
-        $this->logFactory = $logFactory;
         parent::__construct($context);
+
+        $this->logFactory = $logFactory;
     }
 
     /**
@@ -59,7 +60,7 @@ class Delete extends Action
         /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
         $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
 
-        try{
+        try {
             $logId = $this->getRequest()->getParam('id');
             $this->logFactory->create()->load($logId)->delete();
         } catch (\Exception $e) {

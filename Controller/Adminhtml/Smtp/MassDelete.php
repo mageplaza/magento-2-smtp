@@ -21,9 +21,9 @@
 
 namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Ui\Component\MassAction\Filter;
 use Magento\Backend\App\Action;
+use Magento\Ui\Component\MassAction\Filter;
+use Magento\Framework\Controller\ResultFactory;
 use Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory;
 
 /**
@@ -44,15 +44,20 @@ class MassDelete extends Action
 
     /**
      * MassDelete constructor.
-     * @param Action\Context $context
      * @param Filter $filter
+     * @param Action\Context $context
      * @param CollectionFactory $emailLog
      */
-    public function __construct(Action\Context $context, Filter $filter, CollectionFactory $emailLog)
+    public function __construct(
+        Filter $filter,
+        Action\Context $context,
+        CollectionFactory $emailLog
+    )
     {
+        parent::__construct($context);
+
         $this->filter = $filter;
         $this->emailLog = $emailLog;
-        parent::__construct($context);
     }
 
     /**

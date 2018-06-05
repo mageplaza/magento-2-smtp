@@ -21,11 +21,11 @@
 
 namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Ui\Component\MassAction\Filter;
 use Magento\Backend\App\Action;
-use Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory;
 use Mageplaza\Smtp\Model\LogFactory;
+use Magento\Ui\Component\MassAction\Filter;
+use Magento\Framework\Controller\ResultFactory;
+use Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory;
 
 /**
  * Class MassResend
@@ -50,22 +50,23 @@ class MassResend extends Action
 
     /**
      * MassResend constructor.
-     * @param Action\Context $context
      * @param Filter $filter
-     * @param CollectionFactory $emailLog
      * @param LogFactory $logFactory
+     * @param Action\Context $context
+     * @param CollectionFactory $emailLog
      */
     public function __construct(
-        Action\Context $context,
         Filter $filter,
-        CollectionFactory $emailLog,
-        LogFactory $logFactory
+        LogFactory $logFactory,
+        Action\Context $context,
+        CollectionFactory $emailLog
     )
     {
+        parent::__construct($context);
+
         $this->filter = $filter;
         $this->emailLog = $emailLog;
         $this->logFactory = $logFactory;
-        parent::__construct($context);
     }
 
     /**

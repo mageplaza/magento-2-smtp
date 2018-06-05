@@ -63,26 +63,28 @@ class Email extends Action
     /**
      * Email constructor.
      * @param Context $context
-     * @param TransportBuilder $transportBuilder
+     * @param LogFactory $logFactory
      * @param StateInterface $inlineTranslation
      * @param ScopeConfigInterface $scopeConfig
+     * @param TransportBuilder $transportBuilder
      * @param StoreManagerInterface $storeManager
-     * @param LogFactory $logFactory
      */
     public function __construct(
         Context $context,
-        TransportBuilder $transportBuilder,
+        LogFactory $logFactory,
         StateInterface $inlineTranslation,
         ScopeConfigInterface $scopeConfig,
-        StoreManagerInterface $storeManager,
-        LogFactory $logFactory
-    ) {
+        TransportBuilder $transportBuilder,
+        StoreManagerInterface $storeManager
+    )
+    {
         parent::__construct($context);
-        $this->_transportBuilder = $transportBuilder;
-        $this->inlineTranslation = $inlineTranslation;
+
+        $this->logFactory = $logFactory;
         $this->scopeConfig = $scopeConfig;
         $this->storeManager = $storeManager;
-        $this->logFactory = $logFactory;
+        $this->_transportBuilder = $transportBuilder;
+        $this->inlineTranslation = $inlineTranslation;
     }
 
     /**
@@ -101,11 +103,13 @@ class Email extends Action
         $data = $email->load($logId)->getData();
         $data['email_content'] = htmlspecialchars_decode($data['email_content']);
 
-        $email->resendEmail($data);
+        $status = $email->resendEmail($data);
 
-        $this->messageManager->addSuccess(
-            __('Email re-sent successfully!')
-        );
+        if ($status) {
+            $this->messageManager->addSuccess(
+                __('Email re-sent successfully!')
+            );
+        }
         $this->_redirect('*/smtp/log');
         return;
     }

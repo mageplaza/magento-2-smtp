@@ -24,7 +24,7 @@ define([
     'jquery',
     'Magento_Ui/js/modal/modal',
     'Magento_Ui/js/modal/confirm'
-], function (Column,ko, $, modal, confirmation) {
+], function (Column, ko, $, modal, confirmation) {
     'use strict';
 
     return Column.extend({
@@ -35,16 +35,16 @@ define([
             }
         },
         modal: {},
-        getAction: function(row){
+        getAction: function (row) {
             var data = [];
-            $.each(row.view, function( index, value ) {
+            $.each(row.view, function (index, value) {
                 data.push({label: value.label, class: value.class});
             });
             debugger;
-            return data ;
+            return data;
         },
         preview: function (row) {
-            if(event.target.className == 'action-menu-item mpview') {
+            if (event.target.className == 'action-menu-item mpview') {
                 var emailId = row.id;
                 if (typeof this.modal[emailId] === 'undefined') {
                     var modalHtml = '<iframe srcdoc="' + row['email_content'] + '" style="width: 100%; height: 100%"></iframe>';
@@ -59,31 +59,27 @@ define([
                         });
                 }
                 this.modal[emailId].trigger('openModal');
-            } else if(event.target.className == 'action-menu-item mpresend'){
-                confirmation({
-                    title: row.view.resend.confirm.title,
-                    content: row.view.resend.confirm.message,
-                    actions: {
-                        confirm: function(){
-                            window.location.href = row.view.resend.href;
-                        },
-                        cancel: function(){},
-                        always: function(){}
-                    }
-                });
-            } else if(event.target.className == 'action-menu-item mpdelete'){
-                confirmation({
-                    title: row.view.delete.confirm.title,
-                    content: row.view.delete.confirm.message,
-                    actions: {
-                        confirm: function(){
-                            window.location.href = row.view.delete.href;
-                        },
-                        cancel: function(){},
-                        always: function(){}
-                    }
-                });
+
+            } else if (event.target.className == 'action-menu-item mpresend') {
+                this.confirm(row.view.resend);
+            } else if (event.target.className == 'action-menu-item mpdelete') {
+                this.confirm(row.view.delete);
             }
+        },
+        confirm: function (data) {
+            confirmation({
+                title: data.confirm.title,
+                content: data.confirm.message,
+                actions: {
+                    confirm: function () {
+                        window.location.href = data.href;
+                    },
+                    cancel: function () {
+                    },
+                    always: function () {
+                    }
+                }
+            });
         }
     });
 });
