@@ -34,7 +34,7 @@
                         It helps to reduce abandonment cart with <a href="https://www.mageplaza.com/magento-2-one-step-checkout-extension/" target="_blank">One Step Checkout</a>. Fully compatible with <a href="https://www.mageplaza.com/magento-2-abandoned-cart-email/" target="_blank">Abandoned Cart Email</a>]]>
                     </comment>
                 </field>
-                <field id="log_email" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="log_email" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Log Emails</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>It will log all sent emails, you can preview it and schedule clean up.</comment>

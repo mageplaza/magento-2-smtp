@@ -22,7 +22,6 @@
 namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 
 use Magento\Backend\App\Action;
-use Mageplaza\Smtp\Model\LogFactory;
 use Magento\Ui\Component\MassAction\Filter;
 use Magento\Framework\Controller\ResultFactory;
 use Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory;
@@ -51,13 +50,11 @@ class MassResend extends Action
     /**
      * MassResend constructor.
      * @param Filter $filter
-     * @param LogFactory $logFactory
      * @param Action\Context $context
      * @param CollectionFactory $emailLog
      */
     public function __construct(
         Filter $filter,
-        LogFactory $logFactory,
         Action\Context $context,
         CollectionFactory $emailLog
     )
@@ -66,7 +63,6 @@ class MassResend extends Action
 
         $this->filter = $filter;
         $this->emailLog = $emailLog;
-        $this->logFactory = $logFactory;
     }
 
     /**
@@ -79,13 +75,12 @@ class MassResend extends Action
 
         try {
             $collection = $this->filter->getCollection($this->emailLog->create());
-            $logFactory = $this->logFactory->create();
 
             $resend = 0;
             foreach ($collection->getItems() as $item) {
-                $data = $logFactory->load($item->getId())->getData();
+                $data = $item->getData();
                 $data['email_content'] = htmlspecialchars_decode($data['email_content']);
-                $logFactory->resendEmail($data);
+                $item->resendEmail($data);
 
                 $resend++;
             }
