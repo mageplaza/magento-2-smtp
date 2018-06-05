@@ -85,7 +85,7 @@
                         <message translate="true">Are you sure to delete selected log(s)?</message>
                         <title translate="true">Delete items</title>
                     </confirm>
-                    <url path="adminhtml/smtp/MassDelete"/>
+                    <url path="adminhtml/smtp/massdelete"/>
                     <type>delete</type>
                     <label translate="true">Delete</label>
                 </settings>
@@ -96,7 +96,7 @@
                         <message translate="true">Are you sure to resend selected log(s)?</message>
                         <title translate="true">Resend items</title>
                     </confirm>
-                    <url path="adminhtml/smtp/MassResend"/>
+                    <url path="adminhtml/smtp/massresend"/>
                     <type>resend</type>
                     <label translate="true">Resend</label>
                 </settings>

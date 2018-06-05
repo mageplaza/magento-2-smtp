@@ -82,7 +82,8 @@ class ViewAction extends Column
 
                 $item[$name]['view'] = [
                     'href' => '#',
-                    'label' => __('Resend'),
+                    'label' => __('View'),
+                    'class' => 'action-menu-item mpview',
                     'confirm' => [
                         'title' => __('Resend %1', $item['subject']),
                         'message' => __('Are you sure you want to resend the <strong>%1</strong>?', $item['subject'])
@@ -90,8 +91,9 @@ class ViewAction extends Column
                 ];
 
                 $item[$name]['resend'] = [
-                    'href' => $this->urlBuilder->getUrl('adminhtml/resend/email', ['id' => $item['id']]),
+                    'href' => $this->urlBuilder->getUrl('adminhtml/smtp/email', ['id' => $item['id']]),
                     'label' => __('Resend'),
+                    'class' => 'action-menu-item mpresend',
                     'confirm' => [
                         'title' => __('Resend %1', $item['subject']),
                         'message' => __('Are you sure you want to resend the <strong>%1</strong>?', $item['subject'])
@@ -101,6 +103,7 @@ class ViewAction extends Column
                 $item[$name]['delete'] = [
                     'href' => $this->urlBuilder->getUrl('adminhtml/smtp/delete', ['id' => $item['id']]),
                     'label' => __('Delete'),
+                    'class' => 'action-menu-item mpdelete',
                     'confirm' => [
                         'title' => __('Delete %1', $item['subject']),
                         'message' => __('Are you sure you want to delete the <strong>%1</strong>?', $item['subject'])

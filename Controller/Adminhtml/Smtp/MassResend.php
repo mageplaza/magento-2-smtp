@@ -25,7 +25,6 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Ui\Component\MassAction\Filter;
 use Magento\Backend\App\Action;
 use Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory;
-use Mageplaza\Smtp\Controller\Adminhtml\Resend\Email;
 use Mageplaza\Smtp\Model\LogFactory;
 
 /**
@@ -45,11 +44,6 @@ class MassResend extends Action
     protected $emailLog;
 
     /**
-     * @var Email
-     */
-    protected $resendEmail;
-
-    /**
      * @var LogFactory
      */
     protected $logFactory;
@@ -59,27 +53,23 @@ class MassResend extends Action
      * @param Action\Context $context
      * @param Filter $filter
      * @param CollectionFactory $emailLog
-     * @param Email $resendEmail
      * @param LogFactory $logFactory
      */
     public function __construct(
         Action\Context $context,
         Filter $filter,
         CollectionFactory $emailLog,
-        Email $resendEmail,
         LogFactory $logFactory
     )
     {
         $this->filter = $filter;
         $this->emailLog = $emailLog;
-        $this->resendEmail = $resendEmail;
         $this->logFactory = $logFactory;
         parent::__construct($context);
     }
 
     /**
-     * @return $this|\Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return $this|\Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|void
      */
     public function execute()
     {
@@ -94,13 +84,13 @@ class MassResend extends Action
             foreach ($collection->getItems() as $item) {
                 $data = $logFactory->load($item->getId())->getData();
                 $data['email_content'] = htmlspecialchars_decode($data['email_content']);
-                $this->resendEmail->resendEmail($data);
+                $logFactory->resendEmail($data);
 
                 $resend++;
             }
         } catch (\Exception $e) {
             $this->messageManager->addError(
-                __('We can\'t process your request right now. '.$e->getMessage())
+                __('We can\'t process your request right now. %1', $e->getMessage())
             );
             $this->_redirect('adminhtml/smtp/log');
             return;

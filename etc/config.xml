@@ -28,9 +28,6 @@
             <developer>
                 <clean_email>10</clean_email>
             </developer>
-            <email>
-                <send_email>resend_email_template</send_email>
-            </email>
         </smtp>
     </default>
 </config>

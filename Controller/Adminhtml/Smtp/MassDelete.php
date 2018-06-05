@@ -56,8 +56,7 @@ class MassDelete extends Action
     }
 
     /**
-     * @return $this|\Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return $this|\Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|void
      */
     public function execute()
     {
@@ -73,7 +72,7 @@ class MassDelete extends Action
             }
         } catch (\Exception $e) {
             $this->messageManager->addError(
-                __('We can\'t process your request right now. '.$e->getMessage())
+                __('We can\'t process your request right now. %1', $e->getMessage())
             );
             $this->_redirect('adminhtml/smtp/log');
             return;

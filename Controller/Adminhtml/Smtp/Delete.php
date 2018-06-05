@@ -64,7 +64,7 @@ class Delete extends Action
             $this->logFactory->create()->load($logId)->delete();
         } catch (\Exception $e) {
             $this->messageManager->addError(
-                __($e->getMessage())
+                __('We can\'t process your request right now. %1', $e->getMessage())
             );
             $this->_redirect('*/smtp/log');
             return;
