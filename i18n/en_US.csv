@@ -30,12 +30,19 @@ Verizon,Verizon
 OVH,OVH
 Success,Success
 "Something went wrong.","Something went wrong."
-"TEST EMAIL from Custom SMTP","TEST EMAIL from Custom SMTP"
-"Sent successfully! Please check your email box.","Sent successfully! Please check your email box."
-"Test Error","Test Error"
+"We can't process your request right now. %1","We can't process your request right now. %1"
+"A total of 1 record have been deleted.","A total of 1 record have been deleted."
+"Email re-sent successfully!","Email re-sent successfully!"
+"We can't process your request right now.","We can't process your request right now."
 "Emails Log","Emails Log"
 Mageplaza,Mageplaza
 Smtp,Smtp
+"A total of %1 record(s) have been deleted.","A total of %1 record(s) have been deleted."
+"We can't process your request for email log #%1","We can't process your request for email log #%1"
+"A total of %1 record(s) have been sent.","A total of %1 record(s) have been sent."
+"TEST EMAIL from Custom SMTP","TEST EMAIL from Custom SMTP"
+"Sent successfully! Please check your email box.","Sent successfully! Please check your email box."
+"Test Error","Test Error"
 NONE,NONE
 PLAIN,PLAIN
 Login,Login
@@ -45,10 +52,20 @@ SSL,SSL
 TLS,TLS
 Error,Error
 View,View
+Resend,Resend
+"Resend Email","Resend Email"
+"Are you sure you want to resend the email <strong>""%1""</strong>?","Are you sure you want to resend the email <strong>""%1""</strong>?"
+Delete,Delete
+"Delete Log","Delete Log"
+"Are you sure you want to delete this log?","Are you sure you want to delete this log?"
 "Mageplaza Smtp","Mageplaza Smtp"
 SMTP,SMTP
 "General Configuration","General Configuration"
 "Enable Mageplaza SMTP","Enable Mageplaza SMTP"
+"Log Emails","Log Emails"
+"It will log all sent emails, you can preview it and schedule clean up.","It will log all sent emails, you can preview it and schedule clean up."
+"Clean Email Log Every","Clean Email Log Every"
+"Day(s). If empty or zero, the Email log will not be cleaned.","Day(s). If empty or zero, the Email log will not be cleaned."
 "SMTP Configuration Options","SMTP Configuration Options"
 "SMTP Provider","SMTP Provider"
 "Select a Pre-defined SMTP Server, then click Load Settings.","Select a Pre-defined SMTP Server, then click Load Settings."
@@ -68,13 +85,13 @@ Protocol,Protocol
 "Send From","Send From"
 "Send To","Send To"
 Developer,Developer
-"Log Emails","Log Emails"
-"It will log all sent emails, you can preview it and schedule clean up.","It will log all sent emails, you can preview it and schedule clean up."
-"Clean Email Log Every","Clean Email Log Every"
-"Day(s). If empty or zero, the Email log will not be cleaned.","Day(s). If empty or zero, the Email log will not be cleaned."
 "Developer Mode","Developer Mode"
 "If Enable, Magento will not delivery any email to receiver. This is useful for developers.","If Enable, Magento will not delivery any email to receiver. This is useful for developers."
 Clear,Clear
+"Resend items","Resend items"
+"Are you sure to resend selected log(s)?","Are you sure to resend selected log(s)?"
+"Delete items","Delete items"
+"Are you sure to delete selected log email(s)?","Are you sure to delete selected log email(s)?"
 ID,ID
 Subject,Subject
 From,From
