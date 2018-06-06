@@ -64,6 +64,7 @@ class Log extends Action
      */
     public function execute()
     {
+
         $resultPage = $this->resultPageFactory->create();
         $resultPage->setActiveMenu('Mageplaza_Smtp::log');
         $resultPage->getConfig()->getTitle()->prepend((__('Emails Log')));

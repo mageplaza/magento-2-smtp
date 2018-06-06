@@ -153,6 +153,7 @@ class Log extends AbstractModel
      */
     public function resendEmail($data)
     {
+        $this->_registry->register('mp_smtp_is_resend', true);
         $this->inlineTranslation->suspend();
         try {
             $dataObject = new DataObject();

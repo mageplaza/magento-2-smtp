@@ -93,17 +93,23 @@ class Transport
     )
     {
         $this->_storeId = $this->registry->registry('mp_smtp_store_id');
+        $isResend = $this->registry->registry('mp_smtp_is_resend');
         $message        = $this->getMessage($subject);
-        if ($this->resourceMail->isModuleEnable($this->_storeId) && $message) {
+        if (($isResend || $this->resourceMail->isModuleEnable($this->_storeId)) && $message) {
+            $this->registry->unregister('mp_smtp_is_resend');
             $message   = $this->resourceMail->processMessage($message, $this->_storeId);
             $transport = $this->resourceMail->getTransport($this->_storeId);
             try {
-                if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
+                if (!$this->resourceMail->isDeveloperMode($this->_storeId) || !$this->resourceMail->isModuleEnable($this->_storeId)) {
                     $transport->send($message);
                 }
-                $this->emailLog($message);
+                if($this->resourceMail->isModuleEnable($this->_storeId)) {
+                    $this->emailLog($message);
+                }
             } catch (\Exception $e) {
-                $this->emailLog($message, false);
+                if($this->resourceMail->isModuleEnable($this->_storeId)) {
+                    $this->emailLog($message, false);
+                }
                 throw new MailException(new Phrase($e->getMessage()), $e);
             }
         } else {
