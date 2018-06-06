@@ -153,7 +153,7 @@ class Mail extends \Zend_Application_Resource_Mail
     public function isEnableEmailLog($storeId)
     {
         if (!isset($this->_emailLog[$storeId])) {
-            $this->_emailLog[$storeId] = $this->smtpHelper->getGeneralConfig('log_email', $storeId);
+            $this->_emailLog[$storeId] = $this->smtpHelper->getConfigGeneral('log_email', $storeId);
         }
 
         return $this->_emailLog[$storeId];

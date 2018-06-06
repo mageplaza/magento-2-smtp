@@ -84,7 +84,7 @@ class ClearLog
             return $this;
         }
 
-        $day = (int)$this->helper->getDeveloperConfig('clean_email');
+        $day = (int)$this->helper->getConfigGeneral('clean_email');
         if (isset($day) && $day > 0) {
             $timeEnd = strtotime($this->date->date()) - $day * 24 * 60 * 60;
 

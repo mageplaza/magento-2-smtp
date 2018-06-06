@@ -25,9 +25,11 @@
             <module>
                 <type>1</type>
             </module>
-            <developer>
+            <general>
+                <enabled>0</enabled>
+                <log_email>1</log_email>
                 <clean_email>10</clean_email>
-            </developer>
+            </general>
         </smtp>
     </default>
 </config>

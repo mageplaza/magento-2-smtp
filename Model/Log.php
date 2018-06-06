@@ -21,17 +21,15 @@
 
 namespace Mageplaza\Smtp\Model;
 
-use Magento\Store\Model\Store;
 use Magento\Framework\App\Area;
-use Magento\Framework\Registry;
-use Magento\Framework\DataObject;
-use Magento\Framework\Model\Context;
-use Magento\Framework\Model\AbstractModel;
-use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\DataObject;
 use Magento\Framework\Mail\Template\TransportBuilder;
-use Magento\Framework\Translate\Inline\StateInterface;
+use Magento\Framework\Model\AbstractModel;
+use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
+use Magento\Framework\Registry;
+use Magento\Store\Model\Store;
 
 /**
  * Class Log
@@ -40,27 +38,15 @@ use Magento\Framework\Model\ResourceModel\AbstractResource;
 class Log extends AbstractModel
 {
     /**
-     * @var \Magento\Framework\Translate\Inline\StateInterface
-     */
-    protected $inlineTranslation;
-
-    /**
      * @var \Magento\Framework\Mail\Template\TransportBuilder
      */
     protected $_transportBuilder;
 
     /**
-     * @var \Magento\Framework\Message\ManagerInterface
-     */
-    protected $messageManager;
-
-    /**
      * Log constructor.
      * @param Context $context
      * @param Registry $registry
-     * @param StateInterface $inlineTranslation
      * @param TransportBuilder $transportBuilder
-     * @param ManagerInterface $messageManager
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
      * @param array $data
@@ -68,9 +54,7 @@ class Log extends AbstractModel
     public function __construct(
         Context $context,
         Registry $registry,
-        StateInterface $inlineTranslation,
         TransportBuilder $transportBuilder,
-        ManagerInterface $messageManager,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
@@ -78,8 +62,6 @@ class Log extends AbstractModel
     {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
 
-        $this->messageManager = $messageManager;
-        $this->inlineTranslation = $inlineTranslation;
         $this->_transportBuilder = $transportBuilder;
     }
 
@@ -96,143 +78,137 @@ class Log extends AbstractModel
      *
      * @param $message
      * @param $status
+     * @return $this
      */
     public function saveLog($message, $status)
     {
-        if ($message) {
-            $headers = $message->getHeaders();
-
-            if (isset($headers['Subject']) && isset($headers['Subject'][0])) {
-                $this->setSubject($headers['Subject'][0]);
-            }
-
-            if (isset($headers['From']) && isset($headers['From'][0])) {
-                $this->setFrom($headers['From'][0]);
-            }
-
-            if (isset($headers['To'])) {
-                $recipient = $headers['To'];
-                if (isset($recipient['append'])) {
-                    unset($recipient['append']);
-                }
-                $this->setTo(implode(', ', $recipient));
-            }
-
-            if (isset($headers['Cc'])) {
-                $cc = $headers['Cc'];
-                if (isset($cc['append'])) {
-                    unset($cc['append']);
-                }
-                $this->setCc(implode(', ', $cc));
-            }
-
-            if (isset($headers['Bcc'])) {
-                $bcc = $headers['Bcc'];
-                if (isset($bcc['append'])) {
-                    unset($bcc['append']);
-                }
-                $this->setBcc(implode(', ', $bcc));
-            }
-
-            $body = $message->getBodyHtml();
-            if (is_object($body)) {
-                $content = htmlspecialchars($body->getRawContent());
-            } else {
-                $content = htmlspecialchars($message->getBody()->getRawContent());
-            }
-
-            $this->setEmailContent($content)
-                ->setStatus($status)
-                ->save();
+        if ($this->_registry->registry('mp_smtp_resend')) {
+            return $this;
         }
+
+        $headers = $message->getHeaders();
+
+        if (isset($headers['Subject']) && isset($headers['Subject'][0])) {
+            $this->setSubject($headers['Subject'][0]);
+        }
+
+        if (isset($headers['From']) && isset($headers['From'][0])) {
+            $this->setFrom($headers['From'][0]);
+        }
+
+        if (isset($headers['To'])) {
+            $recipient = $headers['To'];
+            if (isset($recipient['append'])) {
+                unset($recipient['append']);
+            }
+            $this->setTo(implode(', ', $recipient));
+        }
+
+        if (isset($headers['Cc'])) {
+            $cc = $headers['Cc'];
+            if (isset($cc['append'])) {
+                unset($cc['append']);
+            }
+            $this->setCc(implode(', ', $cc));
+        }
+
+        if (isset($headers['Bcc'])) {
+            $bcc = $headers['Bcc'];
+            if (isset($bcc['append'])) {
+                unset($bcc['append']);
+            }
+            $this->setBcc(implode(', ', $bcc));
+        }
+
+        $body = $message->getBodyHtml();
+        if (is_object($body)) {
+            $content = htmlspecialchars($body->getRawContent());
+        } else {
+            $content = htmlspecialchars($message->getBody()->getRawContent());
+        }
+
+        $this->setEmailContent($content)
+            ->setStatus($status)
+            ->save();
     }
 
     /**
-     * @param $data
      * @return bool
      */
-    public function resendEmail($data)
+    public function resendEmail()
     {
-        $this->_registry->register('mp_smtp_is_resend', true);
-        $this->inlineTranslation->suspend();
         try {
+            $data                  = $this->getData();
+            $data['email_content'] = htmlspecialchars_decode($data['email_content']);
+
             $dataObject = new DataObject();
             $dataObject->setData($data);
 
-            $sender = $this->extractEmailInfo($dataObject->getFrom());
+            $sender = $this->extractEmailInfo($data['from']);
+            foreach ($sender as $name => $email) {
+                $sender = ['name' => $name, 'email' => $email];
+                break;
+            }
 
             $this->_transportBuilder
-                ->setTemplateIdentifier('resend_email_template')// this code we have mentioned in the email_templates.xml
-                ->setTemplateOptions(
-                    [
-                        'area' => Area::AREA_FRONTEND, // this is using frontend area to get the template file
-                        'store' => Store::DEFAULT_STORE_ID,
-                    ]
-                )
-                ->setTemplateVars(['data' => $dataObject])
+                ->setTemplateIdentifier('resend_email_template')
+                ->setTemplateOptions(['area' => Area::AREA_FRONTEND, 'store' => Store::DEFAULT_STORE_ID])
+                ->setTemplateVars($data)
                 ->setFrom($sender);
 
             /** Add receiver emails*/
-            $recipient = $this->extractRecipientInfo($dataObject->getTo());
-            foreach ($recipient as $rec) {
-                $this->_transportBuilder->addTo($rec);
+            $recipient = $this->extractEmailInfo($data['to']);
+            foreach ($recipient as $name => $email) {
+                $this->_transportBuilder->addTo($email, $name);
             }
 
             /** Add cc emails*/
-            if ($dataObject->getCc()) {
-                $ccEmails = $this->extractRecipientInfo($dataObject->getCc());
-                foreach ($ccEmails as $cc) {
-                    $this->_transportBuilder->addCc($cc);
+            if (isset($data['cc'])) {
+                $ccEmails = $this->extractEmailInfo($data['cc']);
+                foreach ($ccEmails as $name => $email) {
+                    $this->_transportBuilder->addCc($email, $name);
                 }
             }
 
             /** Add Bcc emails*/
-            if ($dataObject->getBcc()) {
-                $bccEmails = $this->extractRecipientInfo($dataObject->getBcc());
-                foreach ($bccEmails as $bcc) {
-                    $this->_transportBuilder->addBcc($bcc);
+            if (isset($data['bcc'])) {
+                $bccEmails = $this->extractEmailInfo($data['bcc']);
+                foreach ($bccEmails as $email) {
+                    $this->_transportBuilder->addBcc($email);
                 }
             }
 
-            $transport = $this->_transportBuilder->getTransport();
+            $this->_registry->register('mp_smtp_resend', true, true);
 
-            $transport->sendMessage();
+            $this->_transportBuilder->getTransport()
+                ->sendMessage();
         } catch (\Exception $e) {
-            $this->messageManager->addError(
-                __('We can\'t process your request right now. ' . $e->getMessage())
-            );
+            $this->_logger->critical($e->getMessage());
+
             return false;
         }
-        return true;
-    }
 
-    /**
-     * @param $string
-     * @return array
-     */
-    public function extractEmailInfo($string)
-    {
-        $pattern = '/[a-z0-9_\-\+\.]+@[a-z0-9\-]+\.([a-z]{2,4})(?:\.[a-z]{2})?/i';
-        preg_match_all($pattern, $string, $matches);
-        $email = $matches[0];
-        \Zend_Debug::dump($email);
-        $nameArr = explode(" <" . $email[0], $string);
-        $name = $nameArr[0];
-        return ['name' => $name, 'email' => $email[0]];
+        return true;
     }
 
     /**
      * @param $emailList
      * @return array|null
      */
-    public function extractRecipientInfo($emailList)
+    public function extractEmailInfo($emailList)
     {
-        $emailArray = explode(',', $emailList);
-        $data = null;
-        foreach ($emailArray as $string) {
-            $emailInfo = $this->extractEmailInfo($string);
-            $data[] = [$emailInfo['name'] => $emailInfo['email']];
+        $emails = explode(', ', $emailList);
+        $data   = [];
+        foreach ($emails as $email) {
+            $emailArray = explode(' <', $email);
+            $name       = '';
+            if (sizeof($emailArray) > 1) {
+                $name  = trim($emailArray[0], '" ');
+                $email = trim($emailArray[1], '<>');
+            }
+            $data[$name] = $email;
         }
+
         return $data;
     }
 }

@@ -33,7 +33,6 @@ class Data extends AbstractData
     const CONFIG_MODULE_PATH = 'smtp';
     const CONFIG_GROUP_SMTP  = 'configuration_option';
     const DEVELOP_GROUP_SMTP = 'developer';
-    const GENERAL_GROUP_SMTP = 'general';
 
     /**
      * @param string $code
@@ -57,17 +56,6 @@ class Data extends AbstractData
         $code = ($code !== '') ? '/' . $code : '';
 
         return $this->getModuleConfig(self::DEVELOP_GROUP_SMTP . $code, $storeId);
-    }
-
-    /**
-     * @param string $code
-     * @param null $storeId
-     * @return mixed
-     */
-    public function getGeneralConfig($code = '', $storeId = null){
-        $code = ($code !== '') ? '/' . $code : '';
-
-        return $this->getModuleConfig(self::GENERAL_GROUP_SMTP . $code, $storeId);
     }
 
     /**

@@ -15,19 +15,19 @@
  *
  * @category    Mageplaza
  * @package     Mageplaza_Smtp
- * @copyright   Copyright (c) 2017-2018 Mageplaza (https://www.mageplaza.com/)
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
 namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 
 use Magento\Backend\App\Action;
-use Mageplaza\Smtp\Model\LogFactory;
 use Magento\Backend\App\Action\Context;
-use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Translate\Inline\StateInterface;
-use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use Mageplaza\Smtp\Model\LogFactory;
 
 /**
  * Class Email
@@ -80,9 +80,9 @@ class Email extends Action
     {
         parent::__construct($context);
 
-        $this->logFactory = $logFactory;
-        $this->scopeConfig = $scopeConfig;
-        $this->storeManager = $storeManager;
+        $this->logFactory        = $logFactory;
+        $this->scopeConfig       = $scopeConfig;
+        $this->storeManager      = $storeManager;
         $this->_transportBuilder = $transportBuilder;
         $this->inlineTranslation = $inlineTranslation;
     }
@@ -93,24 +93,20 @@ class Email extends Action
     public function execute()
     {
         $logId = $this->getRequest()->getParam('id');
-
         if (!$logId) {
-            $this->_redirect('*/smtp/log');
+            $this->_redirect('*/*/log');
+
             return;
         }
 
-        $email = $this->logFactory->create();
-        $data = $email->load($logId)->getData();
-        $data['email_content'] = htmlspecialchars_decode($data['email_content']);
-
-        $status = $email->resendEmail($data);
-
-        if ($status) {
-            $this->messageManager->addSuccess(
-                __('Email re-sent successfully!')
-            );
+        $email = $this->logFactory->create()->load($logId);
+        if ($email->resendEmail()) {
+            $this->messageManager->addSuccessMessage(__('Email re-sent successfully!'));
+        } else {
+            $this->messageManager->addErrorMessage(__('We can\'t process your request right now.'));
         }
         $this->_redirect('*/smtp/log');
+
         return;
     }
 }

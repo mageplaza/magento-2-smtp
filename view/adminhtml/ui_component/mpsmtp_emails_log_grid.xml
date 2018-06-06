@@ -78,28 +78,32 @@
                 </item>
             </argument>
         </filters>
-        <massaction name="listing_massaction" component="Magento_Ui/js/grid/tree-massactions">
-            <action name="delete">
-                <settings>
-                    <confirm>
-                        <message translate="true">Are you sure to delete selected log(s)?</message>
-                        <title translate="true">Delete items</title>
-                    </confirm>
-                    <url path="adminhtml/smtp/massdelete"/>
-                    <type>delete</type>
-                    <label translate="true">Delete</label>
-                </settings>
-            </action>
+        <massaction name="listing_massaction">
             <action name="resend">
-                <settings>
-                    <confirm>
-                        <message translate="true">Are you sure to resend selected log(s)?</message>
-                        <title translate="true">Resend items</title>
-                    </confirm>
-                    <url path="adminhtml/smtp/massresend"/>
-                    <type>resend</type>
-                    <label translate="true">Resend</label>
-                </settings>
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="type" xsi:type="string">resend</item>
+                        <item name="label" xsi:type="string" translate="true">Resend</item>
+                        <item name="url" xsi:type="url" path="adminhtml/smtp/massresend"/>
+                        <item name="confirm" xsi:type="array">
+                            <item name="title" xsi:type="string" translate="true">Resend items</item>
+                            <item name="message" xsi:type="string" translate="true">Are you sure to resend selected log(s)?</item>
+                        </item>
+                    </item>
+                </argument>
+            </action>
+            <action name="delete">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="type" xsi:type="string">delete</item>
+                        <item name="label" xsi:type="string" translate="true">Delete</item>
+                        <item name="url" xsi:type="url" path="adminhtml/smtp/massdelete"/>
+                        <item name="confirm" xsi:type="array">
+                            <item name="title" xsi:type="string" translate="true">Delete items</item>
+                            <item name="message" xsi:type="string" translate="true">Are you sure to delete selected log email(s)?</item>
+                        </item>
+                    </item>
+                </argument>
             </action>
         </massaction>
         <paging name="listing_paging"/>
@@ -202,13 +206,11 @@
                 </item>
             </argument>
         </column>
-        <actionsColumn name="view" class="Mageplaza\Smtp\Ui\Component\Listing\Column\ViewAction">
+        <actionsColumn name="actions" class="Mageplaza\Smtp\Ui\Component\Listing\Column\Actions">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
-                    <item name="component" xsi:type="string">Mageplaza_Smtp/js/grid/columns/view</item>
+                    <item name="component" xsi:type="string">Mageplaza_Smtp/js/grid/columns/actions</item>
                     <item name="sortable" xsi:type="boolean">false</item>
-                    <item name="altField" xsi:type="string">name</item>
-                    <item name="has_preview" xsi:type="string">1</item>
                     <item name="sortOrder" xsi:type="number">100</item>
                 </item>
             </argument>
