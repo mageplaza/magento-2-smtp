@@ -82,7 +82,13 @@ class Log extends AbstractModel
      */
     public function saveLog($message, $status)
     {
-        if ($this->_registry->registry('mp_smtp_resend')) {
+        if ($logId = $this->_registry->registry('mp_smtp_resend')) {
+            $this->load($logId);
+            if ($this->getId() && ($status == \Mageplaza\Smtp\Model\Source\Status::STATUS_SUCCESS)) {
+                $this->setStatus($status)
+                    ->save();
+            }
+
             return $this;
         }
 
@@ -178,7 +184,7 @@ class Log extends AbstractModel
                 }
             }
 
-            $this->_registry->register('mp_smtp_resend', true, true);
+            $this->_registry->register('mp_smtp_resend', $this->getId(), true);
 
             $this->_transportBuilder->getTransport()
                 ->sendMessage();
