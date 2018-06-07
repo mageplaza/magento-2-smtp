@@ -30,6 +30,7 @@ use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
 use Magento\Store\Model\Store;
+use Mageplaza\Smtp\Mail\Rse\Mail;
 
 /**
  * Class Log
@@ -43,10 +44,16 @@ class Log extends AbstractModel
     protected $_transportBuilder;
 
     /**
+     * @var Mail
+     */
+    protected $mailResource;
+
+    /**
      * Log constructor.
      * @param Context $context
      * @param Registry $registry
      * @param TransportBuilder $transportBuilder
+     * @param Mail $mailResource
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
      * @param array $data
@@ -55,6 +62,7 @@ class Log extends AbstractModel
         Context $context,
         Registry $registry,
         TransportBuilder $transportBuilder,
+        Mail $mailResource,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
@@ -63,6 +71,7 @@ class Log extends AbstractModel
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
 
         $this->_transportBuilder = $transportBuilder;
+        $this->mailResource      = $mailResource;
     }
 
     /**
@@ -78,20 +87,9 @@ class Log extends AbstractModel
      *
      * @param $message
      * @param $status
-     * @return $this
      */
     public function saveLog($message, $status)
     {
-        if ($logId = $this->_registry->registry('mp_smtp_resend')) {
-            $this->load($logId);
-            if ($this->getId() && ($status == \Mageplaza\Smtp\Model\Source\Status::STATUS_SUCCESS)) {
-                $this->setStatus($status)
-                    ->save();
-            }
-
-            return $this;
-        }
-
         $headers = $message->getHeaders();
 
         if (isset($headers['Subject']) && isset($headers['Subject'][0])) {
@@ -157,7 +155,7 @@ class Log extends AbstractModel
             }
 
             $this->_transportBuilder
-                ->setTemplateIdentifier('resend_email_template')
+                ->setTemplateIdentifier('mpsmtp_resend_email_template')
                 ->setTemplateOptions(['area' => Area::AREA_FRONTEND, 'store' => Store::DEFAULT_STORE_ID])
                 ->setTemplateVars($data)
                 ->setFrom($sender);
@@ -184,10 +182,13 @@ class Log extends AbstractModel
                 }
             }
 
-            $this->_registry->register('mp_smtp_resend', $this->getId(), true);
+            $this->mailResource->setSmtpOptions(Store::DEFAULT_STORE_ID, ['ignore_log' => true]);
 
             $this->_transportBuilder->getTransport()
                 ->sendMessage();
+
+            $this->setStatus(\Mageplaza\Smtp\Model\Source\Status::STATUS_SUCCESS)
+                ->save();
         } catch (\Exception $e) {
             $this->_logger->critical($e->getMessage());
 
@@ -201,7 +202,7 @@ class Log extends AbstractModel
      * @param $emailList
      * @return array|null
      */
-    public function extractEmailInfo($emailList)
+    protected function extractEmailInfo($emailList)
     {
         $emails = explode(', ', $emailList);
         $data   = [];

@@ -59,13 +59,14 @@ class Data extends AbstractData
     }
 
     /**
+     * @param null $storeId
      * @param bool $decrypt
-     * @return array|mixed
+     * @return array|mixed|string
      */
-    public function getTestPassword($decrypt = false)
+    public function getPassword($storeId = null, $decrypt = true)
     {
-        if ($storeCode = $this->_request->getParam('store')) {
-            $password = $this->getSmtpConfig('password', $storeCode);
+        if ($storeId || $storeId = $this->_request->getParam('store')) {
+            $password = $this->getSmtpConfig('password', $storeId);
         } else if ($websiteCode = $this->_request->getParam('website')) {
             $passwordPath = self::CONFIG_MODULE_PATH . '/' . self::CONFIG_GROUP_SMTP . '/password';
             $password     = $this->getConfigValue($passwordPath, $websiteCode, ScopeInterface::SCOPE_WEBSITE);
@@ -73,7 +74,7 @@ class Data extends AbstractData
             $password = $this->getSmtpConfig('password');
         }
 
-        if($decrypt){
+        if ($decrypt) {
             /** @var \Magento\Framework\Encryption\EncryptorInterface $encryptor */
             $encryptor = $this->getObject(\Magento\Framework\Encryption\EncryptorInterface::class);
 

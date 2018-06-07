@@ -23,11 +23,11 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\Encryption\EncryptorInterface;
-use Magento\Framework\Json\Helper\Data;
-use Magento\Framework\Mail\Template\SenderResolverInterface;
-use Magento\Framework\View\Result\PageFactory;
+use Magento\Framework\App\Area;
+use Magento\Framework\Mail\Template\TransportBuilder;
+use Magento\Store\Model\Store;
 use Mageplaza\Smtp\Helper\Data as SmtpData;
+use Mageplaza\Smtp\Mail\Rse\Mail;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -44,31 +44,9 @@ class Test extends Action
     const ADMIN_RESOURCE = 'Mageplaza_Smtp::smtp';
 
     /**
-     * @var \Magento\Framework\View\Result\PageFactory
-     */
-    protected $resultPageFactory;
-
-    /**
-     * @var \Magento\Framework\Json\Helper\Data
-     */
-    protected $jsonHelper;
-
-    /**
      * @var \Psr\Log\LoggerInterface
      */
     protected $logger;
-
-    /**
-     * @var \Magento\Framework\Encryption\EncryptorInterface
-     */
-    protected $encryptor;
-
-    /**
-     * Sender resolver
-     *
-     * @var \Magento\Framework\Mail\Template\SenderResolverInterface
-     */
-    protected $_senderResolver;
 
     /**
      * @var \Mageplaza\Smtp\Helper\Data
@@ -76,39 +54,41 @@ class Test extends Action
     protected $smtpDataHelper;
 
     /**
-     * Index constructor.
-     * @param \Magento\Backend\App\Action\Context $context
-     * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
-     * @param \Magento\Framework\Json\Helper\Data $jsonHelper
-     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Magento\Framework\Mail\Template\SenderResolverInterface $senderResolver
-     * @param \Mageplaza\Smtp\Helper\Data $smtpDataHelper
+     * @var Mail
+     */
+    protected $mailResource;
+
+    /**
+     * @var TransportBuilder
+     */
+    protected $_transportBuilder;
+
+    /**
+     * Test constructor.
+     * @param Context $context
+     * @param LoggerInterface $logger
+     * @param SmtpData $smtpDataHelper
+     * @param Mail $mailResource
+     * @param TransportBuilder $transportBuilder
      */
     public function __construct(
         Context $context,
-        PageFactory $resultPageFactory,
-        Data $jsonHelper,
-        EncryptorInterface $encryptor,
         LoggerInterface $logger,
-        SenderResolverInterface $senderResolver,
-        SmtpData $smtpDataHelper
+        SmtpData $smtpDataHelper,
+        Mail $mailResource,
+        TransportBuilder $transportBuilder
     )
     {
-        $this->resultPageFactory = $resultPageFactory;
-        $this->jsonHelper        = $jsonHelper;
         $this->logger            = $logger;
-        $this->encryptor         = $encryptor;
-        $this->_senderResolver   = $senderResolver;
         $this->smtpDataHelper    = $smtpDataHelper;
+        $this->mailResource      = $mailResource;
+        $this->_transportBuilder = $transportBuilder;
 
         parent::__construct($context);
     }
 
     /**
      * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
-     * @throws \Magento\Framework\Exception\MailException
-     * @throws \Zend_Mail_Exception
      */
     public function execute()
     {
@@ -116,45 +96,46 @@ class Test extends Action
 
         $params = $this->getRequest()->getParams();
         if ($params && $params['to']) {
-            $config = [];
-            $host   = $params['host'];
+            $config = [
+                'type'       => 'smtp',
+                'host'       => $params['host'],
+                'auth'       => $params['authentication'],
+                'username'   => $params['username'],
+                'ignore_log' => true,
+                'force_sent' => true
+            ];
+
             if ($params['protocol']) {
                 $config['ssl'] = $params['protocol'];
             }
             if ($params['port']) {
                 $config['port'] = $params['port'];
             }
-            $config['auth']     = $params['authentication'];
-            $config['username'] = $params['username'];
             if ($params['password'] == '******') {
-                $config['password'] = $this->smtpDataHelper->getTestPassword(true);
+                $config['password'] = $this->smtpDataHelper->getPassword();
             } else {
                 $config['password'] = $params['password'];
             }
-
-            $transport = new \Zend_Mail_Transport_Smtp($host, $config);
-            $mail      = new \Zend_Mail();
-
-            if ($params['from']) {
-                $result = $this->_senderResolver->resolve($params['from']);
-                $mail->setFrom($result['email'], $result['name']);
-            } else {
-                $mail->setFrom($config['username']);
-            }
-
             if ($params['returnpath']) {
-                $mail->setReturnPath($params['returnpath']);
+                $config['return_path'] = $params['returnpath'];
             }
 
-            $mail->addTo($params['to']);
-            $mail->setSubject(__('TEST EMAIL from Custom SMTP'));
-            $mail->setBodyText("Your store has been connected with a custom SMTP successfully. Now you can Save Config and use this connection. \n\n
-            Sent via SMTP by https://www.mageplaza.com");
+            $this->mailResource->setSmtpOptions(Store::DEFAULT_STORE_ID, $config);
+
+            $this->_transportBuilder
+                ->setTemplateIdentifier('mpsmtp_test_email_template')
+                ->setTemplateOptions(['area' => Area::AREA_FRONTEND, 'store' => Store::DEFAULT_STORE_ID])
+                ->setTemplateVars([])
+                ->setFrom(isset($params['from']) ? $params['from'] : $config['username'])
+                ->addTo($params['to']);
 
             try {
-                $mail->send($transport);
-                $result['status']  = true;
-                $result['content'] = __('Sent successfully! Please check your email box.');
+                $this->_transportBuilder->getTransport()->sendMessage();
+
+                $result = [
+                    'status'  => true,
+                    'content' => __('Sent successfully! Please check your email box.')
+                ];
             } catch (\Exception $e) {
                 $result['content'] = $e->getMessage();
                 $this->logger->critical($e);
@@ -163,8 +144,6 @@ class Test extends Action
             $result['content'] = __('Test Error');
         }
 
-        return $this->getResponse()->representJson(
-            $this->jsonHelper->jsonEncode($result)
-        );
+        return $this->getResponse()->representJson(SmtpData::jsonEncode($result));
     }
 }

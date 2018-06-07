@@ -1,4 +1,3 @@
-<?xml version="1.0"?>
 <!--
 /**
  * Mageplaza
@@ -20,7 +19,8 @@
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
-    <template id="mpsmtp_resend_email_template" label="SMTP Resend Email" file="resend_email_template.html" type="html" module="Mageplaza_Smtp" area="frontend"/>
-    <template id="mpsmtp_test_email_template" label="SMTP Test Email" file="test_email_template.html" type="html" module="Mageplaza_Smtp" area="frontend"/>
-</config>
+
+<!--@subject {{trans "TEST EMAIL from Custom SMTP"}} @-->
+
+<p>{{trans "Your store has been connected with a custom SMTP successfully. Now you can Save Config and use this connection."}}</p>
+<p>Sent via SMTP by https://www.mageplaza.com</p>
