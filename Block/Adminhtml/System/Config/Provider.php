@@ -254,6 +254,12 @@ class Provider extends Field
                 'port'     => '465',
                 'protocol' => 'ssl'
             ],
+            [
+                'label'    => __('Amazon SES'),
+                'host'     => 'email-smtp.us-east-1.amazonaws.com',
+                'port'     => '587',
+                'protocol' => 'tls'
+            ],
         ];
 
         return $options;
