@@ -87,6 +87,12 @@ class Provider extends Field
                 'protocol' => 'ssl'
             ],
             [
+                'label'    => __('Amazon SES'),
+                'host'     => 'email-smtp.us-east-1.amazonaws.com',
+                'port'     => '587',
+                'protocol' => 'tls'
+            ],
+            [
                 'label'    => __('Mailgun'),
                 'host'     => 'smtp.mailgun.org',
                 'port'     => '587',
@@ -253,13 +259,7 @@ class Provider extends Field
                 'host'     => 'ssl0.ovh.net',
                 'port'     => '465',
                 'protocol' => 'ssl'
-            ],
-            [
-                'label'    => __('Amazon SES'),
-                'host'     => 'email-smtp.us-east-1.amazonaws.com',
-                'port'     => '587',
-                'protocol' => 'tls'
-            ],
+            ]
         ];
 
         return $options;

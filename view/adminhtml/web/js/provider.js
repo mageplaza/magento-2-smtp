@@ -19,8 +19,9 @@
  */
 define([
     "jquery",
+    "mage/translate",
     "jquery/ui"
-], function ($) {
+], function ($, $t) {
     "use strict";
 
     $.widget('mageplaza.smtpProvider', {
@@ -39,6 +40,9 @@ define([
             var self = this,
                 elem = self.element.next();
 
+            this.hostNoteEl = $(this.ids.hostElm).next('p.note').find('span');
+            this.note = this.hostNoteEl.html();
+
             elem.click(function (e) {
                 e.preventDefault();
                 self._autoFill();
@@ -56,6 +60,12 @@ define([
                     $(this.ids.protocolElm).val(data.protocol);
                     $(this.ids.portElm).val(data.port);
                     $(this.ids.authenticationElm).val('login');
+
+                    if(data.host.indexOf('amazonaws') !== -1){
+                        this.hostNoteEl.html($t('Please change this host name to suit your location'));
+                    } else {
+                        this.hostNoteEl.html(this.note);
+                    }
                 }
             }
         }

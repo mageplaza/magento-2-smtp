@@ -1,5 +1,6 @@
 "- Choose a SMTP Provider -","- Choose a SMTP Provider -"
 "Gmail, GSuite","Gmail, GSuite"
+"Amazon SES","Amazon SES"
 Mailgun,Mailgun
 Mandrill,Mandrill
 Sendinblue,Sendinblue
@@ -40,7 +41,6 @@ Smtp,Smtp
 "A total of %1 record(s) have been deleted.","A total of %1 record(s) have been deleted."
 "We can't process your request for email log #%1","We can't process your request for email log #%1"
 "A total of %1 record(s) have been sent.","A total of %1 record(s) have been sent."
-"TEST EMAIL from Custom SMTP","TEST EMAIL from Custom SMTP"
 "Sent successfully! Please check your email box.","Sent successfully! Please check your email box."
 "Test Error","Test Error"
 NONE,NONE
@@ -58,6 +58,9 @@ Resend,Resend
 Delete,Delete
 "Delete Log","Delete Log"
 "Are you sure you want to delete this log?","Are you sure you want to delete this log?"
+"TEST EMAIL from Custom SMTP","TEST EMAIL from Custom SMTP"
+"Your store has been connected with a custom SMTP successfully. Now you can Save Config and use this connection.","Your store has been connected with a custom SMTP successfully. Now you can Save Config and use this connection."
+"Please change this host name to suit your location","Please change this host name to suit your location"
 "Mageplaza Smtp","Mageplaza Smtp"
 SMTP,SMTP
 "General Configuration","General Configuration"
