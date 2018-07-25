@@ -29,6 +29,7 @@ use Magento\Store\Model\Store;
 use Mageplaza\Smtp\Helper\Data as SmtpData;
 use Mageplaza\Smtp\Mail\Rse\Mail;
 use Psr\Log\LoggerInterface;
+use Magento\Email\Model\Template\SenderResolver;
 
 /**
  * Class Test
@@ -64,31 +65,40 @@ class Test extends Action
     protected $_transportBuilder;
 
     /**
+     * @var SenderResolver
+     */
+    protected $senderResolver;
+
+    /**
      * Test constructor.
      * @param Context $context
      * @param LoggerInterface $logger
      * @param SmtpData $smtpDataHelper
      * @param Mail $mailResource
      * @param TransportBuilder $transportBuilder
+     * @param SenderResolver $senderResolver
      */
     public function __construct(
         Context $context,
         LoggerInterface $logger,
         SmtpData $smtpDataHelper,
         Mail $mailResource,
-        TransportBuilder $transportBuilder
+        TransportBuilder $transportBuilder,
+        SenderResolver $senderResolver
     )
     {
         $this->logger            = $logger;
         $this->smtpDataHelper    = $smtpDataHelper;
         $this->mailResource      = $mailResource;
         $this->_transportBuilder = $transportBuilder;
+        $this->senderResolver    = $senderResolver;
 
         parent::__construct($context);
     }
 
     /**
      * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
+     * @throws \Magento\Framework\Exception\MailException
      */
     public function execute()
     {
@@ -122,11 +132,15 @@ class Test extends Action
 
             $this->mailResource->setSmtpOptions(Store::DEFAULT_STORE_ID, $config);
 
+            $from = $this->senderResolver->resolve(
+                isset($params['from']) ? $params['from'] : $config['username'],
+                isset($params['store']) ? $params['store'] : null);
+
             $this->_transportBuilder
                 ->setTemplateIdentifier('mpsmtp_test_email_template')
                 ->setTemplateOptions(['area' => Area::AREA_FRONTEND, 'store' => Store::DEFAULT_STORE_ID])
                 ->setTemplateVars([])
-                ->setFrom(isset($params['from']) ? $params['from'] : $config['username'])
+                ->setFrom($from)
                 ->addTo($params['to']);
 
             try {
