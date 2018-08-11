@@ -12,11 +12,16 @@ Every day you send and receive so many even more hundreds of emails, however, yo
 
 ## 1. Documentation
 
-- Installation guide: https://www.mageplaza.com/install-magento-2-extension/
-- User guide: https://www.mageplaza.com/magento-2-smtp/user-guide.html
-- Download from our Live site: https://www.mageplaza.com/magento-2-smtp/
-- Contribute on Github: https://github.com/mageplaza/magento-2-smtp
-- Get Support: https://github.com/mageplaza/magento-2-smtp/issues
+- [Installation guide](https://www.mageplaza.com/install-magento-2-extension/)
+- [User Guide](https://www.mageplaza.com/magento-2-smtp/user-guide.html)
+- [Download from our Live site](https://www.mageplaza.com/magento-2-smtp/)
+- [Get Free Support](https://github.com/mageplaza/magento-2-smtp/issues)
+- Get premium support from Mageplaza: [Purchase Support package](https://www.mageplaza.com/magento-2-extension-support-package/)
+- [Contribute on Github](https://github.com/mageplaza/magento-2-smtp)
+- [Releases](https://github.com/mageplaza/magento-2-smtp/releases)
+- [License](https://www.mageplaza.com/LICENSE.txt)
+
+
 
 ## 2. How to install SMTP Extension
 
