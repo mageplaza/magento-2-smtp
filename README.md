@@ -263,4 +263,4 @@ The Clean Email Log Every field limits the storage time for the email you sent. 
 
 ☞ [Magento 2 Banner on Github](https://github.com/mageplaza/magento-2-banner-slider)
 
-
+☞ [Magento 2 SMTP on Github](https://github.com/magento-2/smtp)
