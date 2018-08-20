@@ -83,4 +83,19 @@ class Data extends AbstractData
 
         return $password;
     }
+
+    /**
+     * @return int
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getScopeId()
+    {
+        $scope = $this->_request->getParam(ScopeInterface::SCOPE_STORE) ?: $this->storeManager->getStore()->getId();
+
+        if ($website = $this->_request->getParam(ScopeInterface::SCOPE_WEBSITE)) {
+            $scope = $this->storeManager->getWebsite($website)->getDefaultStore()->getId();
+        }
+
+        return $scope;
+    }
 }

@@ -98,7 +98,7 @@ class Test extends Action
 
     /**
      * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
-     * @throws \Magento\Framework\Exception\MailException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function execute()
     {
@@ -134,7 +134,7 @@ class Test extends Action
 
             $from = $this->senderResolver->resolve(
                 isset($params['from']) ? $params['from'] : $config['username'],
-                isset($params['store']) ? $params['store'] : null);
+                $this->smtpDataHelper->getScopeId());
 
             $this->_transportBuilder
                 ->setTemplateIdentifier('mpsmtp_test_email_template')
