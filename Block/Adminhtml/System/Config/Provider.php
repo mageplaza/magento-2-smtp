@@ -255,6 +255,12 @@ class Provider extends Field
                 'protocol' => ''
             ],
             [
+                'label'    => __('1&1 Webmail'),
+                'host'     => 'smtp.1and1.com',
+                'port'     => '587',
+                'protocol' => ''
+            ],
+            [
                 'label'    => __('OVH'),
                 'host'     => 'ssl0.ovh.net',
                 'port'     => '465',

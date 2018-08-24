@@ -12,11 +12,16 @@ Every day you send and receive so many even more hundreds of emails, however, yo
 
 ## 1. Documentation
 
-- Installation guide: https://www.mageplaza.com/install-magento-2-extension/
-- User guide: https://www.mageplaza.com/magento-2-smtp/user-guide.html
-- Download from our Live site: https://www.mageplaza.com/magento-2-smtp/
-- Contribute on Github: https://github.com/mageplaza/magento-2-smtp
-- Get Support: https://github.com/mageplaza/magento-2-smtp/issues
+- [Installation guide](https://www.mageplaza.com/install-magento-2-extension/)
+- [User Guide](https://www.mageplaza.com/magento-2-smtp/user-guide.html)
+- [Download from our Live site](https://www.mageplaza.com/magento-2-smtp/)
+- [Get Free Support](https://github.com/mageplaza/magento-2-smtp/issues)
+- Get premium support from Mageplaza: [Purchase Support package](https://www.mageplaza.com/magento-2-extension-support-package/)
+- [Contribute on Github](https://github.com/mageplaza/magento-2-smtp)
+- [Releases](https://github.com/mageplaza/magento-2-smtp/releases)
+- [License](https://www.mageplaza.com/LICENSE.txt)
+
+
 
 ## 2. How to install SMTP Extension
 
@@ -63,86 +68,8 @@ This feature allows admin test the [SMTP](https://github.com/magento-2/smtp) Set
 
 
 
-## 4. SWEET MAGEPLAZA EXTENSIONS TO BRING YOU MORE MONEY
 
-### ✓ One Step Checkout
-
-☞ ↑30% INCREASE CONVERSION RATE 
-
-☞ ↓66% DECREASE ABANDONMENT CART
-
-☞ ↓80% REDUCE CHECKOUT TIME
-
-### ✓ Layered Navigation
-
-☞ ↑84% USER'S FILTERING EXPERIENCE
-
-☞ ↑25% CONVERSION RATE
-
-☞ ↓67% SHOPPING TIME
-
-### ✓ Frequently Bought Together
-
-☞ Amazon Product Recommendation Solution
- 
-☞ AJAX loading for better performance
-
-☞ Support Custom Options and all product types
-
-
-
-### ✓ Gift Card
-
-☞ Physical, virtual or combined gift cards
- 
-☞ Different gift card values from prices
-
-☞ Send cards via email, SMS, post office or messenger
-
-
-### ✓ Who Bought This Also Bought
-
-☞ Display on Product Page, Category Page, Shopping Cart page
-
-☞ AJAX loading for better performance.
-
-☞ Flexible layout and design.
-
-
-### ✓ Social Login
-
-☞ Increase signup rate up-to 30%
-
-☞ Supports 11 Types: Facebook, Google Plus, Twitter, Linkedin, Instagram, Yahoo, Github, Foursquare, VK, Live, Amazon
-
-☞ Easy custom design fit with your store design
-
-☞ [Social Login on Github](https://github.com/mageplaza/magento-2-social-login)
-
-
-
-### ✓ Shop By Brand
-
-☞ Fully Compatible with Layered Navigation
-
-☞ Instant Search brands
-
-☞ Import brands
-
-
-
-
-### ✓ Affiliate
-
-☞ Multiple Affiliate Campaigns
-
-☞ Smart Referral Links
-
-☞ Affiliate Report
-
-
-
-## 6. User Guide
+## 4. User Guide
 
 
 In Magento 2, default email server of inherent hosting will be used to send unregistered emails, which means the reputation for this email is pretty low and they will be rated as untrustworthy content, as a matter of fact your precious emails will be delivered to spamming box without knocking up any notification to receiver. Imagine how enormous detriment your business is having when you couldn’t properly send such Order Confirmation, Invoice, Shipment Information,... to their inbox, but classified as spam trash and this is not a professional management.
