@@ -95,6 +95,42 @@ class Host extends Field
     /**
      * Get list of all host
      *
+     * $options = [
+     *      'id' => [
+     *          'label' => __('Label'),
+     *          'info'  => [
+     *              'host' => 'smtp.provider.com',
+     *              'port' => '465',
+     *              'protocol' => 'ssl'
+     *          ],
+     *          'note'  => [
+     *              'global'     => __('Global note'), //This note will be show above the 'Load Setting' button
+     *              'host'       => __('Host note'), //This note will be show under Host field
+     *              'port'       => __('Port note'), //This note will be show under Port field
+     *              'protocol'   => __('Protocol note'), //This note will be show under Protocol field
+     *          ]
+     *      ],
+     *      'id1' => [
+     *          'label' => __('Label1'),
+     *          'info'  => [
+     *              'area1' => [
+     *                  'label' => __('Area Label'),
+     *                  'info'  => [
+     *                      'host' => 'smtp.provider.com',
+     *                      'port' => '465',
+     *                      'protocol' => 'ssl'
+     *                  ],
+     *                  'note'  => [
+     *                      'global'     => __('Global note'), //This note will be show above the 'Load Setting' button
+     *                      'host'       => __('Host note'), //This note will be show under Host field
+     *                      'port'       => __('Port note'), //This note will be show under Port field
+     *                      'protocol'   => __('Protocol note'), //This note will be show under Protocol field
+     *                  ]
+     *              ]
+     *          ]
+     *      ]
+     * ]
+     *
      * @return array
      */
     public function getOptionProvider()

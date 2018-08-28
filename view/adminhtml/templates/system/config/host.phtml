@@ -22,7 +22,7 @@
 /** @var \Mageplaza\Smtp\Block\Adminhtml\System\Config\Provider $block */
 ?>
 <button class="actions-provider-button" data-trigger="autofill" type="button" id="<?php echo $block->getHtmlId() ?>_autofill">
-    <span><?php echo __('Auto Fill') ?></span>
+    <span><?php echo __('Load Settings') ?></span>
 </button>
 <div class="smtp-block-autofill" id="smtp-block-autofill" style="display: none"
      data-bind="mageInit: {
@@ -56,6 +56,7 @@
                             <colgroup class=""></colgroup>
                             <tbody>
                             <?php foreach ($provider['info'] as $infoId => $info): ?>
+                                <?php $note = isset($provider['note']) ? $provider['note'] : [] ?>
                                 <?php if (is_array($info)): ?>
                                     <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>">
                                         <td colspan="4">
@@ -74,18 +75,31 @@
                                                         <colgroup class=""></colgroup>
                                                         <tbody>
                                                             <?php foreach($info['info'] as $key => $infoItem): ?>
-                                                            <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>">
-                                                                <td class="label">
-                                                                    <label for="smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>">
-                                                                        <span><?= $block->getLabel($key) ?></span>
-                                                                    </label>
-                                                                </td>
-                                                                <td class="value">
-                                                                    <span class="control-value special"><?= $block->getLabel($infoItem) ?></span>
-                                                                </td>
-                                                                <td class=""></td>
-                                                            </tr>
+                                                                <?php $note = isset($info['note']) ? $info['note'] : [] ?>
+                                                                <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>">
+                                                                    <td class="label">
+                                                                        <label for="smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>">
+                                                                            <span><?= $block->getLabel($key) ?></span>
+                                                                        </label>
+                                                                    </td>
+                                                                    <td class="value">
+                                                                        <span class="control-value special"><?= $block->getLabel($infoItem) ?></span>
+                                                                        <?php if(isset($note[$key])): ?>
+                                                                            <p class="note"><?= $note[$key] ?></p>
+                                                                        <?php endif; ?>
+                                                                    </td>
+                                                                    <td></td>
+                                                                </tr>
                                                             <?php endforeach; ?>
+                                                            <?php if(isset($note['global'])): ?>
+                                                                <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>_note">
+                                                                    <td class="label"></td>
+                                                                    <td class="value">
+                                                                        <p class="note"><?= $note['global'] ?></p>
+                                                                    </td>
+                                                                    <td></td>
+                                                                </tr>
+                                                            <?php endif; ?>
                                                             <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>_apply">
                                                                 <td class="label"></td>
                                                                 <td class="value">
@@ -99,7 +113,7 @@
                                                                         </button>
                                                                     </div>
                                                                 </td>
-                                                                <td class=""></td>
+                                                                <td></td>
                                                             </tr>
                                                         </tbody>
                                                     </table>
@@ -123,12 +137,24 @@
                                         </td>
                                         <td class="value">
                                             <span class="control-value special"><?= $block->getLabel($info) ?></span>
+                                            <?php if(isset($note[$infoId])): ?>
+                                                <p class="note"><?= $note[$infoId] ?></p>
+                                            <?php endif; ?>
                                         </td>
-                                        <td class=""></td>
+                                        <td></td>
                                     </tr>
                                 <?php endif; ?>
                             <?php endforeach; ?>
                             <?php if(!isset($provider['add_button'])): ?>
+                                <?php if(isset($note['global'])): ?>
+                                    <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_note">
+                                        <td class="label"></td>
+                                        <td class="value">
+                                            <p class="note"><?= $note['global'] ?></p>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                <?php endif; ?>
                                 <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_apply">
                                     <td class="label"></td>
                                     <td class="value">
@@ -142,7 +168,7 @@
                                             </button>
                                         </div>
                                     </td>
-                                    <td class=""></td>
+                                    <td></td>
                                 </tr>
                             <?php endif; ?>
                             </tbody>
@@ -177,13 +203,11 @@
 </script>
 <style type="text/css">
     #smtp_configuration_option_host {
-        width: calc(70% - 5px);
+        width: calc(100% - 135px);
         margin-right: 5px;
-        min-width: calc(100% - 135px);
     }
     #smtp_configuration_option_host_autofill {
-        width: 30%;
+        width: 130px;
         box-sizing: border-box;
-        max-width: 130px;
     }
 </style>
