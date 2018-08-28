@@ -50,19 +50,19 @@
             </group>
             <group id="configuration_option" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>SMTP Configuration Options</label>
-                <field id="provider" translate="label comment button_label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>SMTP Provider</label>
-                    <button_label>Load Settings</button_label>
-                    <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\Provider</frontend_model>
-                    <comment>Select a Pre-defined SMTP Server, then click Load Settings.</comment>
-                </field>
                 <field id="host" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Host</label>
-                    <comment>Support Host name and ID Address</comment>
+                    <comment>Support Host name and IP Address</comment>
+                    <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\Host</frontend_model>
                 </field>
                 <field id="port" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Port</label>
                     <comment>Default ports: 25, 465, or 587. Port 465 (SSL required), Port 587 (TLS required)</comment>
+                </field>
+                <field id="protocol" translate="label comment" type="select" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Protocol</label>
+                    <source_model>Mageplaza\Smtp\Model\Config\Source\Protocol</source_model>
+                    <comment>We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols.</comment>
                 </field>
                 <field id="authentication" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Authentication</label>
@@ -74,11 +74,6 @@
                 <field id="password" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Password</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                </field>
-                <field id="protocol" translate="label comment" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Protocol</label>
-                    <source_model>Mageplaza\Smtp\Model\Config\Source\Protocol</source_model>
-                    <comment>We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols.</comment>
                 </field>
                 <field id="return_path_email" translate="label comment" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Return-Path Email</label>

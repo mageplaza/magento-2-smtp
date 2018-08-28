@@ -47,7 +47,7 @@ class Authentication implements ArrayInterface
             ],
             [
                 'value' => 'login',
-                'label' => __('Login')
+                'label' => __('LOGIN')
             ],
             [
                 'value' => 'crammd5',

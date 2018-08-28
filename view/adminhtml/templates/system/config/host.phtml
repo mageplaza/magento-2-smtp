@@ -1,0 +1,186 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Smtp
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+/** @var \Mageplaza\Smtp\Block\Adminhtml\System\Config\Provider $block */
+?>
+<button class="actions-provider-button" data-trigger="autofill" type="button" id="<?php echo $block->getHtmlId() ?>_autofill">
+    <span><?php echo __('Auto Fill') ?></span>
+</button>
+<div class="smtp-block-autofill" id="smtp-block-autofill" style="display: none"
+     data-bind="mageInit: {
+            'Magento_Ui/js/modal/modal':{
+                'type': 'slide',
+                'title': 'Select SMTP Provider',
+                'subTitle': 'Select a Pre-defined SMTP Server, then click Load Settings.',
+                'modalClass': 'smtp-autofill-modal',
+                'trigger': '[data-trigger=autofill]',
+                'wrapperClass': 'smtp-autofill-wrapper',
+                'parentModalClass': '_has-modal-custom _has-auth-shown',
+                'responsive': true,
+                'responsiveClass': 'custom-slide',
+                'buttons': []
+            }}">
+    <div class="accordion">
+        <div class="entry-edit form-inline">
+            <?php foreach ($block->getOptionProvider() as $id => $provider): ?>
+                <div class="section-config">
+                    <div class="entry-edit-head admin__collapsible-block">
+                        <span id="smtp_provider_<?= $id ?>-link" class="entry-edit-head-link"></span>
+                        <a id="smtp_provider_<?= $id ?>-head" href="#smtp_provider_<?= $id ?>-link" onclick="Fieldset.toggleCollapse('smtp_provider_<?= $id ?>'); return false;"><?= $provider['label'] ?></a>
+                    </div>
+                    <input id="smtp_provider_<?= $id ?>-state" type="hidden">
+                    <fieldset class="config admin__collapsible-block" id="smtp_provider_<?= $id ?>">
+                        <legend><?= $provider['label'] ?></legend>
+                        <table cellspacing="0" class="form-list">
+                            <colgroup class="label"></colgroup>
+                            <colgroup class="value"></colgroup>
+                            <colgroup class="scope-label"></colgroup>
+                            <colgroup class=""></colgroup>
+                            <tbody>
+                            <?php foreach ($provider['info'] as $infoId => $info): ?>
+                                <?php if (is_array($info)): ?>
+                                    <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>">
+                                        <td colspan="4">
+                                            <div class="section-config">
+                                                <div class="entry-edit-head admin__collapsible-block">
+                                                    <span id="smtp_provider_<?= $id ?>_<?= $infoId ?>-link" class="entry-edit-head-link"></span>
+                                                    <a id="smtp_provider_<?= $id ?>_<?= $infoId ?>-head" href="#smtp_provider_<?= $id ?>_<?= $infoId ?>-link" onclick="Fieldset.toggleCollapse('smtp_provider_<?= $id ?>_<?= $infoId ?>'); return false;"><?= $info['label'] ?></a>
+                                                </div>
+                                                <input id="smtp_provider_<?= $id ?>_<?= $infoId ?>-state" type="hidden" value="1">
+                                                <fieldset class="config admin__collapsible-block" id="smtp_provider_<?= $id ?>_<?= $infoId ?>">
+                                                    <legend><?= $info['label'] ?></legend>
+                                                    <table cellspacing="0" class="form-list">
+                                                        <colgroup class="label"></colgroup>
+                                                        <colgroup class="value"></colgroup>
+                                                        <colgroup class="scope-label"></colgroup>
+                                                        <colgroup class=""></colgroup>
+                                                        <tbody>
+                                                            <?php foreach($info['info'] as $key => $infoItem): ?>
+                                                            <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>">
+                                                                <td class="label">
+                                                                    <label for="smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>">
+                                                                        <span><?= $block->getLabel($key) ?></span>
+                                                                    </label>
+                                                                </td>
+                                                                <td class="value">
+                                                                    <span class="control-value special"><?= $block->getLabel($infoItem) ?></span>
+                                                                </td>
+                                                                <td class=""></td>
+                                                            </tr>
+                                                            <?php endforeach; ?>
+                                                            <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>_apply">
+                                                                <td class="label"></td>
+                                                                <td class="value">
+                                                                    <div class="actions actions-apply-autofill">
+                                                                        <button class="button-actions-apply-autofill" type="button"
+                                                                                data-host="<?= $info['info']['host'] ?>"
+                                                                                data-protocol="<?= $info['info']['protocol'] ?>"
+                                                                                data-port="<?= $info['info']['port'] ?>"
+                                                                                id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>_apply">
+                                                                            <span><?= __('Load Settings') ?></span>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                                <td class=""></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </fieldset>
+                                                <script type="text/javascript">//<![CDATA[
+                                                    require(['prototype'], function () {
+                                                        Fieldset.applyCollapse('smtp_provider_<?= $id ?>_<?= $infoId ?>');
+                                                    });
+                                                    //]]>
+                                                </script>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php $provider['add_button'] = false; ?>
+                                <?php else: ?>
+                                    <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>">
+                                        <td class="label">
+                                            <label for="smtp_provider_<?= $id ?>_<?= $infoId ?>">
+                                                <span><?= $block->getLabel($infoId) ?></span>
+                                            </label>
+                                        </td>
+                                        <td class="value">
+                                            <span class="control-value special"><?= $block->getLabel($info) ?></span>
+                                        </td>
+                                        <td class=""></td>
+                                    </tr>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                            <?php if(!isset($provider['add_button'])): ?>
+                                <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_apply">
+                                    <td class="label"></td>
+                                    <td class="value">
+                                        <div class="actions actions-apply-autofill">
+                                            <button class="button-actions-apply-autofill" type="button"
+                                                    data-host="<?= $provider['info']['host'] ?>"
+                                                    data-protocol="<?= $provider['info']['protocol'] ?>"
+                                                    data-port="<?= $provider['info']['port'] ?>"
+                                                    id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_apply">
+                                                <span><?= __('Load Settings') ?></span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class=""></td>
+                                </tr>
+                            <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </fieldset>
+                    <script type="text/javascript">//<![CDATA[
+                        require(['prototype'], function () {
+                            Fieldset.applyCollapse('smtp_provider_<?= $id ?>');
+                        });
+                        //]]>
+                    </script>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    require(['jquery'], function ($){
+        var modalEl = $('#smtp-block-autofill'),
+            hostEl = $('#smtp_configuration_option_host'),
+            portEl = $('#smtp_configuration_option_port'),
+            protocolEl = $('#smtp_configuration_option_protocol');
+
+        $('.button-actions-apply-autofill').on('click', function(){
+            hostEl.val($(this).data('host'));
+            portEl.val($(this).data('port'));
+            protocolEl.val($(this).data('protocol'));
+
+            modalEl.modal('closeModal');
+        });
+    });
+</script>
+<style type="text/css">
+    #smtp_configuration_option_host {
+        width: calc(75% - 35px);
+        margin-right: 5px;
+    }
+    #smtp_configuration_option_host_autofill {
+        width: 25%;
+    }
+</style>
