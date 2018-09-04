@@ -69,6 +69,21 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ]);
         }
 
+        if (version_compare($context->getVersion(), '1.1.1', '<')) {
+            $connection->changeColumn($setup->getTable('mageplaza_smtp_log'), 'from', 'sender', [
+                'type'     => Table::TYPE_TEXT,
+                'nullable' => true,
+                'length'   => 255,
+                'comment'  => 'Sender'
+            ]);
+            $connection->changeColumn($setup->getTable('mageplaza_smtp_log'), 'to', 'recipient', [
+                'type'     => Table::TYPE_TEXT,
+                'nullable' => true,
+                'length'   => 255,
+                'comment'  => 'Recipient'
+            ]);
+        }
+
         $setup->endSetup();
     }
 }

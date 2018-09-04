@@ -97,7 +97,7 @@ class Log extends AbstractModel
         }
 
         if (isset($headers['From']) && isset($headers['From'][0])) {
-            $this->setFrom($headers['From'][0]);
+            $this->setSender($headers['From'][0]);
         }
 
         if (isset($headers['To'])) {
@@ -105,7 +105,7 @@ class Log extends AbstractModel
             if (isset($recipient['append'])) {
                 unset($recipient['append']);
             }
-            $this->setTo(implode(', ', $recipient));
+            $this->setRecipient(implode(', ', $recipient));
         }
 
         if (isset($headers['Cc'])) {
@@ -148,7 +148,7 @@ class Log extends AbstractModel
             $dataObject = new DataObject();
             $dataObject->setData($data);
 
-            $sender = $this->extractEmailInfo($data['from']);
+            $sender = $this->extractEmailInfo($data['sender']);
             foreach ($sender as $name => $email) {
                 $sender = ['name' => $name, 'email' => $email];
                 break;
@@ -161,7 +161,7 @@ class Log extends AbstractModel
                 ->setFrom($sender);
 
             /** Add receiver emails*/
-            $recipient = $this->extractEmailInfo($data['to']);
+            $recipient = $this->extractEmailInfo($data['recipient']);
             foreach ($recipient as $name => $email) {
                 $this->_transportBuilder->addTo($email, $name);
             }

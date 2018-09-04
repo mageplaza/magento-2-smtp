@@ -139,22 +139,22 @@
                 </item>
             </argument>
         </column>
-        <column name="from">
+        <column name="sender">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
                     <item name="align" xsi:type="string">left</item>
-                    <item name="label" xsi:type="string" translate="true">From</item>
+                    <item name="label" xsi:type="string" translate="true">Sender</item>
                     <item name="sortOrder" xsi:type="number">21</item>
                 </item>
             </argument>
         </column>
-        <column name="to">
+        <column name="recipient">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="filter" xsi:type="string">text</item>
                     <item name="align" xsi:type="string">left</item>
-                    <item name="label" xsi:type="string" translate="true">To</item>
+                    <item name="label" xsi:type="string" translate="true">Recipient</item>
                     <item name="sortOrder" xsi:type="number">22</item>
                 </item>
             </argument>

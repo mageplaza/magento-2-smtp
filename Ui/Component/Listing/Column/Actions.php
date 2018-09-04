@@ -69,8 +69,8 @@ class Actions extends Column
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
                 $item['subject'] = iconv_mime_decode($item['subject'], 2, 'UTF-8');
-                $item['from'] = iconv_mime_decode($item['from'], 2, 'UTF-8');
-                $item['to']   = iconv_mime_decode($item['to'], 2, 'UTF-8');
+                $item['sender'] = iconv_mime_decode($item['sender'], 2, 'UTF-8');
+                $item['recipient']   = iconv_mime_decode($item['recipient'], 2, 'UTF-8');
 
                 $item[$this->getData('name')] = [
                     'view'   => [
