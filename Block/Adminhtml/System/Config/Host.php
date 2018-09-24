@@ -404,6 +404,14 @@ class Host extends Field
                     'port'     => '465',
                     'protocol' => 'ssl'
                 ]
+            ],
+            'smtp2go'         => [
+                'label' => __('SMTP2GO'),
+                'info'  => [
+                    'host'     => 'mail.smtp2go.com',
+                    'port'     => '2525',
+                    'protocol' => 'tls'
+                ]
             ]
         ];
 
