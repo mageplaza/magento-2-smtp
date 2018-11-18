@@ -54,8 +54,7 @@ before_install:
 - bash ./dev/travis/before_install.sh
 install:
 - composer install --no-interaction --prefer-dist
-- composer config repositories.test_target git https://github.com/${TRAVIS_REPO_SLUG}.git
-- composer require $COMPOSER_MODULE dev-$TRAVIS_BRANCH
+- composer require $COMPOSER_MODULE
 before_script:
 #- cp -f ${TRAVIS_BUILD_DIR}/dev/tests/integration/phpunit.xml.dist dev/tests/integration/
 - echo "vendor/$COMPOSER_MODULE" > dev/tests/static/testsuite/Magento/Test/Less/_files/whitelist/common.txt
