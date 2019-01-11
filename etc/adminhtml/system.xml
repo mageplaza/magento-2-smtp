@@ -41,7 +41,7 @@
                 </field>
                 <field id="clean_email" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Clean Email Log Every</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
+                    <validate>validate-number validate-zero-or-greater validate-digits</validate>
                     <comment>Day(s). If empty or zero, the Email log will not be cleaned.</comment>
                     <depends>
                         <field id="log_email">1</field>

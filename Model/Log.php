@@ -48,6 +48,8 @@ class Log extends AbstractModel
      */
     protected $mailResource;
 
+    protected $helper;
+
     /**
      * Log constructor.
      * @param Context $context
@@ -63,6 +65,7 @@ class Log extends AbstractModel
         Registry $registry,
         TransportBuilder $transportBuilder,
         Mail $mailResource,
+        \Mageplaza\Smtp\Helper\Data $helper,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
@@ -71,7 +74,8 @@ class Log extends AbstractModel
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
 
         $this->_transportBuilder = $transportBuilder;
-        $this->mailResource      = $mailResource;
+        $this->mailResource = $mailResource;
+        $this->helper = $helper;
     }
 
     /**
@@ -90,45 +94,89 @@ class Log extends AbstractModel
      */
     public function saveLog($message, $status)
     {
-        $headers = $message->getHeaders();
+        if ($this->helper->versionCompare('2.3.0')) {
+            $message = \Zend\Mail\Message::fromString($message->getRawMessage());
 
-        if (isset($headers['Subject']) && isset($headers['Subject'][0])) {
-            $this->setSubject($headers['Subject'][0]);
-        }
-
-        if (isset($headers['From']) && isset($headers['From'][0])) {
-            $this->setSender($headers['From'][0]);
-        }
-
-        if (isset($headers['To'])) {
-            $recipient = $headers['To'];
-            if (isset($recipient['append'])) {
-                unset($recipient['append']);
+            if ($message->getSubject()) {
+                $this->setSubject($message->getSubject());
             }
-            $this->setRecipient(implode(', ', $recipient));
-        }
 
-        if (isset($headers['Cc'])) {
-            $cc = $headers['Cc'];
-            if (isset($cc['append'])) {
-                unset($cc['append']);
+            if ($message->getFrom()->count()) {
+                $this->setSender($message->getFrom()->current()->getEmail());
             }
-            $this->setCc(implode(', ', $cc));
-        }
 
-        if (isset($headers['Bcc'])) {
-            $bcc = $headers['Bcc'];
-            if (isset($bcc['append'])) {
-                unset($bcc['append']);
+            $toCount = $message->getTo()->count();
+            if ($toCount) {
+                $to = [];
+                for ($i = 0; $i < $toCount; $i++) {
+                    $to[$i] = $message->getTo()->current()->getEmail();
+                    $message->getTo()->next();
+                }
+                $this->setRecipient(implode(',', $to));
             }
-            $this->setBcc(implode(', ', $bcc));
-        }
 
-        $body = $message->getBodyHtml();
-        if (is_object($body)) {
-            $content = htmlspecialchars($body->getRawContent());
+            $ccCount = $message->getCc()->count();
+            if ($ccCount) {
+                $cc = [];
+                for ($i = 0; $i < $ccCount; $i++) {
+                    $cc[$i] = $message->getCc()->current()->getEmail();
+                    $message->getCc()->next();
+                }
+                $this->setCc(implode(',', $cc));
+            }
+
+            $bccCount = $message->getBcc()->count();
+            if ($bccCount) {
+                $bcc = [];
+                for ($i = 0; $i < $bccCount; $i++) {
+                    $bcc[$i] = $message->getBcc()->current()->getEmail();
+                    $message->getBcc()->next();
+                }
+                $this->setBcc(implode(',', $bcc));
+            }
+
+            $content = htmlspecialchars($message->getBodyText());
         } else {
-            $content = htmlspecialchars($message->getBody()->getRawContent());
+            $headers = $message->getHeaders();
+
+            if (isset($headers['Subject']) && isset($headers['Subject'][0])) {
+                $this->setSubject($headers['Subject'][0]);
+            }
+
+            if (isset($headers['From']) && isset($headers['From'][0])) {
+                $this->setSender($headers['From'][0]);
+            }
+
+            if (isset($headers['To'])) {
+                $recipient = $headers['To'];
+                if (isset($recipient['append'])) {
+                    unset($recipient['append']);
+                }
+                $this->setRecipient(implode(', ', $recipient));
+            }
+
+            if (isset($headers['Cc'])) {
+                $cc = $headers['Cc'];
+                if (isset($cc['append'])) {
+                    unset($cc['append']);
+                }
+                $this->setCc(implode(', ', $cc));
+            }
+
+            if (isset($headers['Bcc'])) {
+                $bcc = $headers['Bcc'];
+                if (isset($bcc['append'])) {
+                    unset($bcc['append']);
+                }
+                $this->setBcc(implode(', ', $bcc));
+            }
+
+            $body = $message->getBodyHtml();
+            if (is_object($body)) {
+                $content = htmlspecialchars($body->getRawContent());
+            } else {
+                $content = htmlspecialchars($message->getBody()->getRawContent());
+            }
         }
 
         $this->setEmailContent($content)
@@ -142,7 +190,7 @@ class Log extends AbstractModel
     public function resendEmail()
     {
         try {
-            $data                  = $this->getData();
+            $data = $this->getData();
             $data['email_content'] = htmlspecialchars_decode($data['email_content']);
 
             $dataObject = new DataObject();
@@ -205,12 +253,12 @@ class Log extends AbstractModel
     protected function extractEmailInfo($emailList)
     {
         $emails = explode(', ', $emailList);
-        $data   = [];
+        $data = [];
         foreach ($emails as $email) {
             $emailArray = explode(' <', $email);
-            $name       = '';
+            $name = '';
             if (sizeof($emailArray) > 1) {
-                $name  = trim($emailArray[0], '" ');
+                $name = trim($emailArray[0], '" ');
                 $email = trim($emailArray[1], '<>');
             }
             $data[$name] = $email;

@@ -83,18 +83,17 @@ class Transport
     )
     {
         $this->resourceMail = $resourceMail;
-        $this->logFactory   = $logFactory;
-        $this->registry     = $registry;
-        $this->helper       = $helper;
-        $this->logger       = $logger;
+        $this->logFactory = $logFactory;
+        $this->registry = $registry;
+        $this->helper = $helper;
+        $this->logger = $logger;
     }
 
     /**
      * @param TransportInterface $subject
      * @param \Closure $proceed
-     * @throws \Exception
-     *
-     * @return null
+     * @throws MailException
+     * @throws \Zend_Exception
      */
     public function aroundSendMessage(
         TransportInterface $subject,
@@ -102,13 +101,17 @@ class Transport
     )
     {
         $this->_storeId = $this->registry->registry('mp_smtp_store_id');
-        $message        = $this->getMessage($subject);
+        $message = $this->getMessage($subject);
         if ($this->resourceMail->isModuleEnable($this->_storeId) && $message) {
-            $message   = $this->resourceMail->processMessage($message, $this->_storeId);
+            $message = $this->resourceMail->processMessage($message, $this->_storeId);
             $transport = $this->resourceMail->getTransport($this->_storeId);
             try {
                 if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
-                    $transport->send($message);
+                    if ($this->helper->versionCompare('2.3.0')) {
+                        $transport->send(\Zend\Mail\Message::fromString($message->getRawMessage()));
+                    } else {
+                        $transport->send($message);
+                    }
                 }
                 $this->emailLog($message);
             } catch (\Exception $e) {
@@ -132,7 +135,7 @@ class Transport
 
         try {
             $reflectionClass = new \ReflectionClass($transport);
-            $message         = $reflectionClass->getProperty('_message');
+            $message = $reflectionClass->getProperty('_message');
             $message->setAccessible(true);
 
             return $message->getValue($transport);
@@ -159,4 +162,5 @@ class Transport
             }
         }
     }
+
 }
