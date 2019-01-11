@@ -23,8 +23,6 @@ namespace Mageplaza\Smtp\Mail\Rse;
 
 use Magento\Framework\App\ObjectManager;
 use Mageplaza\Smtp\Helper\Data;
-use Zend\Mail\Transport\Smtp;
-use Zend\Mail\Transport\SmtpOptions as SmtpOptions;
 
 /**
  * Class Mail
@@ -68,12 +66,7 @@ class Mail extends \Zend_Mail
     protected $_returnPath = [];
 
     /**
-     * @var option
-     */
-    protected $_option = array();
-
-    /**
-     * @var transport
+     * @var \Zend_Mail_Transport_Smtp
      */
     protected $_transport;
 
@@ -118,94 +111,63 @@ class Mail extends \Zend_Mail
 
     /**
      * @param $storeId
-     * @return transport|\Zend_Mail_Transport_Smtp
+     * @return \Zend_Mail_Transport_Smtp | \Zend\Mail\Transport\Smtp
      * @throws \Zend_Exception
      */
-    public function getTransportZend($storeId)
+    public function getTransport($storeId)
     {
-        $configData = $this->smtpHelper->getSmtpConfig('', $storeId);
-        $host = isset($configData['host']) ? $configData['host'] : '';
-        $authentication = isset($configData['authentication']) ? $configData['authentication'] : '';
-        $protocol = isset($configData['protocol']) ? $configData['protocol'] : '';
-        if ($host == "") {
-            throw new \Zend_Exception('A host is necessary for smtp transport,' . ' but none was given');
-        }
-
-        if (!isset($this->_smtpOptions[$storeId])) {
-            if ($authentication !== "") {
-                $this->_smtpOptions[$storeId] = [
-                    'type' => 'smtp',
-                    'port' => isset($configData['port']) ? $configData['port'] : '',
-                    'auth' => $authentication,
-                    'username' => isset($configData['username']) ? $configData['username'] : '',
-                    'password' => $this->smtpHelper->getPassword($storeId)
-                ];
-            } else {
-                $this->_smtpOptions[$storeId] = [
-                    'type' => 'smtp',
+        if (null === $this->_transport) {
+            if (!isset($this->_smtpOptions[$storeId])) {
+                $configData = $this->smtpHelper->getSmtpConfig('', $storeId);
+                $options = [
+                    'host' => isset($configData['host']) ? $configData['host'] : '',
                     'port' => isset($configData['port']) ? $configData['port'] : ''
                 ];
+
+                if (isset($configData['authentication']) && $configData['authentication'] !== "") {
+                    $options += [
+                        'auth' => $configData['authentication'],
+                        'username' => isset($configData['username']) ? $configData['username'] : '',
+                        'password' => $this->smtpHelper->getPassword($storeId)
+                    ];
+                }
+
+                if (isset($configData['protocol']) && $configData['protocol'] !== "") {
+                    $options['ssl'] = $configData['protocol'];
+                }
+
+                $this->_smtpOptions[$storeId] = $options;
             }
-            if ($protocol !== "") {
-                $this->_smtpOptions[$storeId]['ssl'] = $configData['protocol'];
+
+            if (!isset($this->_smtpOptions[$storeId]['host']) || !$this->_smtpOptions[$storeId]['host']) {
+                throw new \Zend_Exception('A host is necessary for smtp transport, but none was given');
             }
-        }
 
-        $this->_transport = null;
-        $this->_option = $this->_smtpOptions[$storeId];
-        $this->_transport = new \Zend_Mail_Transport_Smtp($host, $this->_option);
+            if ($this->smtpHelper->versionCompare('2.3.0')) {
+                $options = $this->_smtpOptions[$storeId];
+                if (isset($options['auth'])) {
+                    $options['connection_class'] = $options['auth'];
+                    $options['connection_config'] = [
+                        'username' => $options['username'],
+                        'password' => $options['password']
+                    ];
+                    unset($options['auth']);
+                    unset($options['username']);
+                    unset($options['password']);
+                }
+                if (isset($options['ssl'])) {
+                    $options['connection_config']['ssl'] = $options['ssl'];
+                    unset($options['ssl']);
+                }
+                unset($options['type']);
 
-        return $this->_transport;
-    }
+                $options = new \Zend\Mail\Transport\SmtpOptions($options);
 
-    /**
-     * @param $storeId
-     * @return transport|Smtp
-     * @throws \Zend_Exception
-     */
-    public function getTransportZendNewVersion($storeId)
-    {
-        $configData = $this->smtpHelper->getSmtpConfig('', $storeId);
-        $host = isset($configData['host']) ? $configData['host'] : '';
-        $authentication = isset($configData['authentication']) ? $configData['authentication'] : '';
-        $protocol = isset($configData['protocol']) ? $configData['protocol'] : '';
-        if ($host == "") {
-            throw new \Zend_Exception('A host is necessary for smtp transport,' . ' but none was given');
-        }
-
-        $this->_transport = null;
-        if ($authentication !== "") {
-            if ($protocol !== "") {
-                $this->_option = new SmtpOptions([
-                    'host' => $host,
-                    'port' => isset($configData['port']) ? $configData['port'] : '',
-                    'connection_class' => $authentication,
-                    'connection_config' =>
-                        [
-                            'username' => isset($configData['username']) ? $configData['username'] : '',
-                            'password' => $this->smtpHelper->getPassword($storeId),
-                            'ssl' => $protocol
-                        ]
-                ]);
+                $this->_transport = new \Zend\Mail\Transport\Smtp($options);
             } else {
-                $this->_option = new SmtpOptions([
-                    'host' => $host,
-                    'port' => isset($configData['port']) ? $configData['port'] : '',
-                    'connection_class' => $authentication,
-                    'connection_config' =>
-                        [
-                            'username' => isset($configData['username']) ? $configData['username'] : '',
-                            'password' => $this->smtpHelper->getPassword($storeId)
-                        ]
-                ]);
+                $this->_transport = new \Zend_Mail_Transport_Smtp($this->_smtpOptions[$storeId]['host'], $this->_smtpOptions[$storeId]);
             }
-        } else {
-            $this->_option = new SmtpOptions([
-                'host' => $host,
-                'port' => isset($configData['port']) ? $configData['port'] : ''
-            ]);
         }
-        $this->_transport = new Smtp($this->_option);
 
         return $this->_transport;
     }
