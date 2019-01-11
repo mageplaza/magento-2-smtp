@@ -29,6 +29,7 @@ use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Mail\Rse\Mail;
 use Mageplaza\Smtp\Model\LogFactory;
 use Psr\Log\LoggerInterface;
+use Zend\Mail\Message;
 
 /**
  * Class Transport
@@ -83,18 +84,17 @@ class Transport
     )
     {
         $this->resourceMail = $resourceMail;
-        $this->logFactory   = $logFactory;
-        $this->registry     = $registry;
-        $this->helper       = $helper;
-        $this->logger       = $logger;
+        $this->logFactory = $logFactory;
+        $this->registry = $registry;
+        $this->helper = $helper;
+        $this->logger = $logger;
     }
 
     /**
      * @param TransportInterface $subject
      * @param \Closure $proceed
-     * @throws \Exception
-     *
-     * @return null
+     * @throws MailException
+     * @throws \ReflectionException
      */
     public function aroundSendMessage(
         TransportInterface $subject,
@@ -102,13 +102,39 @@ class Transport
     )
     {
         $this->_storeId = $this->registry->registry('mp_smtp_store_id');
-        $message        = $this->getMessage($subject);
+        $message = $this->getMessage($subject);
         if ($this->resourceMail->isModuleEnable($this->_storeId) && $message) {
-            $message   = $this->resourceMail->processMessage($message, $this->_storeId);
-            $transport = $this->resourceMail->getTransport($this->_storeId);
             try {
                 if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
-                    $transport->send($message);
+                    if ($message instanceof \Zend_Mail) {
+                        try {
+                            $message = $this->resourceMail->processMessage($message, $this->_storeId);
+                            $transport = $this->resourceMail->getTransportZend($this->_storeId);
+                            #For magento 2.2.7
+                            if ((bool)array_key_exists("From", $message->getHeaders()) == false) {
+                                $email = $this->registry->registry("test");
+                                $message->setFrom($email["email"], $email["name"]);
+                            }
+                            $transport->send($message, $this->_storeId);
+                        } catch (\Exception $e) {
+                            throw new \Magento\Framework\Exception\MailException(new \Magento\Framework\Phrase($e->getMessage()), $e);
+                        }
+                    } elseif ($message instanceof \Magento\Framework\Mail\Message) {
+                        try {
+                            $test = Message::fromString($message->getRawMessage());
+                            $transportNewVersion = $this->resourceMail->getTransportZendNewVersion($this->_storeId);
+                            if ($test->getFrom()->count() == 0) {
+                                $email = $this->registry->registry("test");
+                                $test->setFrom($email["email"], $email["name"]);
+                            }
+                            $transportNewVersion->send(
+                                $test,
+                                $this->_storeId
+                            );
+                        } catch (\Exception $e) {
+                            throw new \Magento\Framework\Exception\MailException(new \Magento\Framework\Phrase($e->getMessage()), $e);
+                        }
+                    }
                 }
                 $this->emailLog($message);
             } catch (\Exception $e) {
@@ -122,17 +148,22 @@ class Transport
 
     /**
      * @param $transport
-     * @return mixed|null
+     * @return mixed|null|\ReflectionProperty
+     * @throws \ReflectionException
      */
     protected function getMessage($transport)
     {
         if ($this->helper->versionCompare('2.2.0')) {
-            return $transport->getMessage();
+            if (method_exists($transport, 'getMessage')) {
+                $message = $transport->getMessage();
+            }
+
+            return $message;
         }
 
         try {
             $reflectionClass = new \ReflectionClass($transport);
-            $message         = $reflectionClass->getProperty('_message');
+            $message = $reflectionClass->getProperty('_message');
             $message->setAccessible(true);
 
             return $message->getValue($transport);
@@ -153,10 +184,22 @@ class Transport
             /** @var \Mageplaza\Smtp\Model\Log $log */
             $log = $this->logFactory->create();
             try {
-                $log->saveLog($message, $status);
+                if ($message instanceof \Zend_Mail) {
+                    #case process zend
+                    $log->saveLog($message, $status);
+                } else {
+                    #case process zend new version
+                    $message = Message::fromString($message->getRawMessage());
+                    if ($message->getFrom()->count() == 0) {
+                        $email = $this->registry->registry("test");
+                        $message->setFrom($email["email"], $email["name"]);
+                    }
+                    $log->saveLogNewVersion($message, $status);
+                }
             } catch (\Exception $e) {
                 $this->logger->critical($e->getMessage());
             }
         }
     }
+
 }
