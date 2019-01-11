@@ -168,13 +168,14 @@ class Mail extends \Zend_Mail
         $configData = $this->smtpHelper->getSmtpConfig('', $storeId);
         $host = isset($configData['host']) ? $configData['host'] : '';
         $authentication = isset($configData['authentication']) ? $configData['authentication'] : '';
+        $protocol = isset($configData['protocol']) ? $configData['protocol'] : '';
         if ($host == "") {
             throw new \Zend_Exception('A host is necessary for smtp transport,' . ' but none was given');
         }
 
         $this->_transport = null;
-        if ($configData['authentication'] !== "") {
-            if ($configData['protocol'] !== "") {
+        if ($authentication !== "") {
+            if ($protocol !== "") {
                 $this->_option = new SmtpOptions([
                     'host' => $host,
                     'port' => isset($configData['port']) ? $configData['port'] : '',
@@ -183,14 +184,14 @@ class Mail extends \Zend_Mail
                         [
                             'username' => isset($configData['username']) ? $configData['username'] : '',
                             'password' => $this->smtpHelper->getPassword($storeId),
-                            'ssl' => $configData['protocol']
+                            'ssl' => $protocol
                         ]
                 ]);
             } else {
                 $this->_option = new SmtpOptions([
                     'host' => $host,
                     'port' => isset($configData['port']) ? $configData['port'] : '',
-                    'connection_class' => $configData['authentication'],
+                    'connection_class' => $authentication,
                     'connection_config' =>
                         [
                             'username' => isset($configData['username']) ? $configData['username'] : '',

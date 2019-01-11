@@ -156,8 +156,6 @@ class Transport
         if ($this->helper->versionCompare('2.2.0')) {
             if (method_exists($transport, 'getMessage')) {
                 $message = $transport->getMessage();
-            } else {
-                $message = $this->useReflectionToGetMessage($transport);
             }
 
             return $message;
@@ -204,18 +202,4 @@ class Transport
         }
     }
 
-    /**
-     * @param $subject
-     * @return mixed
-     * @throws \ReflectionException
-     */
-    protected function useReflectionToGetMessage($subject)
-    {
-        $reflection = new \ReflectionClass($subject);
-        $property = $reflection->getProperty('_message');
-        $property->setAccessible(true);
-        $message = $property->getValue($subject);
-
-        return $message;
-    }
 }
