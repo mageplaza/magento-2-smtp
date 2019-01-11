@@ -185,54 +185,6 @@ class Log extends AbstractModel
     }
 
     /**
-     * @param $message
-     * @param $status
-     * save log for new version zend framework
-     */
-    public function saveLogNewVersion($message, $status)
-    {
-        if ($message->getSubject() != "") {
-            $this->setSubject($message->getSubject());
-        }
-
-        # set key for sender and aecipient
-        if ($message->getFrom()->count() == 1) {
-            $this->setSender($message->getFrom()->key());
-        }
-        if ($message->getTo()->count() == 1) {
-            $this->setRecipient($message->getTo()->key());
-        }
-
-        # set Cc email
-        if ($message->getCc()->count() != 0) {
-            $cc = array();
-            if ($message->getCc()->count() > 0) {
-                for ($i = 0; $i < $message->getCc()->count(); $i++) {
-                    $cc[$i] = $message->getCc()->current()->getEmail();
-                    $message->getCc()->next();
-                }
-            }
-            $this->setCc(implode(', ', $cc));
-        }
-
-        #set Bcc email
-        if ($message->getBcc()->count() != 0) {
-            $bcc = array();
-            if ($message->getBcc()->count() > 0) {
-                for ($i = 0; $i < $message->getBcc()->count(); $i++) {
-                    $bcc[$i] = $message->getBcc()->current()->getEmail();
-                    $message->getBcc()->next();
-                }
-            }
-            $this->setBcc(implode(', ', $bcc));
-        }
-
-        $this->setEmailContent(htmlspecialchars($message->getBodyText()))
-            ->setStatus($status)
-            ->save();
-    }
-
-    /**
      * @return bool
      */
     public function resendEmail()
