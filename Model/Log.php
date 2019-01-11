@@ -71,7 +71,7 @@ class Log extends AbstractModel
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
 
         $this->_transportBuilder = $transportBuilder;
-        $this->mailResource      = $mailResource;
+        $this->mailResource = $mailResource;
     }
 
     /**
@@ -139,57 +139,58 @@ class Log extends AbstractModel
     /**
      * @param $message
      * @param $status
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * save log for new version zend framework
      */
-    public function saveLog_2($message, $status){
-
-        if($message->getSubject() !=""){
+    public function saveLogNewVersion($message, $status)
+    {
+        if ($message->getSubject() != "") {
             $this->setSubject($message->getSubject());
-
         }
-        if($message->getFrom()->count() ==1){
+
+        # set key for sender and aecipient
+        if ($message->getFrom()->count() == 1) {
             $this->setSender($message->getFrom()->key());
         }
-        if($message->getTo()->count() ==1){
-
+        if ($message->getTo()->count() == 1) {
             $this->setRecipient($message->getTo()->key());
         }
-        if($message->getCc()->count() !=0){
 
+        # set Cc email
+        if ($message->getCc()->count() != 0) {
             $cc = array();
-            if($message->getCc()->count() >0){
-                for ($i=0; $i< $message->getCc()->count();$i++){
+            if ($message->getCc()->count() > 0) {
+                for ($i = 0; $i < $message->getCc()->count(); $i++) {
                     $cc[$i] = $message->getCc()->current()->getEmail();
                     $message->getCc()->next();
-
                 }
             }
             $this->setCc(implode(', ', $cc));
         }
-        if($message->getBcc()->count() !=0){
 
+        #set Bcc email
+        if ($message->getBcc()->count() != 0) {
             $bcc = array();
-            if($message->getBcc()->count() >0){
-                for ($i=0; $i< $message->getBcc()->count();$i++){
+            if ($message->getBcc()->count() > 0) {
+                for ($i = 0; $i < $message->getBcc()->count(); $i++) {
                     $bcc[$i] = $message->getBcc()->current()->getEmail();
                     $message->getBcc()->next();
-
                 }
             }
             $this->setBcc(implode(', ', $bcc));
         }
+
         $this->setEmailContent(htmlspecialchars($message->getBodyText()))
             ->setStatus($status)
             ->save();
-
     }
+
     /**
      * @return bool
      */
     public function resendEmail()
     {
         try {
-            $data                  = $this->getData();
+            $data = $this->getData();
             $data['email_content'] = htmlspecialchars_decode($data['email_content']);
 
             $dataObject = new DataObject();
@@ -252,12 +253,12 @@ class Log extends AbstractModel
     protected function extractEmailInfo($emailList)
     {
         $emails = explode(', ', $emailList);
-        $data   = [];
+        $data = [];
         foreach ($emails as $email) {
             $emailArray = explode(' <', $email);
-            $name       = '';
+            $name = '';
             if (sizeof($emailArray) > 1) {
-                $name  = trim($emailArray[0], '" ');
+                $name = trim($emailArray[0], '" ');
                 $email = trim($emailArray[1], '<>');
             }
             $data[$name] = $email;

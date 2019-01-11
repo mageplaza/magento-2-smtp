@@ -41,6 +41,6 @@
         </arguments>
     </virtualType>
     <type name="Magento\Framework\Mail\Template\TransportBuilderByStore">
-        <plugin  name="MageplazaGmailSmtpAppTransportBuilderByStore" type="Mageplaza\Smtp\Fix\Message" />
+        <plugin  name="mpsmtp_appTransportBuilder" type="Mageplaza\Smtp\Plugin\Message" />
     </type>
 </config>
