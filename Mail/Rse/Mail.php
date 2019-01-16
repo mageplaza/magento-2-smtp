@@ -202,7 +202,7 @@ class Mail
 
         if (!empty($this->_fromByStore) &&
             ((is_array($message->getHeaders()) && !array_key_exists("From", $message->getHeaders())) ||
-             (is_object($message->getHeaders()) && strpos($message->getHeaders()->toString(), 'From:') === false))
+             ($message instanceof \Zend\Mail\Message && !$message->getFrom()->count()))
         ) {
             $message->setFrom($this->_fromByStore['email'], $this->_fromByStore['name']);
         }
