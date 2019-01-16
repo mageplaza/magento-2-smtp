@@ -95,45 +95,33 @@ class Log extends AbstractModel
     public function saveLog($message, $status)
     {
         if ($this->helper->versionCompare('2.3.0')) {
-            $message = \Zend\Mail\Message::fromString($message->getRawMessage());
-
             if ($message->getSubject()) {
                 $this->setSubject($message->getSubject());
             }
 
-            if ($message->getFrom()->count()) {
-                $this->setSender($message->getFrom()->current()->getEmail());
+            $from = $message->getFrom();
+            if (count($from)) {
+                $from->rewind();
+                $this->setSender($from->current()->getEmail());
             }
 
-            $toCount = $message->getTo()->count();
-            if ($toCount) {
-                $to = [];
-                for ($i = 0; $i < $toCount; $i++) {
-                    $to[$i] = $message->getTo()->current()->getEmail();
-                    $message->getTo()->next();
-                }
-                $this->setRecipient(implode(',', $to));
+            $toArr = [];
+            foreach($message->getTo() as $toAddr){
+                $toArr[] = $toAddr->getEmail();
             }
+            $this->setRecipient(implode(',', $toArr));
 
-            $ccCount = $message->getCc()->count();
-            if ($ccCount) {
-                $cc = [];
-                for ($i = 0; $i < $ccCount; $i++) {
-                    $cc[$i] = $message->getCc()->current()->getEmail();
-                    $message->getCc()->next();
-                }
-                $this->setCc(implode(',', $cc));
+            $ccArr = [];
+            foreach($message->getCc() as $ccAddr){
+                $ccArr[] = $ccAddr->getEmail();
             }
+            $this->setCc(implode(',', $ccArr));
 
-            $bccCount = $message->getBcc()->count();
-            if ($bccCount) {
-                $bcc = [];
-                for ($i = 0; $i < $bccCount; $i++) {
-                    $bcc[$i] = $message->getBcc()->current()->getEmail();
-                    $message->getBcc()->next();
-                }
-                $this->setBcc(implode(',', $bcc));
+            $bccArr = [];
+            foreach($message->getBcc() as $bccAddr){
+                $bccArr[] = $bccAddr->getEmail();
             }
+            $this->setBcc(implode(',', $bccArr));
 
             $content = htmlspecialchars($message->getBodyText());
         } else {

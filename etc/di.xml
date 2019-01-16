@@ -40,4 +40,7 @@
             <argument name="resourceModel" xsi:type="string">Mageplaza\Smtp\Model\ResourceModel\Log</argument>
         </arguments>
     </virtualType>
+    <type name="Magento\Framework\Mail\Template\TransportBuilderByStore">
+        <plugin  name="mpsmtp_appTransportBuilder" type="Mageplaza\Smtp\Plugin\Message" />
+    </type>
 </config>
