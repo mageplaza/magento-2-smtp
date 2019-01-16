@@ -22,7 +22,6 @@
 namespace Mageplaza\Smtp\Mail\Rse;
 
 use Mageplaza\Smtp\Helper\Data;
-use Mageplaza\Smtp\Mail\Rse\Header\ReturnPath;
 
 /**
  * Class Mail
@@ -134,7 +133,7 @@ class Mail
 
                 if (isset($configData['authentication']) && $configData['authentication'] !== "") {
                     $options += [
-                        'auth'     => $configData['authentication'],
+                        'auth' => $configData['authentication'],
                         'username' => isset($configData['username']) ? $configData['username'] : '',
                         'password' => $this->smtpHelper->getPassword($storeId)
                     ];
@@ -192,47 +191,18 @@ class Mail
             $this->_returnPath[$storeId] = $this->smtpHelper->getSmtpConfig('return_path_email', $storeId);
         }
 
-        if ($this->_returnPath[$storeId]) {
-            if ($this->smtpHelper->versionCompare('2.3.0')) {
-                $this->setReturnPath($message, $this->_returnPath[$storeId]);
-            } else {
-                $message->setReturnPath($this->_returnPath[$storeId]);
-            }
+        if ($this->_returnPath[$storeId] && method_exists($message, 'setReturnPath')) {
+            $message->setReturnPath($this->_returnPath[$storeId]);
         }
 
         if (!empty($this->_fromByStore) &&
             ((is_array($message->getHeaders()) && !array_key_exists("From", $message->getHeaders())) ||
-             ($message instanceof \Zend\Mail\Message && !$message->getFrom()->count()))
+                ($message instanceof \Zend\Mail\Message && !$message->getFrom()->count()))
         ) {
             $message->setFrom($this->_fromByStore['email'], $this->_fromByStore['name']);
         }
 
         return $message;
-    }
-
-    /**
-     * @param \Zend\Mail\Message $message
-     * @param string $email
-     * @param null $name
-     *
-     * @return $this|\Zend_Mail
-     */
-    protected function setReturnPath($message, $email, $name = null)
-    {
-        $headers = $message->getHeaders();
-        $headers->removeHeader('return-path');
-
-        $header = new ReturnPath();
-        $addressList = $header->getAddressList();
-        if (is_string($email) && $name === null) {
-            $addressList->addFromString($email);
-        } else {
-            $addressList->add($email, $name);
-        }
-
-        $headers->addHeader($header);
-
-        return $this;
     }
 
     /**
@@ -245,7 +215,7 @@ class Mail
     {
         $this->_fromByStore = [
             'email' => $email,
-            'name'  => $name
+            'name' => $name
         ];
 
         return $this;
