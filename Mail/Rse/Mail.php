@@ -191,8 +191,12 @@ class Mail
             $this->_returnPath[$storeId] = $this->smtpHelper->getSmtpConfig('return_path_email', $storeId);
         }
 
-        if ($this->_returnPath[$storeId] && method_exists($message, 'setReturnPath')) {
-            $message->setReturnPath($this->_returnPath[$storeId]);
+        if ($this->_returnPath[$storeId]) {
+            if ($this->smtpHelper->versionCompare('2.3.0')) {
+                $message->getHeaders()->addHeaders(["Return-Path" => $this->_returnPath[$storeId]]);
+            } else if (method_exists($message, 'setReturnPath')) {
+                $message->setReturnPath($this->_returnPath[$storeId]);
+            }
         }
 
         if (!empty($this->_fromByStore) &&
