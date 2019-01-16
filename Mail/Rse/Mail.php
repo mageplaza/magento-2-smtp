@@ -77,6 +77,7 @@ class Mail
 
     /**
      * Mail constructor.
+     *
      * @param Data $helper
      * @param null $options
      */
@@ -88,6 +89,7 @@ class Mail
     /**
      * @param $storeId
      * @param array $options
+     *
      * @return $this
      */
     public function setSmtpOptions($storeId, $options = [])
@@ -110,11 +112,13 @@ class Mail
         if (sizeof($options)) {
             $this->_smtpOptions[$storeId] = $options;
         }
+
         return $this;
     }
 
     /**
      * @param $storeId
+     *
      * @return \Zend_Mail_Transport_Smtp | \Zend\Mail\Transport\Smtp
      * @throws \Zend_Exception
      */
@@ -130,7 +134,7 @@ class Mail
 
                 if (isset($configData['authentication']) && $configData['authentication'] !== "") {
                     $options += [
-                        'auth' => $configData['authentication'],
+                        'auth'     => $configData['authentication'],
                         'username' => isset($configData['username']) ? $configData['username'] : '',
                         'password' => $this->smtpHelper->getPassword($storeId)
                     ];
@@ -179,8 +183,8 @@ class Mail
     /**
      * @param $message
      * @param $storeId
+     *
      * @return mixed
-     * @throws \Zend_Mail_Exception
      */
     public function processMessage($message, $storeId)
     {
@@ -196,7 +200,10 @@ class Mail
             }
         }
 
-        if ($message instanceof \Zend\Mail\Message && !$message->getFrom()->count() && !empty($this->_fromByStore)) {
+        if (!empty($this->_fromByStore) &&
+            ((is_array($message->getHeaders()) && !array_key_exists("From", $message->getHeaders())) ||
+             (is_object($message->getHeaders()) && strpos($message->getHeaders()->toString(), 'From:') === false))
+        ) {
             $message->setFrom($this->_fromByStore['email'], $this->_fromByStore['name']);
         }
 
@@ -207,6 +214,7 @@ class Mail
      * @param \Zend\Mail\Message $message
      * @param string $email
      * @param null $name
+     *
      * @return $this|\Zend_Mail
      */
     protected function setReturnPath($message, $email, $name = null)
@@ -230,13 +238,14 @@ class Mail
     /**
      * @param $email
      * @param $name
+     *
      * @return $this
      */
     public function setFromByStore($email, $name)
     {
         $this->_fromByStore = [
             'email' => $email,
-            'name' => $name
+            'name'  => $name
         ];
 
         return $this;
@@ -244,6 +253,7 @@ class Mail
 
     /**
      * @param $storeId
+     *
      * @return bool
      */
     public function isModuleEnable($storeId)
@@ -257,6 +267,7 @@ class Mail
 
     /**
      * @param $storeId
+     *
      * @return bool|mixed
      */
     public function isDeveloperMode($storeId)
@@ -270,6 +281,7 @@ class Mail
 
     /**
      * @param $storeId
+     *
      * @return bool|mixed
      */
     public function isEnableEmailLog($storeId)
