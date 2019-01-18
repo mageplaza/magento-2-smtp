@@ -113,6 +113,35 @@
                     <comment>If Enable, Magento will not delivery any email to receiver. This is useful for developers.</comment>
                 </field>
             </group>
+            <group id="compatibility" translate="label" type="text" sortOrder="999" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Compatibility and Solutions</label>
+                <field id="head" translate="label" type="button" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <frontend_model>Mageplaza\Core\Block\Adminhtml\System\Config\Compatibility</frontend_model>
+                    <comment><![CDATA[
+                        Khoi content nay se duoc JS day vao, chi can show cai Compatibility nay ra la ok.
+                        <div id="mp-extension-compatibility">
+                            <h2>Compatibility</h2>
+                            <div>
+                            <a href="#"><img src="https://www.mageplaza.com/assets/img/extensions/magento-2-one-step-checkout.png" width="100" alt="one step checkout" /></a>
+                            <a href="#"><img src="https://www.mageplaza.com/assets/img/extensions/magento-2-layered-navigation.png" width="100" alt="one step checkout" /></a>
+                            <a href="#"><img src="https://www.mageplaza.com/assets/img/extensions/magento-2-seo-extension.png" width="100" alt="one step checkout" /></a>
+                            <a href="#"><img src="https://www.mageplaza.com/assets/img/extensions/magento-2-automatic-related-products.png" width="100" alt="one step checkout" /></a>
+                            <a href="#"><img src="https://www.mageplaza.com/assets/img/extensions/magento-2-gift-card.png" width="100" alt="one step checkout" /></a>
+                            </div>
+                        </div>
+                        <div id="mp-extension-solutions" style="margin-top: 2em;">
+                            <h2>Solutions</h2>
+                            <ul style="margin-left: 2em;">
+                                <li><a href="https://www.mageplaza.com/blog/suprising-benefits-optimized-thank-you-page.html" target="_blank">6 surprising benefits of an optimized Thank You Page</a></li></li>
+                                <li><a href="https://www.mageplaza.com/blog/suprising-benefits-optimized-thank-you-page.html" target="_blank">6 surprising benefits of an optimized Thank You Page</a></li></li>
+                                <li><a href="https://www.mageplaza.com/blog/suprising-benefits-optimized-thank-you-page.html" target="_blank">6 surprising benefits of an optimized Thank You Page</a></li></li>
+                                <li><a href="https://www.mageplaza.com/blog/suprising-benefits-optimized-thank-you-page.html" target="_blank">6 surprising benefits of an optimized Thank You Page</a></li></li>
+                            </ul>
+                        </div>
+
+                        ]]></comment>
+                </field>
+            </group>
         </section>
     </system>
 </config>
