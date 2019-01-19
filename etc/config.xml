@@ -24,6 +24,7 @@
         <smtp>
             <module>
                 <type>1</type>
+                <user_guide>smtp-m2</user_guide>
             </module>
             <general>
                 <enabled>0</enabled>
