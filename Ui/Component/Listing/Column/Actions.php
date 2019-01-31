@@ -105,13 +105,13 @@ class Actions extends Column
      */
     private function decodeString($subject)
     {
+        $output = $subject;
         if(stripos($subject, "=?utf-8?b?") !== false) {
             $output = str_ireplace("=?utf-8?B?", "", $subject);
             $output = str_replace("==?=", "", $output);
             $output = base64_decode($output);
-        }else{
-            $output = $subject;
         }
+
         return $output;
     }
 }
