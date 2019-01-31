@@ -68,9 +68,9 @@ class Actions extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
-                $item['subject'] = iconv_mime_decode($item['subject'], 2, 'UTF-8');
-                $item['sender'] = iconv_mime_decode($item['sender'], 2, 'UTF-8');
-                $item['recipient']   = iconv_mime_decode($item['recipient'], 2, 'UTF-8');
+                $item['subject'] = $this->decodeString($item['subject']);
+                $item['sender'] = $this->decodeString($item['sender']);
+                $item['recipient']   = $this->decodeString($item['recipient']);
 
                 $item[$this->getData('name')] = [
                     'view'   => [
@@ -97,5 +97,21 @@ class Actions extends Column
         }
 
         return $dataSource;
+    }
+
+    /**
+     * @param $subject
+     * @return string
+     */
+    private function decodeString($subject)
+    {
+        if(stripos($subject, "=?utf-8?b?") !== false) {
+            $output = str_ireplace("=?utf-8?B?", "", $subject);
+            $output = str_replace("==?=", "", $output);
+            $output = base64_decode($output);
+        }else{
+            $output = $subject;
+        }
+        return $output;
     }
 }
