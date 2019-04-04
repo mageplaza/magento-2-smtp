@@ -94,7 +94,7 @@ class Log extends AbstractModel
      */
     public function saveLog($message, $status)
     {
-        if ($this->helper->versionCompare('2.3.0')) {
+        if ($this->helper->versionCompare('2.2.8')) {
             if ($message->getSubject()) {
                 $this->setSubject($message->getSubject());
             }
