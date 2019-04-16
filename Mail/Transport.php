@@ -21,14 +21,20 @@
 
 namespace Mageplaza\Smtp\Mail;
 
+use Closure;
+use Exception;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\TransportInterface;
 use Magento\Framework\Phrase;
 use Magento\Framework\Registry;
 use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Mail\Rse\Mail;
+use Mageplaza\Smtp\Model\Log;
 use Mageplaza\Smtp\Model\LogFactory;
 use Psr\Log\LoggerInterface;
+use ReflectionClass;
+use Zend\Mail\Message;
+use Zend_Exception;
 
 /**
  * Class Transport
@@ -42,17 +48,17 @@ class Transport
     protected $_storeId;
 
     /**
-     * @var \Mageplaza\Smtp\Mail\Rse\Mail
+     * @var Mail
      */
     protected $resourceMail;
 
     /**
-     * @var \Mageplaza\Smtp\Model\LogFactory
+     * @var LogFactory
      */
     protected $logFactory;
 
     /**
-     * @var \Magento\Framework\Registry $registry
+     * @var Registry $registry
      */
     protected $registry;
 
@@ -80,8 +86,7 @@ class Transport
         Registry $registry,
         Data $helper,
         LoggerInterface $logger
-    )
-    {
+    ) {
         $this->resourceMail = $resourceMail;
         $this->logFactory = $logFactory;
         $this->registry = $registry;
@@ -91,20 +96,19 @@ class Transport
 
     /**
      * @param TransportInterface $subject
-     * @param \Closure $proceed
+     * @param Closure $proceed
      * @throws MailException
-     * @throws \Zend_Exception
+     * @throws Zend_Exception
      */
     public function aroundSendMessage(
         TransportInterface $subject,
-        \Closure $proceed
-    )
-    {
+        Closure $proceed
+    ) {
         $this->_storeId = $this->registry->registry('mp_smtp_store_id');
         $message = $this->getMessage($subject);
         if ($this->resourceMail->isModuleEnable($this->_storeId) && $message) {
             if ($this->helper->versionCompare('2.2.8')) {
-                $message = \Zend\Mail\Message::fromString($message->getRawMessage())->setEncoding('utf-8');
+                $message = Message::fromString($message->getRawMessage())->setEncoding('utf-8');
             }
             $message = $this->resourceMail->processMessage($message, $this->_storeId);
             $transport = $this->resourceMail->getTransport($this->_storeId);
@@ -112,13 +116,18 @@ class Transport
                 if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
                     $transport->send($message);
                 }
-                if(is_object($this->getMessage($subject)->getBody())) {
-                    if ($this->helper->versionCompare('2.2.8') && $this->getMessage($subject)->getBody()->isMultiPart()) {
-                        $message->setBody($this->getMessage($subject)->getBody()->getPartContent("0"));
+                if ($this->helper->versionCompare('2.2.8')) {
+                    $message = $this->getMessage($subject);
+                    if ($message && is_object($message)) {
+                        $body = $message->getBody();
+                        if (is_object($body) && $body->isMultiPart()) {
+                            $message->setBody($body->getPartContent("0"));
+                        }
                     }
                 }
+
                 $this->emailLog($message);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->emailLog($message, false);
                 throw new MailException(new Phrase($e->getMessage()), $e);
             }
@@ -138,14 +147,15 @@ class Transport
         }
 
         try {
-            $reflectionClass = new \ReflectionClass($transport);
+            $reflectionClass = new ReflectionClass($transport);
             $message = $reflectionClass->getProperty('_message');
-            $message->setAccessible(true);
-
-            return $message->getValue($transport);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
+
+        $message->setAccessible(true);
+
+        return $message->getValue($transport);
     }
 
     /**
@@ -157,14 +167,13 @@ class Transport
     protected function emailLog($message, $status = true)
     {
         if ($this->resourceMail->isEnableEmailLog($this->_storeId)) {
-            /** @var \Mageplaza\Smtp\Model\Log $log */
+            /** @var Log $log */
             $log = $this->logFactory->create();
             try {
                 $log->saveLog($message, $status);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
             }
         }
     }
-
 }

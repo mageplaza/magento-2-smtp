@@ -6,64 +6,64 @@ sudo: required
 dist: trusty
 env:
   global:
-  - COMPOSER_BIN_DIR=~/bin
-  - INTEGRATION_SETS=3
-  - NODE_JS_VERSION=6
-  - MAGENTO_HOST_NAME="magento2.travis"
-  - COMPOSER_MODULE=mageplaza/module-smtp
+    - COMPOSER_BIN_DIR=~/bin
+    - INTEGRATION_SETS=3
+    - NODE_JS_VERSION=6
+    - MAGENTO_HOST_NAME="magento2.travis"
+    - COMPOSER_MODULE=mageplaza/module-smtp
   matrix:
-  - MAGENTO_VERSION=2.2.1 TEST_SUITE=integration INTEGRATION_INDEX=1
-  - MAGENTO_VERSION=2.2.1 TEST_SUITE=integration INTEGRATION_INDEX=2
-  - MAGENTO_VERSION=2.2.1 TEST_SUITE=integration INTEGRATION_INDEX=3
-  - MAGENTO_VERSION=2.2.2 TEST_SUITE=static
-  - MAGENTO_VERSION=2.2.2 TEST_SUITE=js GRUNT_COMMAND=static
-  - MAGENTO_VERSION=2.2.2 TEST_SUITE=integration INTEGRATION_INDEX=1
-  - MAGENTO_VERSION=2.2.2 TEST_SUITE=integration INTEGRATION_INDEX=2
-  - MAGENTO_VERSION=2.2.2 TEST_SUITE=integration INTEGRATION_INDEX=3
-  - MAGENTO_VERSION=2.2.5 TEST_SUITE=integration INTEGRATION_INDEX=1
-  - MAGENTO_VERSION=2.2.5 TEST_SUITE=integration INTEGRATION_INDEX=2
-  - MAGENTO_VERSION=2.2.5 TEST_SUITE=integration INTEGRATION_INDEX=3
-  - MAGENTO_VERSION=2.2.6 TEST_SUITE=integration INTEGRATION_INDEX=1
-  - MAGENTO_VERSION=2.2.6 TEST_SUITE=integration INTEGRATION_INDEX=2
-  - MAGENTO_VERSION=2.2.6 TEST_SUITE=integration INTEGRATION_INDEX=3
-  
+    - MAGENTO_VERSION=2.2.1 TEST_SUITE=integration INTEGRATION_INDEX=1
+    - MAGENTO_VERSION=2.2.1 TEST_SUITE=integration INTEGRATION_INDEX=2
+    - MAGENTO_VERSION=2.2.1 TEST_SUITE=integration INTEGRATION_INDEX=3
+    - MAGENTO_VERSION=2.2.2 TEST_SUITE=static
+    - MAGENTO_VERSION=2.2.2 TEST_SUITE=js GRUNT_COMMAND=static
+    - MAGENTO_VERSION=2.2.2 TEST_SUITE=integration INTEGRATION_INDEX=1
+    - MAGENTO_VERSION=2.2.2 TEST_SUITE=integration INTEGRATION_INDEX=2
+    - MAGENTO_VERSION=2.2.2 TEST_SUITE=integration INTEGRATION_INDEX=3
+    - MAGENTO_VERSION=2.2.5 TEST_SUITE=integration INTEGRATION_INDEX=1
+    - MAGENTO_VERSION=2.2.5 TEST_SUITE=integration INTEGRATION_INDEX=2
+    - MAGENTO_VERSION=2.2.5 TEST_SUITE=integration INTEGRATION_INDEX=3
+    - MAGENTO_VERSION=2.2.6 TEST_SUITE=integration INTEGRATION_INDEX=1
+    - MAGENTO_VERSION=2.2.6 TEST_SUITE=integration INTEGRATION_INDEX=2
+    - MAGENTO_VERSION=2.2.6 TEST_SUITE=integration INTEGRATION_INDEX=3
+
 matrix:
   exclude:
-  - php: 7.0
-    env: MAGENTO_VERSION=2.2.2 TEST_SUITE=js GRUNT_COMMAND=static
-  - php: 7.0
-    env: MAGENTO_VERSION=2.2.2 TEST_SUITE=static
+    - php: 7.0
+      env: MAGENTO_VERSION=2.2.2 TEST_SUITE=js GRUNT_COMMAND=static
+    - php: 7.0
+      env: MAGENTO_VERSION=2.2.2 TEST_SUITE=static
 cache:
   apt: true
   directories:
-  - "$HOME/.composer/cache"
-  - "$HOME/.nvm"
+    - "$HOME/.composer/cache"
+    - "$HOME/.nvm"
 addons:
   apt:
     packages:
-    - mysql-server-5.6
-    - mysql-client-core-5.6
-    - mysql-client-5.6
-    - postfix
+      - mysql-server-5.6
+      - mysql-client-core-5.6
+      - mysql-client-5.6
+      - postfix
   firefox: '46.0'
   hosts:
     - magento2.travis
 before_install:
-- git clone https://github.com/magento/magento2 --branch $MAGENTO_VERSION
-- cd magento2
-- bash ./dev/travis/before_install.sh
+  - git clone https://github.com/magento/magento2 --branch $MAGENTO_VERSION
+  - cd magento2
+  - bash ./dev/travis/before_install.sh
 install:
-- composer install --no-interaction --prefer-dist
-- composer require $COMPOSER_MODULE
+  - composer install --no-interaction --prefer-dist
+  - composer require $COMPOSER_MODULE
 before_script:
-#- cp -f ${TRAVIS_BUILD_DIR}/dev/tests/integration/phpunit.xml.dist dev/tests/integration/
-- echo "vendor/$COMPOSER_MODULE" > dev/tests/static/testsuite/Magento/Test/Less/_files/whitelist/common.txt
-- echo "vendor/$COMPOSER_MODULE" > dev/tests/static/testsuite/Magento/Test/Php/_files/whitelist/common.txt
-- echo "vendor/$COMPOSER_MODULE/**/*.js" > dev/tests/static/testsuite/Magento/Test/Js/_files/whitelist/magento.txt
-- bash ./dev/travis/before_script.sh
+  #- cp -f ${TRAVIS_BUILD_DIR}/dev/tests/integration/phpunit.xml.dist dev/tests/integration/
+  - echo "vendor/$COMPOSER_MODULE" > dev/tests/static/testsuite/Magento/Test/Less/_files/whitelist/common.txt
+  - echo "vendor/$COMPOSER_MODULE" > dev/tests/static/testsuite/Magento/Test/Php/_files/whitelist/common.txt
+  - echo "vendor/$COMPOSER_MODULE/**/*.js" > dev/tests/static/testsuite/Magento/Test/Js/_files/whitelist/magento.txt
+  - bash ./dev/travis/before_script.sh
 script:
-- test $TEST_SUITE = "static" && TEST_FILTER='--filter "Magento\\Test\\Php\\LiveCodeTest"' || true
-- test $TEST_SUITE = "functional" && TEST_FILTER='dev/tests/functional/testsuites/Magento/Mtf/TestSuite/InjectableTests.php' || true
-- if [ $TEST_SUITE == "functional" ]; then dev/tests/functional/vendor/phpunit/phpunit/phpunit -c dev/tests/$TEST_SUITE $TEST_FILTER; fi
-- if [ $TEST_SUITE != "functional" ] && [ $TEST_SUITE != "js" ]; then phpunit -c dev/tests/$TEST_SUITE $TEST_FILTER; fi
-- if [ $TEST_SUITE == "js" ]; then grunt $GRUNT_COMMAND; fi
+  - test $TEST_SUITE = "static" && TEST_FILTER='--filter "Magento\\Test\\Php\\LiveCodeTest"' || true
+  - test $TEST_SUITE = "functional" && TEST_FILTER='dev/tests/functional/testsuites/Magento/Mtf/TestSuite/InjectableTests.php' || true
+  - if [ $TEST_SUITE == "functional" ]; then dev/tests/functional/vendor/phpunit/phpunit/phpunit -c dev/tests/$TEST_SUITE $TEST_FILTER; fi
+  - if [ $TEST_SUITE != "functional" ] && [ $TEST_SUITE != "js" ]; then phpunit -c dev/tests/$TEST_SUITE $TEST_FILTER; fi
+  - if [ $TEST_SUITE == "js" ]; then grunt $GRUNT_COMMAND; fi

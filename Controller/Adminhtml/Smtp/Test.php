@@ -21,15 +21,19 @@
 
 namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 
+use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Email\Model\Template\SenderResolver;
 use Magento\Framework\App\Area;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Store\Model\Store;
 use Mageplaza\Smtp\Helper\Data as SmtpData;
 use Mageplaza\Smtp\Mail\Rse\Mail;
 use Psr\Log\LoggerInterface;
-use Magento\Email\Model\Template\SenderResolver;
 
 /**
  * Class Test
@@ -45,12 +49,12 @@ class Test extends Action
     const ADMIN_RESOURCE = 'Mageplaza_Smtp::smtp';
 
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @var LoggerInterface
      */
     protected $logger;
 
     /**
-     * @var \Mageplaza\Smtp\Helper\Data
+     * @var SmtpData
      */
     protected $smtpDataHelper;
 
@@ -85,20 +89,19 @@ class Test extends Action
         Mail $mailResource,
         TransportBuilder $transportBuilder,
         SenderResolver $senderResolver
-    )
-    {
-        $this->logger            = $logger;
-        $this->smtpDataHelper    = $smtpDataHelper;
-        $this->mailResource      = $mailResource;
+    ) {
+        $this->logger = $logger;
+        $this->smtpDataHelper = $smtpDataHelper;
+        $this->mailResource = $mailResource;
         $this->_transportBuilder = $transportBuilder;
-        $this->senderResolver    = $senderResolver;
+        $this->senderResolver = $senderResolver;
 
         parent::__construct($context);
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return ResponseInterface|ResultInterface
+     * @throws LocalizedException
      */
     public function execute()
     {
@@ -121,7 +124,7 @@ class Test extends Action
             if ($params['port']) {
                 $config['port'] = $params['port'];
             }
-            if ($params['password'] == '******') {
+            if ($params['password'] === '******') {
                 $config['password'] = $this->smtpDataHelper->getPassword();
             } else {
                 $config['password'] = $params['password'];
@@ -134,7 +137,8 @@ class Test extends Action
 
             $from = $this->senderResolver->resolve(
                 isset($params['from']) ? $params['from'] : $config['username'],
-                $this->smtpDataHelper->getScopeId());
+                $this->smtpDataHelper->getScopeId()
+            );
 
             $this->_transportBuilder
                 ->setTemplateIdentifier('mpsmtp_test_email_template')
@@ -150,7 +154,7 @@ class Test extends Action
                     'status'  => true,
                     'content' => __('Sent successfully! Please check your email box.')
                 ];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $result['content'] = $e->getMessage();
                 $this->logger->critical($e);
             }

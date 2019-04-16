@@ -22,6 +22,11 @@
 namespace Mageplaza\Smtp\Mail\Rse;
 
 use Mageplaza\Smtp\Helper\Data;
+use Zend\Mail\Message;
+use Zend\Mail\Transport\Smtp;
+use Zend\Mail\Transport\SmtpOptions;
+use Zend_Exception;
+use Zend_Mail_Transport_Smtp;
 
 /**
  * Class Mail
@@ -30,22 +35,22 @@ use Mageplaza\Smtp\Helper\Data;
 class Mail
 {
     /**
-     * @var \Mageplaza\Smtp\Helper\Data
+     * @var Data
      */
     protected $smtpHelper;
 
     /**
-     * @var boolean is module enable
+     * @var array Is module enable by store
      */
-    protected $_moduleEnable;
+    protected $_moduleEnable = [];
 
     /**
-     * @var boolean is developer mode
+     * @var array is developer mode
      */
-    protected $_developerMode;
+    protected $_developerMode = [];
 
     /**
-     * @var boolean is enable email log
+     * @var array is enable email log
      */
     protected $_emailLog = [];
 
@@ -65,7 +70,7 @@ class Mail
     protected $_returnPath = [];
 
     /**
-     * @var \Zend_Mail_Transport_Smtp
+     * @var Zend_Mail_Transport_Smtp
      */
     protected $_transport;
 
@@ -108,7 +113,7 @@ class Mail
             unset($options['force_sent']);
         }
 
-        if (sizeof($options)) {
+        if (count($options)) {
             $this->_smtpOptions[$storeId] = $options;
         }
 
@@ -118,12 +123,12 @@ class Mail
     /**
      * @param $storeId
      *
-     * @return \Zend_Mail_Transport_Smtp | \Zend\Mail\Transport\Smtp
-     * @throws \Zend_Exception
+     * @return Zend_Mail_Transport_Smtp | Smtp
+     * @throws Zend_Exception
      */
     public function getTransport($storeId)
     {
-        if (null === $this->_transport) {
+        if ($this->_transport === null) {
             if (!isset($this->_smtpOptions[$storeId])) {
                 $configData = $this->smtpHelper->getSmtpConfig('', $storeId);
                 $options = [
@@ -133,7 +138,7 @@ class Mail
 
                 if (isset($configData['authentication']) && $configData['authentication'] !== "") {
                     $options += [
-                        'auth' => $configData['authentication'],
+                        'auth'     => $configData['authentication'],
                         'username' => isset($configData['username']) ? $configData['username'] : '',
                         'password' => $this->smtpHelper->getPassword($storeId)
                     ];
@@ -147,7 +152,7 @@ class Mail
             }
 
             if (!isset($this->_smtpOptions[$storeId]['host']) || !$this->_smtpOptions[$storeId]['host']) {
-                throw new \Zend_Exception('A host is necessary for smtp transport, but none was given');
+                throw new Zend_Exception(__('A host is necessary for smtp transport, but none was given'));
             }
 
             if ($this->smtpHelper->versionCompare('2.2.8')) {
@@ -158,9 +163,7 @@ class Mail
                         'username' => $options['username'],
                         'password' => $options['password']
                     ];
-                    unset($options['auth']);
-                    unset($options['username']);
-                    unset($options['password']);
+                    unset($options['auth'], $options['username'], $options['password']);
                 }
                 if (isset($options['ssl'])) {
                     $options['connection_config']['ssl'] = $options['ssl'];
@@ -168,11 +171,14 @@ class Mail
                 }
                 unset($options['type']);
 
-                $options = new \Zend\Mail\Transport\SmtpOptions($options);
+                $options = new SmtpOptions($options);
 
-                $this->_transport = new \Zend\Mail\Transport\Smtp($options);
+                $this->_transport = new Smtp($options);
             } else {
-                $this->_transport = new \Zend_Mail_Transport_Smtp($this->_smtpOptions[$storeId]['host'], $this->_smtpOptions[$storeId]);
+                $this->_transport = new Zend_Mail_Transport_Smtp(
+                    $this->_smtpOptions[$storeId]['host'],
+                    $this->_smtpOptions[$storeId]
+                );
             }
         }
 
@@ -194,14 +200,14 @@ class Mail
         if ($this->_returnPath[$storeId]) {
             if ($this->smtpHelper->versionCompare('2.2.8')) {
                 $message->getHeaders()->addHeaders(["Return-Path" => $this->_returnPath[$storeId]]);
-            } else if (method_exists($message, 'setReturnPath')) {
+            } elseif (method_exists($message, 'setReturnPath')) {
                 $message->setReturnPath($this->_returnPath[$storeId]);
             }
         }
 
         if (!empty($this->_fromByStore) &&
             ((is_array($message->getHeaders()) && !array_key_exists("From", $message->getHeaders())) ||
-                ($message instanceof \Zend\Mail\Message && !$message->getFrom()->count()))
+                ($message instanceof Message && !$message->getFrom()->count()))
         ) {
             $message->setFrom($this->_fromByStore['email'], $this->_fromByStore['name']);
         }
@@ -219,7 +225,7 @@ class Mail
     {
         $this->_fromByStore = [
             'email' => $email,
-            'name' => $name
+            'name'  => $name
         ];
 
         return $this;

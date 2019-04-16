@@ -21,9 +21,13 @@
 
 namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 
+use Exception;
 use Magento\Backend\App\Action;
-use Mageplaza\Smtp\Model\LogFactory;
+use Magento\Backend\Model\View\Result\Redirect;
+use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\ResultInterface;
+use Mageplaza\Smtp\Model\LogFactory;
 
 /**
  * Class Delete
@@ -31,7 +35,6 @@ use Magento\Framework\Controller\ResultFactory;
  */
 class Delete extends Action
 {
-
     /**
      * @var LogFactory
      */
@@ -45,29 +48,29 @@ class Delete extends Action
     public function __construct(
         LogFactory $logFactory,
         Action\Context $context
-    )
-    {
+    ) {
         parent::__construct($context);
 
         $this->logFactory = $logFactory;
     }
 
     /**
-     * @return $this|\Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
+     * @return $this|ResponseInterface|ResultInterface
      */
     public function execute()
     {
-        /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
+        /** @var Redirect $resultRedirect */
         $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
 
         try {
             $logId = $this->getRequest()->getParam('id');
             $this->logFactory->create()->load($logId)->delete();
-        } catch (\Exception $e) {
-            $this->messageManager->addError(
+        } catch (Exception $e) {
+            $this->messageManager->addErrorMessage(
                 __('We can\'t process your request right now. %1', $e->getMessage())
             );
             $this->_redirect('*/smtp/log');
+
             return;
         }
 

@@ -23,6 +23,7 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\View\Result\Page;
 use Magento\Framework\View\Result\PageFactory;
 
 /**
@@ -39,34 +40,33 @@ class Log extends Action
     const ADMIN_RESOURCE = 'Mageplaza_Smtp::log';
 
     /**
-     * @var \Magento\Framework\View\Result\PageFactory
+     * @var PageFactory
      */
     protected $resultPageFactory;
 
     /**
      * Constructor
      *
-     * @param \Magento\Backend\App\Action\Context $context
-     * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
+     * @param Context $context
+     * @param PageFactory $resultPageFactory
      */
     public function __construct(
         Context $context,
         PageFactory $resultPageFactory
-    )
-    {
-        parent::__construct($context);
-
+    ) {
         $this->resultPageFactory = $resultPageFactory;
+
+        parent::__construct($context);
     }
 
     /**
-     * @return \Magento\Framework\View\Result\Page
+     * @return Page
      */
     public function execute()
     {
         $resultPage = $this->resultPageFactory->create();
         $resultPage->setActiveMenu('Mageplaza_Smtp::log');
-        $resultPage->getConfig()->getTitle()->prepend((__('Emails Log')));
+        $resultPage->getConfig()->getTitle()->prepend(__('Emails Log'));
 
         //Add bread crumb
         $resultPage->addBreadcrumb(__('Mageplaza'), __('Mageplaza'));

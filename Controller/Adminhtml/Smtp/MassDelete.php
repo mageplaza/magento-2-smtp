@@ -21,9 +21,13 @@
 
 namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 
+use Exception;
 use Magento\Backend\App\Action;
-use Magento\Ui\Component\MassAction\Filter;
+use Magento\Backend\Model\View\Result\Redirect;
+use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Ui\Component\MassAction\Filter;
 use Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory;
 
 /**
@@ -52,20 +56,19 @@ class MassDelete extends Action
         Filter $filter,
         Action\Context $context,
         CollectionFactory $emailLog
-    )
-    {
-        parent::__construct($context);
-
+    ) {
         $this->filter = $filter;
         $this->emailLog = $emailLog;
+
+        parent::__construct($context);
     }
 
     /**
-     * @return $this|\Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|void
+     * @return $this|ResponseInterface|ResultInterface|void
      */
     public function execute()
     {
-        /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
+        /** @var Redirect $resultRedirect */
         $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
 
         try {
@@ -75,11 +78,12 @@ class MassDelete extends Action
                 $item->delete();
                 $deleted++;
             }
-        } catch (\Exception $e) {
-            $this->messageManager->addError(
+        } catch (Exception $e) {
+            $this->messageManager->addErrorMessage(
                 __('We can\'t process your request right now. %1', $e->getMessage())
             );
             $this->_redirect('adminhtml/smtp/log');
+
             return;
         }
         $this->messageManager->addSuccessMessage(

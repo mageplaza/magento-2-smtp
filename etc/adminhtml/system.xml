@@ -88,8 +88,7 @@
                     </field>
                     <field id="to" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Send To</label>
-                        <comment>
-                            <![CDATA[<p class="note"><span>Enter your email and click <b>Test Now</b> button to test the configuration. <br>
+                        <comment><![CDATA[<p class="note"><span>Enter your email and click <b>Test Now</b> button to test the configuration. <br>
                             Read: <br>
                             - <a href="https://www.mageplaza.com/faqs/smtp/" target="_blank">FAQs</a><br>
                             - <a href="https://www.mageplaza.com/faqs/smtp-connection-timed-out.html" target="_blank">Connection timed out</a>

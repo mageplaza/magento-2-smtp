@@ -1,6 +1,14 @@
-"- Choose a SMTP Provider -","- Choose a SMTP Provider -"
+"Server Name (host)","Server Name (host)"
+Port,Port
+Protocol,Protocol
+"Transport Layer Security (TLS)","Transport Layer Security (TLS)"
+"Secure Sockets Layer (SSL)","Secure Sockets Layer (SSL)"
+None,None
 "Gmail, GSuite","Gmail, GSuite"
 "Amazon SES","Amazon SES"
+"US East (N. Virginia)","US East (N. Virginia)"
+"US West (Oregon)","US West (Oregon)"
+"EU (Ireland)","EU (Ireland)"
 Mailgun,Mailgun
 Mandrill,Mandrill
 Sendinblue,Sendinblue
@@ -28,7 +36,9 @@ AT&T,AT&T
 Verizon,Verizon
 "BT Openworld","BT Openworld"
 "O2 Online Deutschland","O2 Online Deutschland"
+"1&1 Webmail","1&1 Webmail"
 OVH,OVH
+SMTP2GO,SMTP2GO
 Success,Success
 "Something went wrong.","Something went wrong."
 "We can't process your request right now. %1","We can't process your request right now. %1"
@@ -43,11 +53,11 @@ Smtp,Smtp
 "A total of %1 record(s) have been sent.","A total of %1 record(s) have been sent."
 "Sent successfully! Please check your email box.","Sent successfully! Please check your email box."
 "Test Error","Test Error"
+"A host is necessary for smtp transport, but none was given","A host is necessary for smtp transport, but none was given"
 NONE,NONE
 PLAIN,PLAIN
-Login,Login
+LOGIN,LOGIN
 CRAM-MD5,CRAM-MD5
-None,None
 SSL,SSL
 TLS,TLS
 Error,Error
@@ -58,9 +68,9 @@ Resend,Resend
 Delete,Delete
 "Delete Log","Delete Log"
 "Are you sure you want to delete this log?","Are you sure you want to delete this log?"
+"Load Settings","Load Settings"
 "TEST EMAIL from Custom SMTP","TEST EMAIL from Custom SMTP"
 "Your store has been connected with a custom SMTP successfully. Now you can Save Config and use this connection.","Your store has been connected with a custom SMTP successfully. Now you can Save Config and use this connection."
-"Please change this host name to suit your location","Please change this host name to suit your location"
 "Mageplaza Smtp","Mageplaza Smtp"
 SMTP,SMTP
 "General Configuration","General Configuration"
@@ -70,18 +80,13 @@ SMTP,SMTP
 "Clean Email Log Every","Clean Email Log Every"
 "Day(s). If empty or zero, the Email log will not be cleaned.","Day(s). If empty or zero, the Email log will not be cleaned."
 "SMTP Configuration Options","SMTP Configuration Options"
-"SMTP Provider","SMTP Provider"
-"Select a Pre-defined SMTP Server, then click Load Settings.","Select a Pre-defined SMTP Server, then click Load Settings."
-"Load Settings","Load Settings"
 Host,Host
-"Support Host name and ID Address","Support Host name and ID Address"
-Port,Port
+"Support Host name and IP Address","Support Host name and IP Address"
 "Default ports: 25, 465, or 587. Port 465 (SSL required), Port 587 (TLS required)","Default ports: 25, 465, or 587. Port 465 (SSL required), Port 587 (TLS required)"
+"We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols.","We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols."
 Authentication,Authentication
 Username,Username
 Password,Password
-Protocol,Protocol
-"We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols.","We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols."
 "Return-Path Email","Return-Path Email"
 "Leave empty to ignore it.","Leave empty to ignore it."
 "Send Test Email","Send Test Email"
@@ -97,8 +102,8 @@ Clear,Clear
 "Are you sure to delete selected log email(s)?","Are you sure to delete selected log email(s)?"
 ID,ID
 Subject,Subject
-From,From
-To,To
+Sender,Sender
+Recipient,Recipient
 Cc,Cc
 Bcc,Bcc
 Status,Status

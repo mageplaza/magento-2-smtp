@@ -55,7 +55,7 @@ class Host extends Field
     protected function _getElementHtml(AbstractElement $element)
     {
         $originalData = $element->getOriginalData();
-        $buttonLabel  = !empty($originalData['button_label']) ? $originalData['button_label'] : $this->_buttonLabel;
+        $buttonLabel = !empty($originalData['button_label']) ? $originalData['button_label'] : $this->_buttonLabel;
         $this->addData(
             [
                 'button_label' => __($buttonLabel),
@@ -405,7 +405,7 @@ class Host extends Field
                     'protocol' => 'ssl'
                 ]
             ],
-            'smtp2go'         => [
+            'smtp2go'     => [
                 'label' => __('SMTP2GO'),
                 'info'  => [
                     'host'     => 'mail.smtp2go.com',
