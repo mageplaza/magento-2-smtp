@@ -21,6 +21,8 @@
 
 namespace Mageplaza\Smtp\Helper;
 
+use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\ScopeInterface;
 use Mageplaza\Core\Helper\AbstractData;
 
@@ -31,7 +33,7 @@ use Mageplaza\Core\Helper\AbstractData;
 class Data extends AbstractData
 {
     const CONFIG_MODULE_PATH = 'smtp';
-    const CONFIG_GROUP_SMTP  = 'configuration_option';
+    const CONFIG_GROUP_SMTP = 'configuration_option';
     const DEVELOP_GROUP_SMTP = 'developer';
 
     /**
@@ -67,16 +69,16 @@ class Data extends AbstractData
     {
         if ($storeId || $storeId = $this->_request->getParam('store')) {
             $password = $this->getSmtpConfig('password', $storeId);
-        } else if ($websiteCode = $this->_request->getParam('website')) {
+        } elseif ($websiteCode = $this->_request->getParam('website')) {
             $passwordPath = self::CONFIG_MODULE_PATH . '/' . self::CONFIG_GROUP_SMTP . '/password';
-            $password     = $this->getConfigValue($passwordPath, $websiteCode, ScopeInterface::SCOPE_WEBSITE);
+            $password = $this->getConfigValue($passwordPath, $websiteCode, ScopeInterface::SCOPE_WEBSITE);
         } else {
             $password = $this->getSmtpConfig('password');
         }
 
         if ($decrypt) {
-            /** @var \Magento\Framework\Encryption\EncryptorInterface $encryptor */
-            $encryptor = $this->getObject(\Magento\Framework\Encryption\EncryptorInterface::class);
+            /** @var EncryptorInterface $encryptor */
+            $encryptor = $this->getObject(EncryptorInterface::class);
 
             return $encryptor->decrypt($password);
         }
@@ -86,7 +88,7 @@ class Data extends AbstractData
 
     /**
      * @return int
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function getScopeId()
     {

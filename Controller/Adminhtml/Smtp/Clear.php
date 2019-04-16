@@ -21,8 +21,12 @@
 
 namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 
+use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\Result\Redirect;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Mageplaza\Smtp\Model\ResourceModel\Log\Collection;
 use Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory;
@@ -41,21 +45,20 @@ class Clear extends Action
     const ADMIN_RESOURCE = 'Mageplaza_Smtp::smtp';
 
     /**
-     * @var \Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory
+     * @var CollectionFactory
      */
     protected $collectionLog;
 
     /**
      * Constructor
      *
-     * @param \Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory $collectionLog
+     * @param CollectionFactory $collectionLog
      * @param Context $context
      */
     public function __construct(
         Context $context,
         CollectionFactory $collectionLog
-    )
-    {
+    ) {
         $this->collectionLog = $collectionLog;
 
         parent::__construct($context);
@@ -64,20 +67,20 @@ class Clear extends Action
     /**
      * Clear Emails Log
      *
-     * @return \Magento\Backend\Model\View\Result\Redirect
+     * @return ResponseInterface|Redirect|ResultInterface
      */
     public function execute()
     {
         $resultRedirect = $this->resultRedirectFactory->create();
-        
+
         /** @var Collection $collection */
-        $collection     = $this->collectionLog->create();
+        $collection = $this->collectionLog->create();
         try {
             $collection->clearLog();
             $this->messageManager->addSuccess(__('Success'));
         } catch (LocalizedException $e) {
             $this->messageManager->addError($e->getMessage());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->messageManager->addException($e, __('Something went wrong.'));
         }
 

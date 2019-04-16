@@ -21,6 +21,7 @@
 
 namespace Mageplaza\Smtp\Model;
 
+use Exception;
 use Magento\Framework\App\Area;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\DataObject;
@@ -30,7 +31,9 @@ use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
 use Magento\Store\Model\Store;
+use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Mail\Rse\Mail;
+use Mageplaza\Smtp\Model\Source\Status;
 
 /**
  * Class Log
@@ -39,7 +42,7 @@ use Mageplaza\Smtp\Mail\Rse\Mail;
 class Log extends AbstractModel
 {
     /**
-     * @var \Magento\Framework\Mail\Template\TransportBuilder
+     * @var TransportBuilder
      */
     protected $_transportBuilder;
 
@@ -48,6 +51,9 @@ class Log extends AbstractModel
      */
     protected $mailResource;
 
+    /**
+     * @var Data
+     */
     protected $helper;
 
     /**
@@ -56,6 +62,7 @@ class Log extends AbstractModel
      * @param Registry $registry
      * @param TransportBuilder $transportBuilder
      * @param Mail $mailResource
+     * @param Data $helper
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
      * @param array $data
@@ -65,12 +72,11 @@ class Log extends AbstractModel
         Registry $registry,
         TransportBuilder $transportBuilder,
         Mail $mailResource,
-        \Mageplaza\Smtp\Helper\Data $helper,
+        Data $helper,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
-    )
-    {
+    ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
 
         $this->_transportBuilder = $transportBuilder;
@@ -83,7 +89,7 @@ class Log extends AbstractModel
      */
     public function _construct()
     {
-        $this->_init('Mageplaza\Smtp\Model\ResourceModel\Log');
+        $this->_init(ResourceModel\Log::class);
     }
 
     /**
@@ -94,7 +100,7 @@ class Log extends AbstractModel
      */
     public function saveLog($message, $status)
     {
-        if ($this->helper->versionCompare('2.3.0')) {
+        if ($this->helper->versionCompare('2.2.8')) {
             if ($message->getSubject()) {
                 $this->setSubject($message->getSubject());
             }
@@ -102,23 +108,23 @@ class Log extends AbstractModel
             $from = $message->getFrom();
             if (count($from)) {
                 $from->rewind();
-                $this->setSender($from->current()->getEmail());
+                $this->setSender($from->current()->getName() . ' <' . $from->current()->getEmail() . '>');
             }
 
             $toArr = [];
-            foreach($message->getTo() as $toAddr){
+            foreach ($message->getTo() as $toAddr) {
                 $toArr[] = $toAddr->getEmail();
             }
             $this->setRecipient(implode(',', $toArr));
 
             $ccArr = [];
-            foreach($message->getCc() as $ccAddr){
+            foreach ($message->getCc() as $ccAddr) {
                 $ccArr[] = $ccAddr->getEmail();
             }
             $this->setCc(implode(',', $ccArr));
 
             $bccArr = [];
-            foreach($message->getBcc() as $bccAddr){
+            foreach ($message->getBcc() as $bccAddr) {
                 $bccArr[] = $bccAddr->getEmail();
             }
             $this->setBcc(implode(',', $bccArr));
@@ -127,11 +133,11 @@ class Log extends AbstractModel
         } else {
             $headers = $message->getHeaders();
 
-            if (isset($headers['Subject']) && isset($headers['Subject'][0])) {
+            if (isset($headers['Subject'][0])) {
                 $this->setSubject($headers['Subject'][0]);
             }
 
-            if (isset($headers['From']) && isset($headers['From'][0])) {
+            if (isset($headers['From'][0])) {
                 $this->setSender($headers['From'][0]);
             }
 
@@ -177,55 +183,55 @@ class Log extends AbstractModel
      */
     public function resendEmail()
     {
-        try {
-            $data = $this->getData();
-            $data['email_content'] = htmlspecialchars_decode($data['email_content']);
+        $data = $this->getData();
+        $data['email_content'] = htmlspecialchars_decode($data['email_content']);
 
-            $dataObject = new DataObject();
-            $dataObject->setData($data);
+        $dataObject = new DataObject();
+        $dataObject->setData($data);
 
-            $sender = $this->extractEmailInfo($data['sender']);
-            foreach ($sender as $name => $email) {
-                $sender = ['name' => $name, 'email' => $email];
-                break;
+        $sender = $this->extractEmailInfo($data['sender']);
+        foreach ($sender as $name => $email) {
+            $sender = compact('name', 'email');
+            break;
+        }
+
+        /** Add receiver emails*/
+        $recipient = $this->extractEmailInfo($data['recipient']);
+        foreach ($recipient as $name => $email) {
+            $this->_transportBuilder->addTo($email, $name);
+        }
+
+        /** Add cc emails*/
+        if (isset($data['cc'])) {
+            $ccEmails = $this->extractEmailInfo($data['cc']);
+            foreach ($ccEmails as $name => $email) {
+                $this->_transportBuilder->addCc($email, $name);
             }
+        }
 
+        /** Add Bcc emails*/
+        if (isset($data['bcc'])) {
+            $bccEmails = $this->extractEmailInfo($data['bcc']);
+            foreach ($bccEmails as $email) {
+                $this->_transportBuilder->addBcc($email);
+            }
+        }
+
+        $this->mailResource->setSmtpOptions(Store::DEFAULT_STORE_ID, ['ignore_log' => true]);
+
+        try {
             $this->_transportBuilder
                 ->setTemplateIdentifier('mpsmtp_resend_email_template')
                 ->setTemplateOptions(['area' => Area::AREA_FRONTEND, 'store' => Store::DEFAULT_STORE_ID])
                 ->setTemplateVars($data)
                 ->setFrom($sender);
 
-            /** Add receiver emails*/
-            $recipient = $this->extractEmailInfo($data['recipient']);
-            foreach ($recipient as $name => $email) {
-                $this->_transportBuilder->addTo($email, $name);
-            }
-
-            /** Add cc emails*/
-            if (isset($data['cc'])) {
-                $ccEmails = $this->extractEmailInfo($data['cc']);
-                foreach ($ccEmails as $name => $email) {
-                    $this->_transportBuilder->addCc($email, $name);
-                }
-            }
-
-            /** Add Bcc emails*/
-            if (isset($data['bcc'])) {
-                $bccEmails = $this->extractEmailInfo($data['bcc']);
-                foreach ($bccEmails as $email) {
-                    $this->_transportBuilder->addBcc($email);
-                }
-            }
-
-            $this->mailResource->setSmtpOptions(Store::DEFAULT_STORE_ID, ['ignore_log' => true]);
-
             $this->_transportBuilder->getTransport()
                 ->sendMessage();
 
-            $this->setStatus(\Mageplaza\Smtp\Model\Source\Status::STATUS_SUCCESS)
+            $this->setStatus(Status::STATUS_SUCCESS)
                 ->save();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->_logger->critical($e->getMessage());
 
             return false;
@@ -236,20 +242,40 @@ class Log extends AbstractModel
 
     /**
      * @param $emailList
-     * @return array|null
+     * @return array
      */
     protected function extractEmailInfo($emailList)
     {
-        $emails = explode(', ', $emailList);
         $data = [];
-        foreach ($emails as $email) {
-            $emailArray = explode(' <', $email);
-            $name = '';
-            if (sizeof($emailArray) > 1) {
-                $name = trim($emailArray[0], '" ');
-                $email = trim($emailArray[1], '<>');
+
+        if ($this->helper->versionCompare('2.2.8')) {
+            if (strpos($emailList, ' <') !== false) {
+                $emails = explode(' <', $emailList);
+                $name = '';
+                if (count($emails) > 1) {
+                    $name = $emails[0];
+                }
+                $email = trim($emails[1], '>');
+                $data[$name] = $email;
+            } else {
+                $emails = explode(',', $emailList);
+                foreach ($emails as $email) {
+                    $data[] = $email;
+                }
             }
-            $data[$name] = $email;
+        } else {
+            $emails = explode(', ', $emailList);
+            foreach ($emails as $email) {
+                if (strpos($emailList, ' <') !== false) {
+                    $emailArray = explode(' <', $email);
+                    $name = '';
+                    if (count($emailArray) > 1) {
+                        $name = trim($emailArray[0], '" ');
+                        $email = trim($emailArray[1], '<>');
+                    }
+                    $data[$name] = $email;
+                }
+            }
         }
 
         return $data;

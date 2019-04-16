@@ -33,20 +33,19 @@ use Magento\Framework\Stdlib\DateTime\DateTime;
 class Log extends AbstractDb
 {
     /**
-     * @var \Magento\Framework\Stdlib\DateTime\DateTime
+     * @var DateTime
      */
     protected $date;
 
     /**
      * Log constructor.
-     * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
-     * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
+     * @param DateTime $date
+     * @param Context $context
      */
     public function __construct(
         DateTime $date,
         Context $context
-    )
-    {
+    ) {
         $this->date = $date;
         parent::__construct($context);
     }

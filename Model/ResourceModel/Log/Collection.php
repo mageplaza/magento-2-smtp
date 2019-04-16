@@ -22,6 +22,7 @@
 namespace Mageplaza\Smtp\Model\ResourceModel\Log;
 
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
+use Mageplaza\Smtp\Model\ResourceModel\Log;
 
 /**
  * Class Collection
@@ -29,7 +30,7 @@ use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
  */
 class Collection extends AbstractCollection
 {
-	/**
+    /**
      * @type string
      */
     protected $_idFieldName = 'id';
@@ -41,7 +42,7 @@ class Collection extends AbstractCollection
      */
     protected function _construct()
     {
-        $this->_init('Mageplaza\Smtp\Model\Log', 'Mageplaza\Smtp\Model\ResourceModel\Log');
+        $this->_init(\Mageplaza\Smtp\Model\Log::class, Log::class);
     }
 
     /**

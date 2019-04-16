@@ -33,7 +33,7 @@ use Magento\Ui\Component\Listing\Columns\Column;
 class Actions extends Column
 {
     /**
-     * @var \Magento\Framework\UrlInterface
+     * @var UrlInterface
      */
     private $urlBuilder;
 
@@ -51,8 +51,7 @@ class Actions extends Column
         UrlInterface $urlBuilder,
         array $components = [],
         array $data = []
-    )
-    {
+    ) {
         parent::__construct($context, $uiComponentFactory, $components, $data);
 
         $this->urlBuilder = $urlBuilder;
@@ -70,7 +69,7 @@ class Actions extends Column
             foreach ($dataSource['data']['items'] as & $item) {
                 $item['subject'] = iconv_mime_decode($item['subject'], 2, 'UTF-8');
                 $item['sender'] = iconv_mime_decode($item['sender'], 2, 'UTF-8');
-                $item['recipient']   = iconv_mime_decode($item['recipient'], 2, 'UTF-8');
+                $item['recipient'] = iconv_mime_decode($item['recipient'], 2, 'UTF-8');
 
                 $item[$this->getData('name')] = [
                     'view'   => [

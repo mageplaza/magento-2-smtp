@@ -33,8 +33,8 @@ use Magento\Framework\Setup\UpgradeSchemaInterface;
 class UpgradeSchema implements UpgradeSchemaInterface
 {
     /**
-     * @param \Magento\Framework\Setup\SchemaSetupInterface $setup
-     * @param \Magento\Framework\Setup\ModuleContextInterface $context
+     * @param SchemaSetupInterface $setup
+     * @param ModuleContextInterface $context
      */
     public function upgrade(SchemaSetupInterface $setup, ModuleContextInterface $context)
     {

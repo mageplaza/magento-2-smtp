@@ -21,6 +21,7 @@
 
 namespace Mageplaza\Smtp\Cron;
 
+use Exception;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Model\ResourceModel\Log\Collection;
@@ -34,43 +35,42 @@ use Psr\Log\LoggerInterface;
 class ClearLog
 {
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @var LoggerInterface
      */
     protected $logger;
 
     /**
-     * @var \Mageplaza\Smtp\Helper\Data
+     * @var Data
      */
     protected $helper;
 
     /**
-     * @var \Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory
+     * @var CollectionFactory
      */
     protected $collectionLog;
 
     /**
-     * @var \Magento\Framework\Stdlib\DateTime\DateTime
+     * @var DateTime
      */
     protected $date;
 
     /**
      * ClearLog constructor.
-     * @param \Psr\Log\LoggerInterface $logger
-     * @param \Magento\Framework\Stdlib\DateTime\DateTime $date
-     * @param \Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory $collectionLog
-     * @param \Mageplaza\Smtp\Helper\Data $helper
+     * @param LoggerInterface $logger
+     * @param DateTime $date
+     * @param CollectionFactory $collectionLog
+     * @param Data $helper
      */
     public function __construct(
         LoggerInterface $logger,
         DateTime $date,
         CollectionFactory $collectionLog,
         Data $helper
-    )
-    {
-        $this->logger        = $logger;
-        $this->date          = $date;
+    ) {
+        $this->logger = $logger;
+        $this->date = $date;
         $this->collectionLog = $collectionLog;
-        $this->helper        = $helper;
+        $this->helper = $helper;
     }
 
     /**
@@ -95,7 +95,7 @@ class ClearLog
             foreach ($logs as $log) {
                 try {
                     $log->delete();
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->logger->critical($e);
                 }
             }

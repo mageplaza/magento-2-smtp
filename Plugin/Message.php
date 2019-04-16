@@ -21,6 +21,7 @@
 
 namespace Mageplaza\Smtp\Plugin;
 
+use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\Template\SenderResolverInterface;
 use Magento\Framework\Mail\Template\TransportBuilderByStore;
 use Mageplaza\Smtp\Mail\Rse\Mail;
@@ -49,8 +50,7 @@ class Message
     public function __construct(
         Mail $resourceMail,
         SenderResolverInterface $senderResolver
-    )
-    {
+    ) {
         $this->resourceMail = $resourceMail;
         $this->senderResolver = $senderResolver;
     }
@@ -60,7 +60,7 @@ class Message
      * @param $from
      * @param $store
      * @return array
-     * @throws \Magento\Framework\Exception\MailException
+     * @throws MailException
      */
     public function beforeSetFromByStore(TransportBuilderByStore $subject, $from, $store)
     {
@@ -69,5 +69,4 @@ class Message
 
         return [$from, $store];
     }
-
 }

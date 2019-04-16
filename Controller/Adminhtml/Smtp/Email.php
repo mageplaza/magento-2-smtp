@@ -24,6 +24,8 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Translate\Inline\StateInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -36,22 +38,22 @@ use Mageplaza\Smtp\Model\LogFactory;
 class Email extends Action
 {
     /**
-     * @var \Magento\Framework\Mail\Template\TransportBuilder
+     * @var TransportBuilder
      */
     protected $_transportBuilder;
 
     /**
-     * @var \Magento\Framework\Translate\Inline\StateInterface
+     * @var StateInterface
      */
     protected $inlineTranslation;
 
     /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     * @var ScopeConfigInterface
      */
     protected $scopeConfig;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var StoreManagerInterface
      */
     protected $storeManager;
 
@@ -76,27 +78,24 @@ class Email extends Action
         ScopeConfigInterface $scopeConfig,
         TransportBuilder $transportBuilder,
         StoreManagerInterface $storeManager
-    )
-    {
-        parent::__construct($context);
-
-        $this->logFactory        = $logFactory;
-        $this->scopeConfig       = $scopeConfig;
-        $this->storeManager      = $storeManager;
+    ) {
+        $this->logFactory = $logFactory;
+        $this->scopeConfig = $scopeConfig;
+        $this->storeManager = $storeManager;
         $this->_transportBuilder = $transportBuilder;
         $this->inlineTranslation = $inlineTranslation;
+
+        parent::__construct($context);
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|void
+     * @return ResponseInterface|ResultInterface|void
      */
     public function execute()
     {
         $logId = $this->getRequest()->getParam('id');
         if (!$logId) {
-            $this->_redirect('*/*/log');
-
-            return;
+            return $this->_redirect('*/*/log');
         }
 
         $email = $this->logFactory->create()->load($logId);
@@ -106,7 +105,5 @@ class Email extends Action
             $this->messageManager->addErrorMessage(__('We can\'t process your request right now.'));
         }
         $this->_redirect('*/smtp/log');
-
-        return;
     }
 }
