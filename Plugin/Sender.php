@@ -27,7 +27,6 @@ class Sender
         $result = $from;
         if(is_string($from)){
             $result = $this->senderResolver->resolve($from);
-
         }
         if(is_array($from)) {
             $result = $from;
