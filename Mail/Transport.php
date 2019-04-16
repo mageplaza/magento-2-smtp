@@ -117,9 +117,9 @@ class Transport
                     $transport->send($message);
                 }
                 if ($this->helper->versionCompare('2.2.8')) {
-                    $message = $this->getMessage($subject);
-                    if ($message && is_object($message)) {
-                        $body = $message->getBody();
+                    $messageTmp = $this->getMessage($subject);
+                    if ($messageTmp && is_object($message)) {
+                        $body = $messageTmp->getBody();
                         if (is_object($body) && $body->isMultiPart()) {
                             $message->setBody($body->getPartContent("0"));
                         }
