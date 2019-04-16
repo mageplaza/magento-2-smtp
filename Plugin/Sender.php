@@ -25,7 +25,7 @@ class Sender
 
     public function beforeSetFrom(\Magento\Framework\Mail\Template\TransportBuilder $subject,$from){
         $result = $from;
-        if(is_string($from) && strpos($from, '@') ==false){
+        if(is_string($from)){
             $result = $this->senderResolver->resolve($from);
 
         }
