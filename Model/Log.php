@@ -94,7 +94,7 @@ class Log extends AbstractModel
      */
     public function saveLog($message, $status)
     {
-        if ($this->helper->versionCompare('2.3.0')) {
+        if ($this->helper->versionCompare('2.2.8')) {
             if ($message->getSubject()) {
                 $this->setSubject($message->getSubject());
             }
@@ -102,7 +102,7 @@ class Log extends AbstractModel
             $from = $message->getFrom();
             if (count($from)) {
                 $from->rewind();
-                $this->setSender($from->current()->getEmail());
+                $this->setSender($from->current()->getName().' <'.$from->current()->getEmail().'>');
             }
 
             $toArr = [];
@@ -240,16 +240,40 @@ class Log extends AbstractModel
      */
     protected function extractEmailInfo($emailList)
     {
-        $emails = explode(', ', $emailList);
-        $data = [];
-        foreach ($emails as $email) {
-            $emailArray = explode(' <', $email);
-            $name = '';
-            if (sizeof($emailArray) > 1) {
-                $name = trim($emailArray[0], '" ');
-                $email = trim($emailArray[1], '<>');
+        if ($this->helper->versionCompare('2.2.8')) {
+            if (strpos($emailList, ' <') != false) {
+                $emails = explode(' <', $emailList);
+                $data = [];
+                $name = '';
+                if (count($emails) > 1) {
+                    $name = $emails[0];
+                }
+                $email = trim($emails[1], '>');
+                $data[$name] = $email;
             }
-            $data[$name] = $email;
+            else{
+                $emails = explode(',', $emailList);
+                $data = [];
+                foreach ($emails as $email) {
+                    $data[] = $email;
+                }
+            }
+        }
+        else {
+            $emails = explode(', ', $emailList);
+            $data = [];
+            foreach ($emails as $email) {
+                if (strpos($emailList,' <') != false) {
+                    $emailArray = explode(' <', $email);
+                    $name = '';
+                    if (sizeof($emailArray) > 1) {
+                        $name = trim($emailArray[0], '" ');
+                        $email = trim($emailArray[1], '<>');
+                    }
+                    $data[$name] = $email;
+
+                }
+            }
         }
 
         return $data;

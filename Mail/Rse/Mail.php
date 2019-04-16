@@ -150,7 +150,7 @@ class Mail
                 throw new \Zend_Exception('A host is necessary for smtp transport, but none was given');
             }
 
-            if ($this->smtpHelper->versionCompare('2.3.0')) {
+            if ($this->smtpHelper->versionCompare('2.2.8')) {
                 $options = $this->_smtpOptions[$storeId];
                 if (isset($options['auth'])) {
                     $options['connection_class'] = $options['auth'];
@@ -192,7 +192,7 @@ class Mail
         }
 
         if ($this->_returnPath[$storeId]) {
-            if ($this->smtpHelper->versionCompare('2.3.0')) {
+            if ($this->smtpHelper->versionCompare('2.2.8')) {
                 $message->getHeaders()->addHeaders(["Return-Path" => $this->_returnPath[$storeId]]);
             } else if (method_exists($message, 'setReturnPath')) {
                 $message->setReturnPath($this->_returnPath[$storeId]);

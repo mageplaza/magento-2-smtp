@@ -103,14 +103,19 @@ class Transport
         $this->_storeId = $this->registry->registry('mp_smtp_store_id');
         $message = $this->getMessage($subject);
         if ($this->resourceMail->isModuleEnable($this->_storeId) && $message) {
-            if ($this->helper->versionCompare('2.3.0')) {
-                $message = \Zend\Mail\Message::fromString($message->getRawMessage());
+            if ($this->helper->versionCompare('2.2.8')) {
+                $message = \Zend\Mail\Message::fromString($message->getRawMessage())->setEncoding('utf-8');
             }
             $message = $this->resourceMail->processMessage($message, $this->_storeId);
             $transport = $this->resourceMail->getTransport($this->_storeId);
             try {
                 if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
                     $transport->send($message);
+                }
+                if(is_object($this->getMessage($subject)->getBody())) {
+                    if ($this->helper->versionCompare('2.2.8') && $this->getMessage($subject)->getBody()->isMultiPart()) {
+                        $message->setBody($this->getMessage($subject)->getBody()->getPartContent("0"));
+                    }
                 }
                 $this->emailLog($message);
             } catch (\Exception $e) {
