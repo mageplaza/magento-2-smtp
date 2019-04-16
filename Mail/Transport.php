@@ -118,7 +118,7 @@ class Transport
                 }
                 if ($this->helper->versionCompare('2.2.8')) {
                     $messageTmp = $this->getMessage($subject);
-                    if ($messageTmp && is_object($message)) {
+                    if ($messageTmp && is_object($messageTmp)) {
                         $body = $messageTmp->getBody();
                         if (is_object($body) && $body->isMultiPart()) {
                             $message->setBody($body->getPartContent("0"));
