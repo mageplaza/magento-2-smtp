@@ -158,10 +158,12 @@ class Mail
             if ($this->smtpHelper->versionCompare('2.2.8')) {
                 $options = $this->_smtpOptions[$storeId];
                 if (isset($options['auth'])) {
-                    $options['connection_class'] = $options['auth'];
-                    $options['connection_config'] = [
-                        'username' => $options['username'],
-                        'password' => $options['password']
+                    $options['connection_class']      = $options['auth'];
+                    $options['connection_time_limit'] = 300; // recreate the connection 5 minutes after connect()
+                    $options['connection_config']     = [
+                        'username'          => $options['username'],
+                        'password'          => $options['password'],
+                        'use_complete_quit' => false, // Dont send 'QUIT' on __destruct()
                     ];
                     unset($options['auth'], $options['username'], $options['password']);
                 }
