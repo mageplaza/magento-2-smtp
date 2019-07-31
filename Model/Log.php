@@ -274,6 +274,8 @@ class Log extends AbstractModel
                         $email = trim($emailArray[1], '<>');
                     }
                     $data[$name] = $email;
+                } else {
+                    $data[] = $email;
                 }
             }
         }
