@@ -96,7 +96,12 @@ class TransportBuilder
         if (is_array($from)) {
             $result = $from;
         }
-        $this->resourceMail->setFromByStore($result['email'], $result['name']);
+        if (!isset($result['email'])) {
+            $k = array_keys($result)[0];
+            $this->resourceMail->setFromByStore($k, $result[$k]);
+        } else {
+            $this->resourceMail->setFromByStore($result['email'], $result['name']);
+        }
 
         return [$from];
     }
