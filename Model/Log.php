@@ -129,7 +129,13 @@ class Log extends AbstractModel
             }
             $this->setBcc(implode(',', $bccArr));
 
-            $content = htmlspecialchars($message->getBodyText());
+            if($this->helper->versionCompare('2.3.3')) {
+                $check = quoted_printable_decode($message->getBodyText());
+                $content = htmlspecialchars($check);
+            }
+            else{
+                $content = htmlspecialchars($message->getBodyText());
+            }
         } else {
             $headers = $message->getHeaders();
 
