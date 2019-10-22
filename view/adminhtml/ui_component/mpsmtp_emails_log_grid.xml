@@ -27,7 +27,7 @@
         </item>
         <item name="spinner" xsi:type="string">emails_log_columns</item>
         <item name="buttons" xsi:type="array">
-            <item name="delete" xsi:type="string">Mageplaza\SMTP\Block\Adminhtml\Log\ClearButton</item>
+            <item name="delete" xsi:type="string">Mageplaza\Smtp\Block\Adminhtml\Log\ClearButton</item>
         </item>
     </argument>
     <dataSource name="mpsmtp_emails_log_grid_data_source">
