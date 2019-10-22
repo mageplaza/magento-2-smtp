@@ -79,18 +79,18 @@ In Magento 2, default email server of inherent hosting will be used to send unre
 
 Here we go how to know detail in instructions and configuration in extension’s backend.
 
-### How to config
+### How to config SMTP
 
 #### 1. Email logs
 
 This can be accessed by the following  `Mageplaza > SMTP > Email Logs`. From here you can look back all the sent email from the server to customers.
 
-![Email logs](https://i.imgur.com/k5KfDLL.png)
+![How to config SMTP Email logs](https://i.imgur.com/k5KfDLL.png)
 
 By clicking View in each mail, you can have a general looking at the display which how your email will reach customer’s eyes.
 Hit the Clear red button to clear all the archived emails after checking carefully.
 
-![order](https://i.imgur.com/5eos9R7.png)
+![ How to config SMTP order](https://i.imgur.com/5eos9R7.png)
 
 #### 2. Configuration
 
@@ -100,12 +100,12 @@ Be sure you’re at Admin Panel, for general configuration `Mageplaza > SMTP > C
 
 Choose Yes to enable Mageplaza SMTP on.
 
-![SMTP on](http://i.imgur.com/4jN9BIx.png)
+![ How to config SMTPSMTP on](http://i.imgur.com/4jN9BIx.png)
 
 ##### 2.2.2 SMTP Configuration Options
 Still from the same structure with General Configuration, scroll down to see  SMTP Configuration Options
 
-![smtp configuration](https://i.imgur.com/VnCM6SB.png)
+![magento 2 smtp configuration](https://i.imgur.com/VnCM6SB.png)
 
 - In SMTP Provider field, at the moment we support provider nearly 30 SMTP email service providers so feel free to choose your appropriate provider. Click Auto Fill button to fill Host, Port, Authentication and  Protocol automatically, which are compatible with the SMTP provider you had chosen. 
 
@@ -130,7 +130,7 @@ Still from the same structure with General Configuration, scroll down to see  SM
 - Return-path email: leave it empty if you want to ignore this.
 - Test email recipient: This is the field for you to test the operation of the extension. After filling all fields, click Test Now button. If the information entered is valid, a successful email notification will be sent from Username to Email Test. That email will have the following content:
 
-![smtp test result](https://i.imgur.com/D0cw3ta.png)
+![magento 2 smtp test result](https://i.imgur.com/D0cw3ta.png)
 
 
 ##### 2.2.3 Schedule Log Cleaner
@@ -157,32 +157,38 @@ The Clean Email Log Every field limits the storage time for the email you sent. 
 
 
 
-
-## Mageplaza extensions on Magento Marketplace, Github
+**Mageplaza extensions on Magento Marketplace, Github**
 
 
 ☞ [Magento 2 One Step Checkout extension](https://marketplace.magento.com/mageplaza-magento-2-one-step-checkout-extension.html)
 
-☞ [Magento 2 SEO Module](https://marketplace.magento.com/mageplaza-magento-2-seo-extension.html)
+☞ [Magento 2 Blog extension Free](https://github.com/mageplaza/magento-2-blog)
 
-☞ [Magento 2 Blog extension](https://marketplace.magento.com/mageplaza-magento-2-blog-extension.html)
+☞ [Magento 2 Layered Navigation Ultimate](https://www.mageplaza.com/magento-2-layered-navigation-extension/)
 
-☞ [Magento 2 Layered Navigation extension](https://marketplace.magento.com/mageplaza-layered-navigation-m2.html)
+☞ [Magento 2 Blog FREE](https://github.com/mageplaza/magento-2-blog)
 
-☞ [Magento One Step Checkout](https://github.com/magento-2/one-step-checkout)
+☞ [Magento 2 Social Login FREE](https://github.com/mageplaza/magento-2-social-login)
 
-☞ [Magento 2 Blog on Github](https://github.com/mageplaza/magento-2-blog)
+☞ [Magento 2 SEO Suite FREE](https://github.com/mageplaza/magento-2-seo)
 
-☞ [Magento 2 Social Login on Github](https://github.com/mageplaza/magento-2-social-login)
+☞ [Magento 2 Layered Navigation Free](https://github.com/mageplaza/magento-2-ajax-layered-navigation)
 
-☞ [Magento 2 SEO on Github](https://github.com/mageplaza/magento-2-seo)
+☞ [Magento 2 SMTP FREE](https://github.com/mageplaza/magento-2-smtp) 
 
-☞ [Magento 2 Layered Navigation on Github](https://github.com/magento-2/layered-navigation)
+☞ [Magento 2 Product Slider FREE](https://github.com/mageplaza/magento-2-product-slider)
 
-☞ [Magento 2 SMTP on Github](https://github.com/mageplaza/magento-2-smtp) 
+☞ [Magento 2 Slider FREE](https://github.com/mageplaza/magento-2-banner-slider)
 
-☞ [Magento 2 Product Slider on Github](https://github.com/mageplaza/magento-2-product-slider)
 
-☞ [Magento 2 Banner on Github](https://github.com/mageplaza/magento-2-banner-slider)
-
+**People also search:**
+- mageplaza smtp
+- mageplaza smtp magento 2
+- smtp magento 2
+- magento 2 smtp extension
+- magento 2 smtp settings
+- smtp pro magento 2
+- mageplaza/module-smtp
+- magento 2.3 smtp
+- magento 2 smtp configuration
 
