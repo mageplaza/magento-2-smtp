@@ -42,6 +42,7 @@ class Delete extends Action
 
     /**
      * Delete constructor.
+     *
      * @param Action\Context $context
      * @param LogFactory $logFactory
      */

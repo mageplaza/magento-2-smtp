@@ -45,6 +45,7 @@ class Actions extends Column
 
     /**
      * Actions constructor.
+     *
      * @param ContextInterface $context
      * @param UiComponentFactory $uiComponentFactory
      * @param UrlInterface $urlBuilder
@@ -70,16 +71,17 @@ class Actions extends Column
      * Prepare Data Source
      *
      * @param array $dataSource
+     *
      * @return array
      */
     public function prepareDataSource(array $dataSource)
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
-                if(!$this->helperData->versionCompare('2.2.8')){
-                    $item['subject'] = iconv_mime_decode($item['subject'], 2, 'UTF-8');
+                if (!$this->helperData->versionCompare('2.2.8')) {
+                    $item['subject']   = iconv_mime_decode($item['subject'], 2, 'UTF-8');
                     $item['recipient'] = iconv_mime_decode($item['recipient'], 2, 'UTF-8');
-                    $item['sender'] = iconv_mime_decode($item['sender'], 2, 'UTF-8');
+                    $item['sender']    = iconv_mime_decode($item['sender'], 2, 'UTF-8');
                 }
 
                 $item[$this->getData('name')] = [
@@ -91,7 +93,10 @@ class Actions extends Column
                         'label'   => __('Resend'),
                         'confirm' => [
                             'title'   => __('Resend Email'),
-                            'message' => __('Are you sure you want to resend the email <strong>"%1"</strong>?', $item['subject'])
+                            'message' => __(
+                                'Are you sure you want to resend the email <strong>"%1"</strong>?',
+                                $item['subject']
+                            )
                         ]
                     ],
                     'delete' => [

@@ -58,6 +58,7 @@ class Log extends AbstractModel
 
     /**
      * Log constructor.
+     *
      * @param Context $context
      * @param Registry $registry
      * @param TransportBuilder $transportBuilder
@@ -80,8 +81,8 @@ class Log extends AbstractModel
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
 
         $this->_transportBuilder = $transportBuilder;
-        $this->mailResource = $mailResource;
-        $this->helper = $helper;
+        $this->mailResource      = $mailResource;
+        $this->helper            = $helper;
     }
 
     /**
@@ -129,11 +130,10 @@ class Log extends AbstractModel
             }
             $this->setBcc(implode(',', $bccArr));
 
-            if($this->helper->versionCompare('2.3.3')) {
+            if ($this->helper->versionCompare('2.3.3')) {
                 $messageBody = quoted_printable_decode($message->getBodyText());
-                $content = htmlspecialchars($messageBody);
-            }
-            else{
+                $content     = htmlspecialchars($messageBody);
+            } else {
                 $content = htmlspecialchars($message->getBodyText());
             }
         } else {
@@ -189,7 +189,7 @@ class Log extends AbstractModel
      */
     public function resendEmail()
     {
-        $data = $this->getData();
+        $data                  = $this->getData();
         $data['email_content'] = htmlspecialchars_decode($data['email_content']);
 
         $dataObject = new DataObject();
@@ -204,10 +204,9 @@ class Log extends AbstractModel
         /** Add receiver emails*/
         $recipient = $this->extractEmailInfo($data['recipient']);
         foreach ($recipient as $name => $email) {
-            if ($this->helper->versionCompare('2.2.8')){
+            if ($this->helper->versionCompare('2.2.8')) {
                 $this->_transportBuilder->addTo($email);
-            }
-            else {
+            } else {
                 $this->_transportBuilder->addTo($email, $name);
             }
         }
@@ -253,6 +252,7 @@ class Log extends AbstractModel
 
     /**
      * @param $emailList
+     *
      * @return array
      */
     protected function extractEmailInfo($emailList)
@@ -263,11 +263,11 @@ class Log extends AbstractModel
             $emailList = preg_replace('/\s+/', '', $emailList);
             if (strpos($emailList, '<') !== false) {
                 $emails = explode('<', $emailList);
-                $name = '';
+                $name   = '';
                 if (count($emails) > 1) {
                     $name = $emails[0];
                 }
-                $email = trim($emails[1], '>');
+                $email       = trim($emails[1], '>');
                 $data[$name] = $email;
             } else {
                 $emails = explode(',', $emailList);
@@ -280,9 +280,9 @@ class Log extends AbstractModel
             foreach ($emails as $email) {
                 if (strpos($emailList, ' <') !== false) {
                     $emailArray = explode(' <', $email);
-                    $name = '';
+                    $name       = '';
                     if (count($emailArray) > 1) {
-                        $name = trim($emailArray[0], '" ');
+                        $name  = trim($emailArray[0], '" ');
                         $email = trim($emailArray[1], '<>');
                     }
                     $data[$name] = $email;

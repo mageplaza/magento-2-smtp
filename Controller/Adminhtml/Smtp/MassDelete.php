@@ -48,6 +48,7 @@ class MassDelete extends Action
 
     /**
      * MassDelete constructor.
+     *
      * @param Filter $filter
      * @param Action\Context $context
      * @param CollectionFactory $emailLog
@@ -57,7 +58,7 @@ class MassDelete extends Action
         Action\Context $context,
         CollectionFactory $emailLog
     ) {
-        $this->filter = $filter;
+        $this->filter   = $filter;
         $this->emailLog = $emailLog;
 
         parent::__construct($context);
@@ -73,7 +74,7 @@ class MassDelete extends Action
 
         try {
             $collection = $this->filter->getCollection($this->emailLog->create());
-            $deleted = 0;
+            $deleted    = 0;
             foreach ($collection->getItems() as $item) {
                 $item->delete();
                 $deleted++;
