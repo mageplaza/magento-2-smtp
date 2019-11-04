@@ -53,6 +53,7 @@ class MassResend extends Action
 
     /**
      * MassResend constructor.
+     *
      * @param Filter $filter
      * @param Action\Context $context
      * @param CollectionFactory $emailLog
@@ -62,7 +63,7 @@ class MassResend extends Action
         Action\Context $context,
         CollectionFactory $emailLog
     ) {
-        $this->filter = $filter;
+        $this->filter   = $filter;
         $this->emailLog = $emailLog;
 
         parent::__construct($context);
@@ -75,7 +76,7 @@ class MassResend extends Action
     public function execute()
     {
         $collection = $this->filter->getCollection($this->emailLog->create());
-        $resend = 0;
+        $resend     = 0;
 
         /** @var \Mageplaza\Smtp\Model\Log $item */
         foreach ($collection->getItems() as $item) {

@@ -23,6 +23,7 @@ namespace Mageplaza\Smtp\Block\Adminhtml\System\Config;
 
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
+use Magento\Framework\Phrase;
 
 /**
  * Class Host
@@ -49,13 +50,14 @@ class Host extends Field
     /**
      * Get the button
      *
-     * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
+     * @param AbstractElement $element
+     *
      * @return string
      */
     protected function _getElementHtml(AbstractElement $element)
     {
         $originalData = $element->getOriginalData();
-        $buttonLabel = !empty($originalData['button_label']) ? $originalData['button_label'] : $this->_buttonLabel;
+        $buttonLabel  = !empty($originalData['button_label']) ? $originalData['button_label'] : $this->_buttonLabel;
         $this->addData(
             [
                 'button_label' => __($buttonLabel),
@@ -70,7 +72,8 @@ class Host extends Field
 
     /**
      * @param $key
-     * @return \Magento\Framework\Phrase
+     *
+     * @return Phrase
      */
     public function getLabel($key)
     {

@@ -39,6 +39,7 @@ class Log extends AbstractDb
 
     /**
      * Log constructor.
+     *
      * @param DateTime $date
      * @param Context $context
      */

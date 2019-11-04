@@ -50,6 +50,7 @@ class TransportBuilder
 
     /**
      * TransportBuilder constructor.
+     *
      * @param Registry $registry
      * @param Mail $resourceMail
      * @param SenderResolverInterface $SenderResolver
@@ -59,14 +60,15 @@ class TransportBuilder
         Mail $resourceMail,
         SenderResolverInterface $SenderResolver
     ) {
-        $this->registry = $registry;
-        $this->resourceMail = $resourceMail;
+        $this->registry       = $registry;
+        $this->resourceMail   = $resourceMail;
         $this->senderResolver = $SenderResolver;
     }
 
     /**
      * @param \Magento\Framework\Mail\Template\TransportBuilder $subject
      * @param $templateOptions
+     *
      * @return array
      */
     public function beforeSetTemplateOptions(
@@ -84,6 +86,7 @@ class TransportBuilder
     /**
      * @param \Magento\Framework\Mail\Template\TransportBuilder $subject
      * @param $from
+     *
      * @return array
      * @throws MailException
      */

@@ -75,6 +75,7 @@ class Test extends Action
 
     /**
      * Test constructor.
+     *
      * @param Context $context
      * @param LoggerInterface $logger
      * @param SmtpData $smtpDataHelper
@@ -90,11 +91,11 @@ class Test extends Action
         TransportBuilder $transportBuilder,
         SenderResolver $senderResolver
     ) {
-        $this->logger = $logger;
-        $this->smtpDataHelper = $smtpDataHelper;
-        $this->mailResource = $mailResource;
+        $this->logger            = $logger;
+        $this->smtpDataHelper    = $smtpDataHelper;
+        $this->mailResource      = $mailResource;
         $this->_transportBuilder = $transportBuilder;
-        $this->senderResolver = $senderResolver;
+        $this->senderResolver    = $senderResolver;
 
         parent::__construct($context);
     }

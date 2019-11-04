@@ -131,7 +131,7 @@ class Mail
         if ($this->_transport === null) {
             if (!isset($this->_smtpOptions[$storeId])) {
                 $configData = $this->smtpHelper->getSmtpConfig('', $storeId);
-                $options = [
+                $options    = [
                     'host' => isset($configData['host']) ? $configData['host'] : '',
                     'port' => isset($configData['port']) ? $configData['port'] : ''
                 ];
@@ -158,7 +158,7 @@ class Mail
             if ($this->smtpHelper->versionCompare('2.2.8')) {
                 $options = $this->_smtpOptions[$storeId];
                 if (isset($options['auth'])) {
-                    $options['connection_class'] = $options['auth'];
+                    $options['connection_class']  = $options['auth'];
                     $options['connection_config'] = [
                         'username' => $options['username'],
                         'password' => $options['password']

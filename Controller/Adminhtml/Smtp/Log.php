@@ -66,11 +66,11 @@ class Log extends Action
     {
         $resultPage = $this->resultPageFactory->create();
         $resultPage->setActiveMenu('Mageplaza_Smtp::log');
-        $resultPage->getConfig()->getTitle()->prepend(__('Emails Log'));
+        $resultPage->getConfig()->getTitle()->prepend(__('Email Log'));
 
         //Add bread crumb
         $resultPage->addBreadcrumb(__('Mageplaza'), __('Mageplaza'));
-        $resultPage->addBreadcrumb(__('Smtp'), __('Emails Log'));
+        $resultPage->addBreadcrumb(__('Smtp'), __('Email Log'));
 
         return $resultPage;
     }
