@@ -116,6 +116,9 @@ class Transport
             $transport = $this->resourceMail->getTransport($this->_storeId);
             try {
                 if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
+                    if ($this->helper->versionCompare('2.3.3')) {
+                        $message->getHeaders()->removeHeader("Content-Disposition");
+                    }
                     $transport->send($message);
                 }
                 if ($this->helper->versionCompare('2.2.8')) {
