@@ -108,34 +108,38 @@ class Transport
     ) {
         $this->_storeId = $this->registry->registry('mp_smtp_store_id');
         $message        = $this->getMessage($subject);
+
         if ($this->resourceMail->isModuleEnable($this->_storeId) && $message) {
-            if ($this->helper->versionCompare('2.2.8')) {
-                $message = Message::fromString($message->getRawMessage())->setEncoding('utf-8');
-            }
-            $message   = $this->resourceMail->processMessage($message, $this->_storeId);
-            $transport = $this->resourceMail->getTransport($this->_storeId);
-            try {
-                if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
-                    if ($this->helper->versionCompare('2.3.3')) {
-                        $message->getHeaders()->removeHeader("Content-Disposition");
-                    }
-                    $transport->send($message);
-                }
+            if ($this->validateBlacklist($message)) {
                 if ($this->helper->versionCompare('2.2.8')) {
-                    $messageTmp = $this->getMessage($subject);
-                    if ($messageTmp && is_object($messageTmp)) {
-                        $body = $messageTmp->getBody();
-                        if (is_object($body) && $body->isMultiPart()) {
-                            $message->setBody($body->getPartContent("0"));
+                    $message = Message::fromString($message->getRawMessage())->setEncoding('utf-8');
+                }
+                $message   = $this->resourceMail->processMessage($message, $this->_storeId);
+                $transport = $this->resourceMail->getTransport($this->_storeId);
+                try {
+                    if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
+                        if ($this->helper->versionCompare('2.3.3')) {
+                            $message->getHeaders()->removeHeader("Content-Disposition");
+                        }
+                        $transport->send($message);
+                    }
+                    if ($this->helper->versionCompare('2.2.8')) {
+                        $messageTmp = $this->getMessage($subject);
+                        if ($messageTmp && is_object($messageTmp)) {
+                            $body = $messageTmp->getBody();
+                            if (is_object($body) && $body->isMultiPart()) {
+                                $message->setBody($body->getPartContent("0"));
+                            }
                         }
                     }
-                }
 
-                $this->emailLog($message);
-            } catch (Exception $e) {
-                $this->emailLog($message, false);
-                throw new MailException(new Phrase($e->getMessage()), $e);
+                    $this->emailLog($message);
+                } catch (Exception $e) {
+                    $this->emailLog($message, false);
+                    throw new MailException(new Phrase($e->getMessage()), $e);
+                }
             }
+
         } else {
             $proceed();
         }
@@ -162,6 +166,48 @@ class Transport
         $message->setAccessible(true);
 
         return $message->getValue($transport);
+    }
+
+    /**
+     * @param \Magento\Framework\Mail\EmailMessage $message
+     *
+     * @return string
+     */
+    public function getRecipient($message)
+    {
+        $toArr = [];
+        foreach ($message->getTo() as $toAddr) {
+            $toArr[] = $toAddr->getEmail();
+        }
+
+        return implode(',', $toArr);
+    }
+
+    /**
+     * @param \Magento\Framework\Mail\EmailMessage $message
+     *
+     * @return bool
+     */
+    public function validateBlacklist($message)
+    {
+        $blacklist = $this->helper->getBlacklist();
+
+        if ($blacklist) {
+            $recipient = $this->getRecipient($message);
+            $patterns  = array_unique(explode(PHP_EOL, $blacklist));
+            foreach ($patterns as $pattern) {
+                try {
+                    if (preg_match($pattern, $recipient)) {
+                        return false;
+                    }
+                } catch (Exception $e) {
+                    // Ignore validate if the pattern is error
+                    continue;
+                }
+            }
+        }
+
+        return true;
     }
 
     /**

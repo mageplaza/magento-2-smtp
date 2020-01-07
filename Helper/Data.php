@@ -103,4 +103,14 @@ class Data extends AbstractData
 
         return $scope;
     }
+
+    /**
+     * @param null $storeId
+     *
+     * @return mixed
+     */
+    public function getBlacklist($storeId = null)
+    {
+        return $this->getConfigGeneral('blacklist', $storeId);
+    }
 }
