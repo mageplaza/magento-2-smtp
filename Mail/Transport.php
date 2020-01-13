@@ -110,10 +110,11 @@ class Transport
         $message        = $this->getMessage($subject);
 
         if ($this->resourceMail->isModuleEnable($this->_storeId) && $message) {
-            if ($this->validateBlacklist($message)) {
-                if ($this->helper->versionCompare('2.2.8')) {
-                    $message = Message::fromString($message->getRawMessage())->setEncoding('utf-8');
-                }
+            if ($this->helper->versionCompare('2.2.8')) {
+                $message = Message::fromString($message->getRawMessage())->setEncoding('utf-8');
+            }
+
+            if (!$this->validateBlacklist($message)) {
                 $message   = $this->resourceMail->processMessage($message, $this->_storeId);
                 $transport = $this->resourceMail->getTransport($this->_storeId);
                 try {
@@ -175,12 +176,14 @@ class Transport
      */
     public function getRecipient($message)
     {
-        $toArr = [];
-        foreach ($message->getTo() as $toAddr) {
-            $toArr[] = $toAddr->getEmail();
+        $emails = [];
+        if ($message->getTo()) {
+            foreach ($message->getTo() as $address) {
+                $emails[] = $address->getEmail();
+            }
         }
 
-        return implode(',', $toArr);
+        return implode(',', $emails);
     }
 
     /**
@@ -190,15 +193,20 @@ class Transport
      */
     public function validateBlacklist($message)
     {
-        $blacklist = $this->helper->getBlacklist();
+        $result = false;
+        if ($this->helper->isTestEmail()) {
+            return $result;
+        }
 
+        $blacklist = $this->helper->getBlacklist();
         if ($blacklist) {
             $recipient = $this->getRecipient($message);
             $patterns  = array_unique(explode(PHP_EOL, $blacklist));
             foreach ($patterns as $pattern) {
                 try {
                     if (preg_match($pattern, $recipient)) {
-                        return false;
+                        $result = true;
+                        break;
                     }
                 } catch (Exception $e) {
                     // Ignore validate if the pattern is error
@@ -207,7 +215,7 @@ class Transport
             }
         }
 
-        return true;
+        return $result;
     }
 
     /**

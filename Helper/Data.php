@@ -113,4 +113,12 @@ class Data extends AbstractData
     {
         return $this->getConfigGeneral('blacklist', $storeId);
     }
+
+    /**
+     * @return bool
+     */
+    public function isTestEmail()
+    {
+        return $this->_request->getFullActionName() === 'adminhtml_smtp_test';
+    }
 }
