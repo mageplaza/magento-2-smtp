@@ -1,3 +1,5 @@
+"Clear All Logs","Clear All Logs"
+"Are you sure you want to clear all email logs?","Are you sure you want to clear all email logs?"
 "Server Name (host)","Server Name (host)"
 Port,Port
 Protocol,Protocol
@@ -45,7 +47,7 @@ Success,Success
 "A total of 1 record have been deleted.","A total of 1 record have been deleted."
 "Email re-sent successfully!","Email re-sent successfully!"
 "We can't process your request right now.","We can't process your request right now."
-"Emails Log","Emails Log"
+"Email Log","Email Log"
 Mageplaza,Mageplaza
 Smtp,Smtp
 "A total of %1 record(s) have been deleted.","A total of %1 record(s) have been deleted."
@@ -72,6 +74,7 @@ Delete,Delete
 "TEST EMAIL from Custom SMTP","TEST EMAIL from Custom SMTP"
 "Your store has been connected with a custom SMTP successfully. Now you can Save Config and use this connection.","Your store has been connected with a custom SMTP successfully. Now you can Save Config and use this connection."
 "Mageplaza Smtp","Mageplaza Smtp"
+"Emails Log","Emails Log"
 SMTP,SMTP
 "General Configuration","General Configuration"
 "Enable Mageplaza SMTP","Enable Mageplaza SMTP"
@@ -79,6 +82,14 @@ SMTP,SMTP
 "It will log all sent emails, you can preview it and schedule clean up.","It will log all sent emails, you can preview it and schedule clean up."
 "Clean Email Log Every","Clean Email Log Every"
 "Day(s). If empty or zero, the Email log will not be cleaned.","Day(s). If empty or zero, the Email log will not be cleaned."
+Blacklist,Blacklist
+"Enter the main email pattern format. Separated by line breaks.<br />
+                        For the email having the same pattern format with this main pattern, it can not receive email from the system.<br />
+                        For example: Enter the pattern: /^[0-9][a-z0-9\$\%\&]+@[a-z]+\.[a-z]{2,}$/ means that email format must start with number, the following characters can be normal text, number or special character ($, %, &). The domain after @ with normal-text characters will not receive email from system. For instance: 1abc@example.com</br>
+                        For more details of writing email pattern, please see it <a href="" https://docs.mageplaza.com/smtp-m2/index.html"" target=""_blank"">here</a>.","Enter the main email pattern format. Separated by line breaks.<br />
+                        For the email having the same pattern format with this main pattern, it can not receive email from the system.<br />
+                        For example: Enter the pattern: /^[0-9][a-z0-9\$\%\&]+@[a-z]+\.[a-z]{2,}$/ means that email format must start with number, the following characters can be normal text, number or special character ($, %, &). The domain after @ with normal-text characters will not receive email from system. For instance: 1abc@example.com</br>
+                        For more details of writing email pattern, please see it <a href="" https://docs.mageplaza.com/smtp-m2/index.html"" target=""_blank"">here</a>."
 "SMTP Configuration Options","SMTP Configuration Options"
 Host,Host
 "Support Host name and IP Address","Support Host name and IP Address"
@@ -95,7 +106,6 @@ Password,Password
 Developer,Developer
 "Developer Mode","Developer Mode"
 "If Enable, Magento will not delivery any email to receiver. This is useful for developers.","If Enable, Magento will not delivery any email to receiver. This is useful for developers."
-Clear,Clear
 "Resend items","Resend items"
 "Are you sure to resend selected log(s)?","Are you sure to resend selected log(s)?"
 "Delete items","Delete items"
