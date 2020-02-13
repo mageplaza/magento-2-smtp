@@ -24,6 +24,7 @@ namespace Mageplaza\Smtp\Mail;
 use Closure;
 use Exception;
 use Magento\Framework\Exception\MailException;
+use Magento\Framework\Mail\EmailMessage;
 use Magento\Framework\Mail\TransportInterface;
 use Magento\Framework\Phrase;
 use Magento\Framework\Registry;
@@ -140,7 +141,6 @@ class Transport
                     throw new MailException(new Phrase($e->getMessage()), $e);
                 }
             }
-
         } else {
             $proceed();
         }
@@ -170,7 +170,7 @@ class Transport
     }
 
     /**
-     * @param \Magento\Framework\Mail\EmailMessage $message
+     * @param EmailMessage $message
      *
      * @return string
      */
@@ -187,7 +187,7 @@ class Transport
     }
 
     /**
-     * @param \Magento\Framework\Mail\EmailMessage $message
+     * @param EmailMessage $message
      *
      * @return bool
      */
