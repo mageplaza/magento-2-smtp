@@ -47,6 +47,14 @@
                         <field id="log_email">1</field>
                     </depends>
                 </field>
+                <field id="blacklist" translate="label comment" type="textarea" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Blacklist</label>
+                    <comment><![CDATA[Enter the main email pattern format. Separated by line breaks.<br />
+                        For the email having the same pattern format with this main pattern, it can not receive email from the system.<br />
+                        For example: Enter the pattern: /^[0-9][a-z0-9\$\%\&]+@[a-z]+\.[a-z]{2,}$/ means that email format must start with number, the following characters can be normal text, number or special character ($, %, &). The domain after @ with normal-text characters will not receive email from system. For instance: 1abc@example.com</br>
+                        For more details of writing email pattern, please see it <a href=" https://docs.mageplaza.com/smtp-m2/index.html" target="_blank">here</a>.]]>
+                    </comment>
+                </field>
             </group>
             <group id="configuration_option" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>SMTP Configuration Options</label>

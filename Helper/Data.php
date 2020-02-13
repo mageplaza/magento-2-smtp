@@ -103,4 +103,22 @@ class Data extends AbstractData
 
         return $scope;
     }
+
+    /**
+     * @param null $storeId
+     *
+     * @return mixed
+     */
+    public function getBlacklist($storeId = null)
+    {
+        return $this->getConfigGeneral('blacklist', $storeId);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isTestEmail()
+    {
+        return $this->_request->getFullActionName() === 'adminhtml_smtp_test';
+    }
 }
