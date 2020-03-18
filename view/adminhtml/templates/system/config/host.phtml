@@ -22,7 +22,7 @@
 /** @var \Mageplaza\Smtp\Block\Adminhtml\System\Config\Provider $block */
 ?>
 <button class="actions-provider-button" data-trigger="autofill" type="button"
-        id="<?= /** @noEscape */ $block->getHtmlId() ?>_autofill">
+        id="<?= $block->escapeHtml($block->getHtmlId()) ?>_autofill">
     <span><?= /** @noEscape */ __('Load Settings') ?></span>
 </button>
 <div class="smtp-block-autofill" id="smtp-block-autofill" style="display: none"
@@ -86,11 +86,11 @@
                                                             <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_<?= /** @noEscape */ $key ?>">
                                                                 <td class="label">
                                                                     <label for="smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_<?= /** @noEscape */ $key ?>">
-                                                                        <span><?= /** @noEscape */ $block->getLabel($key) ?></span>
+                                                                        <span><?=  $block->escapeHtml($block->getLabel($key)) ?></span>
                                                                     </label>
                                                                 </td>
                                                                 <td class="value">
-                                                                    <span class="control-value special"><?= /** @noEscape */ $block->getLabel($infoItem) ?></span>
+                                                                    <span class="control-value special"><?=  $block->escapeHtml($block->getLabel($infoItem)) ?></span>
                                                                     <?php if (isset($note[$key])): ?>
                                                                         <p class="note"><?= /** @noEscape */ $note[$key] ?></p>
                                                                     <?php endif; ?>
@@ -113,9 +113,9 @@
                                                                 <div class="actions actions-apply-autofill">
                                                                     <button class="button-actions-apply-autofill"
                                                                             type="button"
-                                                                            data-host="<?= /** @noEscape */ $info['info']['host'] ?>"
-                                                                            data-protocol="<?= /** @noEscape */ $info['info']['protocol'] ?>"
-                                                                            data-port="<?= /** @noEscape */ $info['info']['port'] ?>"
+                                                                            data-host="<?= $block->escapeHtmlAttr($info['info']['host']) ?>"
+                                                                            data-protocol="<?= $block->escapeHtmlAttr($info['info']['protocol']) ?>"
+                                                                            data-port="<?= $block->escapeHtmlAttr($info['info']['port']) ?>"
                                                                             id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_<?= /** @noEscape */ $key ?>_apply">
                                                                         <span><?= /** @noEscape */ __('Load Settings') ?></span>
                                                                     </button>
@@ -140,11 +140,11 @@
                                     <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>">
                                         <td class="label">
                                             <label for="smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>">
-                                                <span><?= /** @noEscape */ $block->getLabel($infoId) ?></span>
+                                                <span><?=  $block->escapeHtml($block->getLabel($infoId)) ?></span>
                                             </label>
                                         </td>
                                         <td class="value">
-                                            <span class="control-value special"><?= /** @noEscape */ $block->getLabel($info) ?></span>
+                                            <span class="control-value special"><?=  $block->escapeHtml($block->getLabel($info)) ?></span>
                                             <?php if (isset($note[$infoId])): ?>
                                                 <p class="note"><?= /** @noEscape */ $note[$infoId] ?></p>
                                             <?php endif; ?>
@@ -168,9 +168,9 @@
                                     <td class="value">
                                         <div class="actions actions-apply-autofill">
                                             <button class="button-actions-apply-autofill" type="button"
-                                                    data-host="<?= /** @noEscape */ $provider['info']['host'] ?>"
-                                                    data-protocol="<?= /** @noEscape */ $provider['info']['protocol'] ?>"
-                                                    data-port="<?= /** @noEscape */ $provider['info']['port'] ?>"
+                                                    data-host="<?= $block->escapeHtmlAttr($provider['info']['host']) ?>"
+                                                    data-protocol="<?= $block->escapeHtmlAttr($provider['info']['protocol']) ?>"
+                                                    data-port="<?= $block->escapeHtmlAttr($provider['info']['port']) ?>"
                                                     id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_apply">
                                                 <span><?= /** @noEscape */ __('Load Settings') ?></span>
                                             </button>
