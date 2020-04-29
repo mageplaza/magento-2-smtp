@@ -22,8 +22,8 @@
 /** @var \Mageplaza\Smtp\Block\Adminhtml\System\Config\Provider $block */
 ?>
 <button class="actions-provider-button" data-trigger="autofill" type="button"
-        id="<?= $block->getHtmlId() ?>_autofill">
-    <span><?= __('Load Settings') ?></span>
+        id="<?= $block->escapeHtml($block->getHtmlId()) ?>_autofill">
+    <span><?= /** @noEscape */ __('Load Settings') ?></span>
 </button>
 <div class="smtp-block-autofill" id="smtp-block-autofill" style="display: none"
      data-bind="mageInit: {
@@ -44,13 +44,13 @@
             <?php foreach ($block->getOptionProvider() as $id => $provider) : ?>
                 <div class="section-config">
                     <div class="entry-edit-head admin__collapsible-block">
-                        <span id="smtp_provider_<?= $id ?>-link" class="entry-edit-head-link"></span>
-                        <a id="smtp_provider_<?= $id ?>-head" href="#smtp_provider_<?= $id ?>-link"
-                           onclick="Fieldset.toggleCollapse('smtp_provider_<?= $id ?>'); return false;"><?= $provider['label'] ?></a>
+                        <span id="smtp_provider_<?= /** @noEscape */ $id ?>-link" class="entry-edit-head-link"></span>
+                        <a id="smtp_provider_<?= /** @noEscape */ $id ?>-head" href="#smtp_provider_<?= /** @noEscape */ /** @noEscape */ $id ?>-link"
+                           onclick="Fieldset.toggleCollapse('smtp_provider_<?= /** @noEscape */ $id ?>'); return false;"><?= /** @noEscape */ $provider['label'] ?></a>
                     </div>
-                    <input id="smtp_provider_<?= $id ?>-state" type="hidden">
-                    <fieldset class="config admin__collapsible-block" id="smtp_provider_<?= $id ?>">
-                        <legend><?= $provider['label'] ?></legend>
+                    <input id="smtp_provider_<?= /** @noEscape */ $id ?>-state" type="hidden">
+                    <fieldset class="config admin__collapsible-block" id="smtp_provider_<?= /** @noEscape */ $id ?>">
+                        <legend><?= /** @noEscape */ $provider['label'] ?></legend>
                         <table cellspacing="0" class="form-list">
                             <colgroup class="label"></colgroup>
                             <colgroup class="value"></colgroup>
@@ -60,21 +60,21 @@
                             <?php foreach ($provider['info'] as $infoId => $info) : ?>
                                 <?php $note = isset($provider['note']) ? $provider['note'] : [] ?>
                                 <?php if (is_array($info)) : ?>
-                                    <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>">
+                                    <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>">
                                         <td colspan="4">
                                             <div class="section-config">
                                                 <div class="entry-edit-head admin__collapsible-block">
-                                                    <span id="smtp_provider_<?= $id ?>_<?= $infoId ?>-link"
+                                                    <span id="smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>-link"
                                                           class="entry-edit-head-link"></span>
-                                                    <a id="smtp_provider_<?= $id ?>_<?= $infoId ?>-head"
-                                                       href="#smtp_provider_<?= $id ?>_<?= $infoId ?>-link"
-                                                       onclick="Fieldset.toggleCollapse('smtp_provider_<?= $id ?>_<?= $infoId ?>'); return false;"><?= $info['label'] ?></a>
+                                                    <a id="smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>-head"
+                                                       href="#smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>-link"
+                                                       onclick="Fieldset.toggleCollapse('smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>'); return false;"><?= /** @noEscape */ $info['label'] ?></a>
                                                 </div>
-                                                <input id="smtp_provider_<?= $id ?>_<?= $infoId ?>-state" type="hidden"
+                                                <input id="smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>-state" type="hidden"
                                                        value="1">
                                                 <fieldset class="config admin__collapsible-block"
-                                                          id="smtp_provider_<?= $id ?>_<?= $infoId ?>">
-                                                    <legend><?= $info['label'] ?></legend>
+                                                          id="smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>">
+                                                    <legend><?= /** @noEscape */ $info['label'] ?></legend>
                                                     <table cellspacing="0" class="form-list">
                                                         <colgroup class="label"></colgroup>
                                                         <colgroup class="value"></colgroup>
@@ -83,41 +83,41 @@
                                                         <tbody>
                                                         <?php foreach ($info['info'] as $key => $infoItem) : ?>
                                                             <?php $note = isset($info['note']) ? $info['note'] : [] ?>
-                                                            <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>">
+                                                            <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_<?= /** @noEscape */ $key ?>">
                                                                 <td class="label">
-                                                                    <label for="smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>">
-                                                                        <span><?= $block->getLabel($key) ?></span>
+                                                                    <label for="smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_<?= /** @noEscape */ $key ?>">
+                                                                        <span><?=  $block->escapeHtml($block->getLabel($key)) ?></span>
                                                                     </label>
                                                                 </td>
                                                                 <td class="value">
-                                                                    <span class="control-value special"><?= $block->getLabel($infoItem) ?></span>
+                                                                    <span class="control-value special"><?=  $block->escapeHtml($block->getLabel($infoItem)) ?></span>
                                                                     <?php if (isset($note[$key])) : ?>
-                                                                        <p class="note"><?= $note[$key] ?></p>
+                                                                        <p class="note"><?= /** @noEscape */ $note[$key] ?></p>
                                                                     <?php endif; ?>
                                                                 </td>
                                                                 <td></td>
                                                             </tr>
                                                         <?php endforeach; ?>
                                                         <?php if (isset($note['global'])) : ?>
-                                                            <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>_note">
+                                                            <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_<?= /** @noEscape */ $key ?>_note">
                                                                 <td class="label"></td>
                                                                 <td class="value">
-                                                                    <p class="note"><?= $note['global'] ?></p>
+                                                                    <p class="note"><?= /** @noEscape */ $note['global'] ?></p>
                                                                 </td>
                                                                 <td></td>
                                                             </tr>
                                                         <?php endif; ?>
-                                                        <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>_apply">
+                                                        <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_<?= /** @noEscape */ $key ?>_apply">
                                                             <td class="label"></td>
                                                             <td class="value">
                                                                 <div class="actions actions-apply-autofill">
                                                                     <button class="button-actions-apply-autofill"
                                                                             type="button"
-                                                                            data-host="<?= $info['info']['host'] ?>"
-                                                                            data-protocol="<?= $info['info']['protocol'] ?>"
-                                                                            data-port="<?= $info['info']['port'] ?>"
-                                                                            id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_<?= $key ?>_apply">
-                                                                        <span><?= __('Load Settings') ?></span>
+                                                                            data-host="<?= $block->escapeHtmlAttr($info['info']['host']) ?>"
+                                                                            data-protocol="<?= $block->escapeHtmlAttr($info['info']['protocol']) ?>"
+                                                                            data-port="<?= $block->escapeHtmlAttr($info['info']['port']) ?>"
+                                                                            id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_<?= /** @noEscape */ $key ?>_apply">
+                                                                        <span><?= /** @noEscape */ __('Load Settings') ?></span>
                                                                     </button>
                                                                 </div>
                                                             </td>
@@ -128,7 +128,7 @@
                                                 </fieldset>
                                                 <script type="text/javascript">//<![CDATA[
                                                     require(['prototype'], function () {
-                                                        Fieldset.applyCollapse('smtp_provider_<?= $id ?>_<?= $infoId ?>');
+                                                        Fieldset.applyCollapse('smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>');
                                                     });
                                                     //]]>
                                                 </script>
@@ -137,16 +137,16 @@
                                     </tr>
                                     <?php $provider['add_button'] = false; ?>
                                 <?php else : ?>
-                                    <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>">
+                                    <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>">
                                         <td class="label">
-                                            <label for="smtp_provider_<?= $id ?>_<?= $infoId ?>">
-                                                <span><?= $block->getLabel($infoId) ?></span>
+                                            <label for="smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>">
+                                                <span><?=  $block->escapeHtml($block->getLabel($infoId)) ?></span>
                                             </label>
                                         </td>
                                         <td class="value">
-                                            <span class="control-value special"><?= $block->getLabel($info) ?></span>
+                                            <span class="control-value special"><?=  $block->escapeHtml($block->getLabel($info)) ?></span>
                                             <?php if (isset($note[$infoId])) : ?>
-                                                <p class="note"><?= $note[$infoId] ?></p>
+                                                <p class="note"><?= /** @noEscape */ $note[$infoId] ?></p>
                                             <?php endif; ?>
                                         </td>
                                         <td></td>
@@ -155,24 +155,24 @@
                             <?php endforeach; ?>
                             <?php if (!isset($provider['add_button'])) : ?>
                                 <?php if (isset($note['global'])) : ?>
-                                    <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_note">
+                                    <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_note">
                                         <td class="label"></td>
                                         <td class="value">
-                                            <p class="note"><?= $note['global'] ?></p>
+                                            <p class="note"><?= /** @noEscape */ $note['global'] ?></p>
                                         </td>
                                         <td></td>
                                     </tr>
                                 <?php endif; ?>
-                                <tr id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_apply">
+                                <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_apply">
                                     <td class="label"></td>
                                     <td class="value">
                                         <div class="actions actions-apply-autofill">
                                             <button class="button-actions-apply-autofill" type="button"
-                                                    data-host="<?= $provider['info']['host'] ?>"
-                                                    data-protocol="<?= $provider['info']['protocol'] ?>"
-                                                    data-port="<?= $provider['info']['port'] ?>"
-                                                    id="row_smtp_provider_<?= $id ?>_<?= $infoId ?>_apply">
-                                                <span><?= __('Load Settings') ?></span>
+                                                    data-host="<?= $block->escapeHtmlAttr($provider['info']['host']) ?>"
+                                                    data-protocol="<?= $block->escapeHtmlAttr($provider['info']['protocol']) ?>"
+                                                    data-port="<?= $block->escapeHtmlAttr($provider['info']['port']) ?>"
+                                                    id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_apply">
+                                                <span><?= /** @noEscape */ __('Load Settings') ?></span>
                                             </button>
                                         </div>
                                     </td>
@@ -184,7 +184,7 @@
                     </fieldset>
                     <script type="text/javascript">//<![CDATA[
                         require(['prototype'], function () {
-                            Fieldset.applyCollapse('smtp_provider_<?= $id ?>');
+                            Fieldset.applyCollapse('smtp_provider_<?= /** @noEscape */ $id ?>');
                         });
                         //]]>
                     </script>
