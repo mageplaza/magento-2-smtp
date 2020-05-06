@@ -38,7 +38,7 @@ class Authentication implements ArrayInterface
     {
         $options = [
             [
-                'value' => '',
+                'value' => 'smtp',
                 'label' => __('NONE')
             ],
             [
