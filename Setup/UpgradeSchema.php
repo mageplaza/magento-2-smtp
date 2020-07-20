@@ -35,6 +35,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
     /**
      * @param SchemaSetupInterface $setup
      * @param ModuleContextInterface $context
+     *
+     * @throws \Zend_Db_Exception
      */
     public function upgrade(SchemaSetupInterface $setup, ModuleContextInterface $context)
     {
@@ -82,6 +84,53 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'length'   => 255,
                 'comment'  => 'Recipient'
             ]);
+        }
+
+        if (!$setup->tableExists('mageplaza_smtp_abandonedcart')) {
+            $table = $setup->getConnection()
+                ->newTable($setup->getTable('mageplaza_smtp_abandonedcart'))
+                ->addColumn('id', Table::TYPE_INTEGER, null, [
+                    'identity' => true,
+                    'unsigned' => true,
+                    'nullable' => false,
+                    'primary'  => true
+                ], 'Log Id')
+                ->addColumn('log_ids', Table::TYPE_TEXT, 255, [], 'Log Ids')
+                ->addColumn('token', Table::TYPE_TEXT, 255, [], 'Token')
+                ->addColumn(
+                    'quote_id',
+                    Table::TYPE_INTEGER,
+                    null,
+                    [
+                        'unsigned' => true,
+                        'nullable' => false,
+                        'default'  => '0'
+                    ],
+                    'Quote Id'
+                )
+                ->addColumn('status', Table::TYPE_SMALLINT, 1, ['nullable' => false], 'Status')
+                ->addColumn(
+                    'created_at',
+                    Table::TYPE_TIMESTAMP,
+                    null,
+                    ['default' => Table::TIMESTAMP_INIT],
+                    'Created At'
+                )
+                ->addForeignKey(
+                    $setup->getFkName(
+                        'mageplaza_smtp_abandonedcart',
+                        'quote_id',
+                        'quote',
+                        'entity_id'
+                    ),
+                    'quote_id',
+                    $setup->getTable('quote'),
+                    'entity_id',
+                    Table::ACTION_CASCADE
+                )
+                ->setComment('SMTP Abandoned Cart');
+
+            $setup->getConnection()->createTable($table);
         }
 
         $setup->endSetup();

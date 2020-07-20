@@ -83,7 +83,6 @@ class Mail
      * Mail constructor.
      *
      * @param Data $helper
-     * @param null $options
      */
     public function __construct(Data $helper)
     {

@@ -1,0 +1,66 @@
+<!--
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Smtp
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+-->
+
+<!--@subject {{trans "Please comeback and complete your purchase!"}} @-->
+<!--@styles
+.btn-primary {
+    margin: 10px auto;
+}
+.btn-primary td a {
+    background-color: #348eda;
+    border: solid 1px #348eda;
+    border-radius: 25px;
+    border-width: 10px 20px;
+    display: inline-block;
+    color: #ffffff !important;
+    cursor: pointer;
+    font-weight: bold;
+    line-height: 2;
+    text-decoration: none;
+}
+ @-->
+
+{{template config_path="design/email/header_template"}}
+
+<p class="greeting">{{trans "Hello %name," name=$customer_name}}</p>
+<p>{{trans "Look like you left something in your shopping cart on our site. Please allow me to take you directly back to your cart with no extra fee. I'd be happy to."}}</p>
+<p class="greeting"><strong>{{trans "%additionalMessage" additionalMessage=$additional_message}}</strong></p>
+
+<table class="btn-primary" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td>
+            {{trans '<a href="%cart_recovery_link">Go to your cart</a>' cart_recovery_link=$cart_recovery_link |raw}}
+        </td>
+    </tr>
+</table>
+
+{{layout handle="smtp_ace_email_quote_items" quoteId=$quote_id area="frontend"}}
+
+<table class="btn-primary" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+        <td>
+            {{trans '<a href="%cart_recovery_link">Go to your cart</a>' cart_recovery_link=$cart_recovery_link |raw}}
+        </td>
+    </tr>
+</table>
+
+{{template config_path="design/email/footer_template"}}

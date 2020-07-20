@@ -19,13 +19,11 @@
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
-    <group id="default">
-        <job name="mageplaza_smtp_clear_log" instance="Mageplaza\Smtp\Cron\ClearLog" method="execute">
-            <schedule>0 0 * * *</schedule>
-        </job>
-        <job name="mageplaza_smtp_abandonedcart" instance="Mageplaza\Smtp\Cron\AbandonedCart" method="execute">
-            <schedule>* * * * *</schedule>
-        </job>
-    </group>
-</config>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="styles"/>
+    <body>
+        <referenceContainer name="content">
+            <uiComponent name="mpsmtp_abandoned_cart_grid"/>
+        </referenceContainer>
+    </body>
+</page>
