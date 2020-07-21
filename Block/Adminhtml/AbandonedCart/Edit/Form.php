@@ -361,6 +361,10 @@ class Form extends Generic
      */
     public function getFormattedAddress(Address $address, $storeId)
     {
+        if (!$address->getCountryId()) {
+            return '';
+        }
+
         $allowedAddressHtmlTags = ['b', 'br', 'em', 'i', 'li', 'ol', 'p', 'strong', 'sub', 'sup', 'ul'];
 
         return $this->escapeHtml($this->format($address, $storeId), $allowedAddressHtmlTags);

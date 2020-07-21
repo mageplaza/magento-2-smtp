@@ -55,7 +55,7 @@ Smtp,Smtp
 "Cart recovery email was sent to the customer successfully!","Cart recovery email was sent to the customer successfully!"
 "Cart recovery email cannot sent to the customer.","Cart recovery email cannot sent to the customer."
 "Cart recovery email is not sent to the customer yet.","Cart recovery email is not sent to the customer yet."
-"Abandoned Car #%1","Abandoned Car #%1"
+"Abandoned Cart #%1","Abandoned Cart #%1"
 Success,Success
 "Something went wrong.","Something went wrong."
 "We can't process your request right now. %1","We can't process your request right now. %1"

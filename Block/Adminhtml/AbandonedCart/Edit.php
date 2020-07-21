@@ -20,9 +20,7 @@
  */
 namespace Mageplaza\Smtp\Block\Adminhtml\AbandonedCart;
 
-use Magento\Backend\Block\Widget\Context;
 use Magento\Backend\Block\Widget\Form\Container;
-use Magento\Framework\Registry;
 
 /**
  * Class Edit
@@ -30,27 +28,6 @@ use Magento\Framework\Registry;
  */
 class Edit extends Container
 {
-    /**
-     * @var Registry
-     */
-    protected $_coreRegistry;
-
-    /**
-     * Edit constructor.
-     *
-     * @param Registry $coreRegistry
-     * @param Context $context
-     * @param array $data
-     */
-    public function __construct(
-        Registry $coreRegistry,
-        Context $context,
-        array $data = []
-    ) {
-        $this->_coreRegistry = $coreRegistry;
-        parent::__construct($context, $data);
-    }
-
     protected function _construct()
     {
         $this->_objectId = 'id';
@@ -62,14 +39,16 @@ class Edit extends Container
         $this->buttonList->remove('delete');
         $this->buttonList->remove('save');
 
-        $this->addButton(
-            'send',
-            [
-                'label' => __('Send Email'),
-                'class' => 'primary'
-            ],
-            1
-        );
+        if($this->getRequest()->getParam('quote_is_active')){
+            $this->addButton(
+                'send',
+                [
+                    'label' => __('Send Email'),
+                    'class' => 'primary'
+                ],
+                1
+            );
+        }
     }
 
     /**

@@ -27,6 +27,7 @@ use Magento\Framework\Registry;
 use Magento\Framework\View\Result\Page;
 use Magento\Framework\View\Result\PageFactory;
 use Mageplaza\Smtp\Model\AbandonedCartFactory;
+use Magento\Quote\Model\QuoteRepository;
 
 /**
  * Class View
@@ -49,6 +50,8 @@ class View extends Action
      */
     protected $registry;
 
+    protected $quoteRepository;
+
     /**
      * View constructor.
      *
@@ -61,11 +64,13 @@ class View extends Action
         Context $context,
         PageFactory $resultPageFactory,
         Registry $registry,
-        AbandonedCartFactory $abandonedCartFactory
+        AbandonedCartFactory $abandonedCartFactory,
+        QuoteRepository $quoteRepository
     ) {
         $this->resultPageFactory    = $resultPageFactory;
         $this->abandonedCartFactory = $abandonedCartFactory;
         $this->registry             = $registry;
+        $this->quoteRepository = $quoteRepository;
 
         parent::__construct($context);
     }
@@ -81,12 +86,16 @@ class View extends Action
         $abandonedCart->load($id);
 
         if ($abandonedCart->getId()) {
-            if (!$abandonedCart->getStatus()) {
+            $quote                     = $this->quoteRepository->get($abandonedCart->getQuoteId());
+            $params                    = $this->getRequest()->getParams();
+            $params['quote_is_active'] = $quote->getIsActive();
+            $this->getRequest()->setParams($params);
+            if (!$abandonedCart->getStatus() && $quote->getIsActive()) {
                 $this->messageManager->addNoticeMessage(__('Cart recovery email is not sent to the customer yet.'));
             }
 
             /** @var Page $resultPage */
-            $resultPage->getConfig()->getTitle()->prepend(__('Abandoned Car #%1', $abandonedCart->getId()));
+            $resultPage->getConfig()->getTitle()->prepend(__('Abandoned Cart #%1', $abandonedCart->getId()));
             $this->registry->register('abandonedCart', $abandonedCart);
 
             return $resultPage;
