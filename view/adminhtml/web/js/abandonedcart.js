@@ -58,6 +58,11 @@ define([
                 self.preview();
             });
 
+            $('#popup-send-email form').submit(function(){
+                $(this).find(':submit').attr('disabled','disabled');
+            });
+
+
             $('#popup-send-email-back').click(function () {
                 $('#popup-send-email-details').show();
                 $('#popup-send-email-preview').show();

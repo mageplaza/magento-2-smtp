@@ -326,7 +326,7 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $abandon
                 <label class="label admin__field-label">
                     <span><?= $block->escapeHtml(__('To')) ?></span>
                 </label>
-                <div class="admin__field-control control">
+                <div class="admin__field-control control admin__scope-old">
                     <input type="text" id="email-to" name="to" value="<?= $block->escapeHtml($quote->getCustomerEmail()) ?>" class=" input-text admin__control-text" readonly />
                 </div>
             </div>
@@ -364,7 +364,7 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $abandon
                 <label class="label admin__field-label">
                     <span><?= $block->escapeHtml(__('To')) ?></span>
                 </label>
-                <div class="admin__field-control control preview-to">
+                <div class="admin__field-control control preview-to ">
                     <div id="preview-to" class="control-value admin__field-value"><?= $block->escapeHtml($quote->getCustomerEmail()) ?></div>
                 </div>
             </div>
