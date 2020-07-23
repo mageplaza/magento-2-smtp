@@ -53,6 +53,8 @@ class Collection extends SearchResult
                 $quoteField
             );
 
+        $this->addFilterToMap('created_at', 'main_table.created_at');
+
         foreach ($quoteField as $column) {
             $this->addFilterToMap($column, 'quote.' . $column);
         }
