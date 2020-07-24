@@ -3,7 +3,7 @@
 ## Documentation
 
 - Installation guide: https://www.mageplaza.com/install-magento-2-extension/
-- User guide: https://www.mageplaza.com/magento-2-smtp/user-guide.html
+- User guide: https://docs.mageplaza.com/smtp-m2/index.html
 - Download from our Live site: https://www.mageplaza.com/magento-2-smtp/
 - Contribute on Github: https://github.com/mageplaza/magento-2-smtp
 - Get Support: https://github.com/mageplaza/magento-2-smtp/issues
@@ -24,8 +24,7 @@ A: Please follow this guide: https://www.mageplaza.com/blog/magento-site-down.ht
 
 ### Method 1: Install ready-to-paste package
 
-- Download the latest version at [Mageplaza](https://www.mageplaza.com/magento-2-smtp/)
--  [Installation guide](https://www.mageplaza.com/install-magento-2-extension/)
+Installation guide: https://www.mageplaza.com/install-magento-2-extension/
 
 ### Method 2: Install via composer (Recommend)
 
