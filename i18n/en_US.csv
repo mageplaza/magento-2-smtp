@@ -1,3 +1,4 @@
+"Send Email","Send Email"
 "Clear All Logs","Clear All Logs"
 "Are you sure you want to clear all email logs?","Are you sure you want to clear all email logs?"
 "Server Name (host)","Server Name (host)"
@@ -41,6 +42,20 @@ Verizon,Verizon
 "1&1 Webmail","1&1 Webmail"
 OVH,OVH
 SMTP2GO,SMTP2GO
+"The recovery succeeded.","The recovery succeeded."
+"SMTP abandoned cart is disabled.","SMTP abandoned cart is disabled."
+"The link is not available for your use","The link is not available for your use"
+"An error occurred while recovering your cart.","An error occurred while recovering your cart."
+"An error occurred while logging in your account. Please try to log in again.","An error occurred while logging in your account. Please try to log in again."
+"Please login with %1","Please login with %1"
+"Abandoned Carts","Abandoned Carts"
+Mageplaza,Mageplaza
+Smtp,Smtp
+"Invalid abandoned cart","Invalid abandoned cart"
+"Cart recovery email was sent to the customer successfully!","Cart recovery email was sent to the customer successfully!"
+"Cart recovery email cannot sent to the customer.","Cart recovery email cannot sent to the customer."
+"Cart recovery email is not sent to the customer yet.","Cart recovery email is not sent to the customer yet."
+"Abandoned Cart #%1","Abandoned Cart #%1"
 Success,Success
 "Something went wrong.","Something went wrong."
 "We can't process your request right now. %1","We can't process your request right now. %1"
@@ -48,8 +63,6 @@ Success,Success
 "Email re-sent successfully!","Email re-sent successfully!"
 "We can't process your request right now.","We can't process your request right now."
 "Email Log","Email Log"
-Mageplaza,Mageplaza
-Smtp,Smtp
 "A total of %1 record(s) have been deleted.","A total of %1 record(s) have been deleted."
 "We can't process your request for email log #%1","We can't process your request for email log #%1"
 "A total of %1 record(s) have been sent.","A total of %1 record(s) have been sent."
@@ -62,6 +75,8 @@ LOGIN,LOGIN
 CRAM-MD5,CRAM-MD5
 SSL,SSL
 TLS,TLS
+Sent,Sent
+"Wait for send","Wait for send"
 Error,Error
 View,View
 Resend,Resend
@@ -70,7 +85,58 @@ Resend,Resend
 Delete,Delete
 "Delete Log","Delete Log"
 "Are you sure you want to delete this log?","Are you sure you want to delete this log?"
+"NOT LOGGED IN","NOT LOGGED IN"
 "Load Settings","Load Settings"
+"Cart Recovery Information","Cart Recovery Information"
+"Cart Recovery Link","Cart Recovery Link"
+"Copy link","Copy link"
+"Copy to clipboard","Copy to clipboard"
+"Send your customer this link to recover their cart","Send your customer this link to recover their cart"
+"Cart Recovery Email Status","Cart Recovery Email Status"
+"Sent Date Logs","Sent Date Logs"
+"View all email logs ","View all email logs "
+here,here
+"Cart Details","Cart Details"
+"Quote ID","Quote ID"
+"Store View","Store View"
+"Created Date","Created Date"
+"Customer Name","Customer Name"
+"Customer Email","Customer Email"
+"Customer Group","Customer Group"
+"Shipping Address","Shipping Address"
+"Billing Address","Billing Address"
+"Cart Items","Cart Items"
+Product,Product
+Price,Price
+Qty,Qty
+Subtotal,Subtotal
+SKU,SKU
+"Cart Total","Cart Total"
+"Subtotal (Excl. Tax)","Subtotal (Excl. Tax)"
+"Subtotal (Incl. Tax)","Subtotal (Incl. Tax)"
+"Cart Recovery Email","Cart Recovery Email"
+Send,Send
+Preview,Preview
+Back,Back
+Sender,Sender
+To,To
+"Email Template","Email Template"
+"You can go to  <strong>Marketing > Communications > Email Template</strong> to create new template or edit available template","You can go to  <strong>Marketing > Communications > Email Template</strong> to create new template or edit available template"
+"Additional Message","Additional Message"
+From,From
+Subject,Subject
+"Copied the link","Copied the link"
+Image,Image
+"Product Name","Product Name"
+"Excl. Tax:","Excl. Tax:"
+"Incl. Tax:","Incl. Tax:"
+"Subtotal (Excl.Tax)","Subtotal (Excl.Tax)"
+"Subtotal (Incl.Tax)","Subtotal (Incl.Tax)"
+"Please comeback and complete your purchase!","Please comeback and complete your purchase!"
+"Hello %name,","Hello %name,"
+"Look like you left something in your shopping cart on our site. Please allow me to take you directly back to your cart with no extra fee. I'd be happy to.","Look like you left something in your shopping cart on our site. Please allow me to take you directly back to your cart with no extra fee. I'd be happy to."
+%additionalMessage,%additionalMessage
+"<a href=""%cart_recovery_link"">Go to your cart</a>","<a href=""%cart_recovery_link"">Go to your cart</a>"
 "TEST EMAIL from Custom SMTP","TEST EMAIL from Custom SMTP"
 "Your store has been connected with a custom SMTP successfully. Now you can Save Config and use this connection.","Your store has been connected with a custom SMTP successfully. Now you can Save Config and use this connection."
 "Mageplaza Smtp","Mageplaza Smtp"
@@ -103,18 +169,23 @@ Password,Password
 "Send Test Email","Send Test Email"
 "Send From","Send From"
 "Send To","Send To"
+"Abandoned Cart Email","Abandoned Cart Email"
+Enable,Enable
+"Select Yes to enable this feature.","Select Yes to enable this feature."
+"How to measure Abandoned Cart","How to measure Abandoned Cart"
+"Time to define an abandoned cart. The unit is minute. Default value is 30.</br> Example: If we enter 30, then after 30 minutes, carts will be considered abandoned. The carts under 30 minutes will be considered as a real-time cart.","Time to define an abandoned cart. The unit is minute. Default value is 30.</br> Example: If we enter 30, then after 30 minutes, carts will be considered abandoned. The carts under 30 minutes will be considered as a real-time cart."
 Developer,Developer
 "Developer Mode","Developer Mode"
 "If Enable, Magento will not delivery any email to receiver. This is useful for developers.","If Enable, Magento will not delivery any email to receiver. This is useful for developers."
+"All Store Views","All Store Views"
+ID,ID
+Customer,Customer
+Status,Status
+"Created At","Created At"
 "Resend items","Resend items"
 "Are you sure to resend selected log(s)?","Are you sure to resend selected log(s)?"
 "Delete items","Delete items"
 "Are you sure to delete selected log email(s)?","Are you sure to delete selected log email(s)?"
-ID,ID
-Subject,Subject
-Sender,Sender
 Recipient,Recipient
 Cc,Cc
 Bcc,Bcc
-Status,Status
-"Created At","Created At"

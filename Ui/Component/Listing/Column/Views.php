@@ -25,13 +25,12 @@ use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
-use Mageplaza\Smtp\Helper\Data;
 
 /**
- * Class Actions
+ * Class Views
  * @package Mageplaza\Smtp\Ui\Component\Listing\Column
  */
-class Actions extends Column
+class Views extends Column
 {
     /**
      * @var UrlInterface
@@ -39,17 +38,11 @@ class Actions extends Column
     private $urlBuilder;
 
     /**
-     * @var Data
-     */
-    protected $helperData;
-
-    /**
-     * Actions constructor.
+     * Views constructor.
      *
      * @param ContextInterface $context
      * @param UiComponentFactory $uiComponentFactory
      * @param UrlInterface $urlBuilder
-     * @param Data $helperData
      * @param array $components
      * @param array $data
      */
@@ -57,13 +50,11 @@ class Actions extends Column
         ContextInterface $context,
         UiComponentFactory $uiComponentFactory,
         UrlInterface $urlBuilder,
-        Data $helperData,
         array $components = [],
         array $data = []
     ) {
         parent::__construct($context, $uiComponentFactory, $components, $data);
 
-        $this->helperData = $helperData;
         $this->urlBuilder = $urlBuilder;
     }
 
@@ -78,29 +69,12 @@ class Actions extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
+                $url = $this->urlBuilder->getUrl('adminhtml/smtp_abandonedcart/view', ['id' => $item['id']]);
                 $item[$this->getData('name')] = [
                     'view'   => [
-                        'label' => __('View')
-                    ],
-                    'resend' => [
-                        'href'    => $this->urlBuilder->getUrl('adminhtml/smtp/email', ['id' => $item['id']]),
-                        'label'   => __('Resend'),
-                        'confirm' => [
-                            'title'   => __('Resend Email'),
-                            'message' => __(
-                                'Are you sure you want to resend the email <strong>"%1"</strong>?',
-                                $item['subject']
-                            )
-                        ]
-                    ],
-                    'delete' => [
-                        'href'    => $this->urlBuilder->getUrl('adminhtml/smtp/delete', ['id' => $item['id']]),
-                        'label'   => __('Delete'),
-                        'confirm' => [
-                            'title'   => __('Delete Log'),
-                            'message' => __('Are you sure you want to delete this log?')
-                        ]
-                    ],
+                        'label' => __('View'),
+                         'href'    => $url
+                    ]
                 ];
             }
         }

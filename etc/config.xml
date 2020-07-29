@@ -30,6 +30,9 @@
                 <log_email>1</log_email>
                 <clean_email>10</clean_email>
             </general>
+            <abandoned_cart>
+                <measure>30</measure>
+            </abandoned_cart>
         </smtp>
     </default>
 </config>
