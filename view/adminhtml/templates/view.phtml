@@ -1,0 +1,401 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Smtp
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+/**
+ * @var Mageplaza\Smtp\Block\Adminhtml\AbandonedCart\Edit\Form $block
+ */
+$abandonedCart = $block->getModel();
+
+$quote = $abandonedCart->getQuote();
+$store = $quote->getStore();
+
+$customerName = $block->getHelperAbandonedCart()->getCustomerName($quote);
+
+$storeDate = $this->formatDate(
+    $quote->getCreatedAt(),
+    \IntlDateFormatter::MEDIUM,
+    true,
+    $this->getTimezoneForStore($quote->getStore())
+);
+
+$previewUrl = $block->getUrl('adminhtml/smtp_abandonedcart/preview', ['_current' => true]);
+$sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $abandonedCart->getId()]);
+?>
+<div class="entry-edit form-inline" id="smtp-abandoned-cart">
+    <div class="entry-edit form-inline">
+
+<!--       START: CART RECOVERY-->
+        <fieldset class="fieldset admin__fieldset " id="cart_recovery">
+            <legend class="admin__legend legend admin__page-section-title">
+                <span><?= $block->escapeHtml(__('Cart Recovery Information')) ?></span>
+            </legend>
+            <br>
+            <div class="messages">
+            </div>
+            <div class="admin__field field field-recovery_link ">
+                <label class="label admin__field-label" >
+                    <span><?= $block->escapeHtml(__('Cart Recovery Link')) ?></span>
+                </label>
+                <div class="admin__field-control control">
+                    <div id="recovery_link" class="control-value admin__field-value">
+                       <span> <?= $block->escapeUrl($block->getHelperAbandonedCart()->getRecoveryUrl($abandonedCart->getToken(), $quote)) ?></span>
+                        <div class="tooltip">
+                            <a id="copy" style="cursor: pointer"><?= $block->escapeHtml(__('Copy link')) ?></a>
+                            <span class="tooltip-text" id="link-tooltip"><?= $block->escapeHtml(__('Copy to clipboard')) ?> </span>
+                        </div>
+                    </div>
+                    <p class="note admin__field-note"><?= $block->escapeHtml(__('Send your customer this link to recover their cart')) ?></p>
+                </div>
+            </div>
+
+            <div class="admin__field field field-status">
+                <label class="label admin__field-label">
+                    <span><?= $block->escapeHtml(__('Cart Recovery Email Status')) ?></span>
+                </label>
+                <div class="admin__field-control control">
+                    <div id="status" class="control-value admin__field-value"><?= /* @noEscape */ $block->getStatus($abandonedCart->getStatus()) ?></div>
+                </div>
+            </div>
+            <div class="admin__field field field-log with-note" >
+                <label class="label admin__field-label">
+                    <span><?= $block->escapeHtml(__('Sent Date Logs')) ?></span>
+                </label>
+                <div class="admin__field-control control">
+                    <?=  /* @noEscape */ $block->getSentDateLogs($abandonedCart->getLogIds()) ?>
+                    <div class="note admin__field-note" id="log-note"><?= $block->escapeHtml(__('View all email logs ')) ?>
+                        <a target="_blank" href="<?= $block->escapeUrl($block->getUrl('adminhtml/smtp/log')) ?>"><?= $block->escapeHtml(__('here')) ?></a>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+<!--       END: CART RECOVERY-->
+
+<!--       START: CART DETAILS-->
+        <fieldset class="fieldset admin__fieldset " id="cart_details">
+            <legend class="admin__legend legend admin__page-section-title">
+                <span><?= $block->escapeHtml(__('Cart Details')) ?></span>
+            </legend>
+            <br>
+            <div class="messages"></div>
+
+            <div class="admin__field field field-id ">
+                <label class="label admin__field-label">
+                    <span><?= $block->escapeHtml(__('Quote ID')) ?></span>
+                </label>
+                <div class="admin__field-control control">
+                    <div id="id" class="control-value admin__field-value">
+                        <?= $block->escapeHtml($quote->getId()) ?>
+                    </div>
+                </div>
+            </div>
+            <?php
+                if (!$block->isSingleStoreMode()) :
+            ?>
+            <div class="admin__field field field-store_view">
+                <label class="label admin__field-label">
+                    <span><?= __('Store View') ?></span>
+                </label>
+                <div class="admin__field-control control">
+                    <div id="store_view" class="control-value admin__field-value">
+                        <?= $block->escapeHtml($block->getStoreName($quote), ['br']) ?>
+                    </div>
+                </div>
+            </div>
+            <?php
+                endif;
+            ?>
+            <div class="admin__field field field-created_date">
+                <label class="label admin__field-label">
+                    <span><?= __('Created Date') ?></span>
+                </label>
+                <div class="admin__field-control control">
+                    <div id="created_date" class="control-value admin__field-value"><?= $storeDate ?></div>
+                </div>
+            </div>
+            <div class="admin__field field field-customer_name " >
+                <label class="label admin__field-label" for="customer_name" ><span><?= /* @noEscape */ __('Customer Name') ?></span></label>
+                <div class="admin__field-control control">
+                    <div id="customer_name" class="control-value admin__field-value"><?= $customerName ?></div>
+                </div>
+            </div>
+            <div class="admin__field field field-customer_email ">
+                <label class="label admin__field-label">
+                    <span><?= $block->escapeHtml(__('Customer Email')) ?></span>
+                </label>
+                <div class="admin__field-control control">
+                    <div id="customer_email" class="control-value admin__field-value">
+                        <?= $block->escapeHtml($quote->getCustomerEmail()) ?>
+                    </div>
+                </div>
+            </div>
+            <div class="admin__field field field-customer_group ">
+                <label class="label admin__field-label">
+                    <span><?= $block->escapeHtml(__('Customer Group')) ?></span>
+                </label>
+                <div class="admin__field-control control">
+                    <div id="customer_group" class="control-value admin__field-value">
+                        <?= /* @noEscape */ $abandonedCart->getCustomerGroupName() ?>
+                    </div>
+                </div>
+            </div>
+            <?php
+             if (!$quote->isVirtual()) :
+            ?>
+                <div class="admin__field field field-shipping_address ">
+                    <label class="label admin__field-label">
+                        <span><?= $block->escapeHtml(__('Shipping Address')) ?></span>
+                    </label>
+                    <div class="admin__field-control control">
+                        <div id="shipping_address" class="control-value admin__field-value">
+                            <?= $block->getFormattedAddress($quote->getShippingAddress(), $quote->getStoreId()) ?>
+                        </div>
+                    </div>
+                </div>
+            <?php
+                endif;
+            ?>
+            <div class="admin__field field field-billing_address ">
+                <label class="label admin__field-label">
+                    <span><?= $block->escapeHtml(__('Billing Address')) ?></span>
+                </label>
+                <div class="admin__field-control control">
+                    <div id="billing_address" class="control-value admin__field-value">
+                        <?= $block->getFormattedAddress($quote->getBillingAddress(), $quote->getStoreId()) ?>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+<!--       END: CART DETAILS-->
+
+<!--       START: CART ITEMS-->
+        <fieldset class="fieldset admin__fieldset " id="cart_items">
+            <legend class="admin__legend legend admin__page-section-title">
+                <span><?= $block->escapeHtml(__('Cart Items')) ?></span>
+            </legend>
+
+            <div class="admin__table-wrapper">
+                <table class="data-table admin__table-primary edit-order-table">
+                    <thead>
+                    <tr class="headings">
+                        <th class="col-product"><span><?= $block->escapeHtml(__('Product')) ?></span></th>
+                        <th class="col-price"><span><?= $block->escapeHtml(__('Price')) ?></span></th>
+                        <th class="col-qty"><span><?= $block->escapeHtml(__('Qty')) ?></span></th>
+                        <th class="col-subtotal"><span><?= $block->escapeHtml(__('Subtotal')) ?></span></th>
+                    </tr>
+                    </thead>
+                    <?php $items = $quote->getItemsCollection();?>
+                    <?php $i = 0; foreach ($items as $item) :
+                        ?>
+                        <?php if ($item->getParentItem()) :
+                            continue;
+                        else :
+                            $i++;
+                        endif; ?>
+                        <tbody class="<?= /* @noEscape */ $i%2 ? 'even' : 'odd' ?>">
+
+                        <tr>
+                            <td>
+                                <div id="order_item_<?= (int) $item->getId() ?>_title"
+                                     class="product-title">
+                                    <?= $block->escapeHtml($item->getName()) ?>
+                                </div>
+                                <div class="product-sku-block">
+                                    <span><?= $block->escapeHtml(__('SKU'))?>:</span>
+                                    <?= /* @noEscape */ implode('<br />', $block->getHelperAbandonedCart()->splitSku($block->escapeHtml($item->getSku()))) ?>
+                                </div>
+
+                                <?php if ($options = $block->getHelperAbandonedCart()->getProductOptions($item)) : ?>
+                                    <dl class="item-options">
+                                        <?php foreach ($options as $_option) :?>
+                                            <?php $optionValue = $block->getHelperAbandonedCart()->getFormatedOptionValue($_option) ?>
+                                            <dt><?= $block->escapeHtml($_option['label']) ?>: </dt>
+                                            <dd>
+                                                <?php if (isset($_formatedOptionValue['full_view'])) :?>
+                                                    <?= $block->escapeHtml($optionValue['full_view']) ?>
+                                                <?php else :?>
+                                                    <?= $block->escapeHtml($optionValue['value'], ['span']) ?>
+                                                <?php endif; ?>
+                                            </dd>
+                                        <?php endforeach; ?>
+                                    </dl>
+                                <?php endif; ?>
+                            </td>
+                            <td class="col-price">
+                                <?= $block->getItemUnitPriceHtml($item) ?>
+                            </td>
+                            <td class="col-qty">
+                                <span><?= $block->escapeHtml($item->getQty()); ?></span>
+                            </td>
+                            <td class="col-subtotal col-price">
+                                <?= $block->getItemRowTotalHtml($item) ?>
+                            </td>
+                        </tr>
+                        </tbody>
+                    <?php endforeach; ?>
+                </table>
+            </div>
+        </fieldset>
+<!--       END: CART ITEMS-->
+
+<!--       START: CART TOTALS-->
+        <fieldset class="fieldset admin__fieldset " id="cart_totals">
+            <legend class="admin__legend legend admin__page-section-title">
+                <span><?= $block->escapeHtml(__('Cart Total')) ?></span>
+            </legend>
+            <table class="data-table admin__table-secondary order-subtotal-table" style="width: 30%">
+                <?php if ($block->displayCartSubtotalExclTax($quote->getStoreId())) : ?>
+                    <tr class="last-item">
+                        <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal') ?></th>
+                        <td><?= /* @noEscape */  $block->getSubtotal($quote) ?></td>
+                    </tr>
+                <?php endif; ?>
+                <?php if ($block->displayCartSubtotalInclTax($quote->getStoreId())) : ?>
+                    <tr class="last-item">
+                        <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal') ?></th>
+                        <td><?= /* @noEscape */ $block->getSubtotal($quote,true) ?></td>
+                    </tr>
+                <?php endif; ?>
+                <?php if ($block->displayCartSubtotalBoth($quote->getStoreId())) : ?>
+                    <tr class="last-item">
+                        <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal (Excl. Tax)') ?></th>
+                        <td><?= /* @noEscape */  $block->getSubtotal($quote) ?></td>
+                    </tr>
+                    <tr class="last-item">
+                        <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal (Incl. Tax)') ?></th>
+                        <td><?= /* @noEscape */ $block->getSubtotal($quote,true) ?></td>
+                    </tr>
+                <?php endif; ?>
+
+            </table>
+        </fieldset>
+<!--       END: CART TOTALS-->
+    </div>
+</div>
+
+<!--       START: POPUP SEND EMAIL-->
+<div id ="popup-send-email" style="display: none">
+    <form method="post" action="<?= $sendUrl ?>" name="cart_recovery_form">
+    <fieldset class="fieldset admin__fieldset">
+        <legend class="admin__legend legend admin__page-section-title">
+            <span><?= $block->escapeHtml(__('Cart Recovery Email')) ?></span>
+        </legend>
+    </fieldset>
+    <div class="admin__field field field-to" id="action" style="height: 50px;">
+        <button style="float: right;margin: 0 6px" id="popup-send-email-send" title="<?= $block->escapeHtml(__('Send')) ?>"  type="submit" class="action-default scalable primary">
+            <span><?= __('Send') ?></span>
+        </button>
+        <button style="float: right;margin: 0 6px" id="popup-send-email-preview" title="<?= $block->escapeHtml(__('Preview')) ?>" type="button" class="action-default" >
+            <span><?= __('Preview') ?></span>
+        </button>
+        <button style="float: right;margin: 0 6px;display: none" id="popup-send-email-back" title="<?= $block->escapeHtml(__('Back')) ?>" type="button" class="action-default" >
+            <span><?= __('Back') ?></span>
+        </button>
+    </div>
+    <div id="messages" style="margin-bottom: 15px"></div>
+    <fieldset id ="popup-send-email-details" class="fieldset admin__fieldset">
+        <input name="form_key" type="hidden" value="<?= /* @noEscape */ $block->getFormKey() ?>"/>
+            <div class="admin__field field field-sender">
+                <label class="label admin__field-label">
+                    <span><?= $block->escapeHtml(__('Sender')) ?></span>
+                </label>
+                <div class="admin__field-control control">
+                    <select id="sender" name="sender" title="Sender" class="select admin__control-select" >
+                        <?= /* @noEscape */ $block->getSenderOptions() ?>
+                    </select>
+                </div>
+            </div>
+            <div class="admin__field field field-to">
+                <label class="label admin__field-label">
+                    <span><?= $block->escapeHtml(__('To')) ?></span>
+                </label>
+                <div class="admin__field-control control admin__scope-old">
+                    <input type="text" id="email-to" name="to" value="<?= $block->escapeHtml($quote->getCustomerEmail()) ?>" class=" input-text admin__control-text" readonly />
+                </div>
+            </div>
+            <div class="admin__field field field-email-template">
+                <label class="label admin__field-label"><span><?= $block->escapeHtml(__('Email Template')) ?></span></label>
+                <div class="admin__field-control control">
+                    <select id="email-template" name="email_template" title="Email Template" class="select admin__control-select" >
+                        <?= $block->getEmailTemplateOptions() ?>
+                    </select>
+                    <div class="note admin__field-note">
+                        <?= /* @noEscape */ __('You can go to  <strong>Marketing > Communications > Email Template</strong> to create new template or edit available template') ?>
+                    </div>
+                </div>
+            </div>
+            <div class="admin__field field field-additional-message">
+                <label class="label admin__field-label">
+                    <span><?= $block->escapeHtml(__('Additional Message')) ?></span>
+                </label>
+                <div class="admin__field-control control">
+                    <textarea id="additional-message" name="additional_message" rows="2" cols="15" class="textarea admin__control-textarea"></textarea>
+                </div>
+            </div>
+    </fieldset>
+    <div id="preview" style="display: none;">
+        <fieldset class="fieldset admin__fieldset">
+            <div class="admin__field field field-from">
+                <label class="label admin__field-label">
+                    <span><?= $block->escapeHtml(__('From')) ?></span>
+                </label>
+                <div class="admin__field-control control preview-from">
+                    <div id="preview-from" class="control-value admin__field-value"></div>
+                </div>
+            </div>
+            <div class="admin__field field field-to">
+                <label class="label admin__field-label">
+                    <span><?= $block->escapeHtml(__('To')) ?></span>
+                </label>
+                <div class="admin__field-control control preview-to ">
+                    <div id="preview-to" class="control-value admin__field-value"><?= $block->escapeHtml($quote->getCustomerEmail()) ?></div>
+                </div>
+            </div>
+            <div class="admin__field field field-to">
+                <label class="label admin__field-label">
+                    <span><?= $block->escapeHtml(__('Subject')) ?></span>
+                </label>
+                <div class="admin__field-control control preview-subject">
+                    <div id="subject" class="control-value admin__field-value">
+                        <strong></strong>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <iframe id="iframe-preview" width="100%" height="768"></iframe>
+    </div>
+    </form>
+</div>
+<!--       END: POPUP SEND EMAIL-->
+
+<script type="text/x-magento-init">
+    {
+        "#popup-send-email": {
+            "Mageplaza_Smtp/js/abandonedcart":{
+                "preview_url": "<?= $block->escapeUrl($previewUrl) ?>",
+                "send_url": "<?= $block->escapeUrl($sendUrl) ?>",
+                "quote_id": "<?= /* @noEscape */ $quote->getId() ?>",
+                "customer_name": "<?= $customerName ?>",
+                "copied_message": "<?= $block->escapeHtml(__('Copied the link')) ?>",
+                "tooltip": "<?= $block->escapeHtml(__('Copy to clipboard')) ?>"
+            }
+        }
+    }
+</script>

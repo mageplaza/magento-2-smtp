@@ -1,0 +1,118 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Smtp
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+/** @var $block \Mageplaza\Smtp\Block\AbandonedCart */
+
+$itemCollection = $block->getProductCollection();
+?>
+
+<table class="email-items">
+    <thead>
+    <tr>
+        <th class="item-info"><?= /* @noEscape */ __('Image') ?></th>
+        <th class="item-info"><?= /* @noEscape */ __('Product Name') ?></th>
+        <th class="item-qty"><?= /* @noEscape */ __('Qty') ?></th>
+        <th class="item-price"><?= /* @noEscape */ __('Price') ?></th>
+    </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($itemCollection as $item) : ?>
+        <tr>
+            <td class="item-info">
+                <span class="product-image">
+                    <img src="<?= $block->escapeUrl($block->getProductImage($item)) ?>"
+                         alt="<?= $block->escapeHtml($item->getName()) ?>" width="100px" height="100px"/>
+                </span>
+            </td>
+            <td class="item-info">
+                <p class="product-name">
+                    <a href="<?= $block->escapeUrl($item->getProduct()->getProductUrl()) ?>" target="_blank">
+                        <?= $block->escapeHtml($item->getName()) ?>
+                    </a>
+                </p>
+                <p>
+                    <span><?= $block->escapeHtml(__('SKU'))?>:</span>
+                    <?= /* @noEscape */ implode('<br />', $block->getHelperAbandonedCart()->splitSku($block->escapeHtml($item->getSku()))) ?>
+                </p>
+                <?php if ($options = $block->getHelperAbandonedCart()->getProductOptions($item)) : ?>
+                    <dl class="item-options">
+                        <?php foreach ($options as $_option) :?>
+                            <?php $optionValue = $block->getHelperAbandonedCart()->getFormatedOptionValue($_option) ?>
+                            <dt><?= $block->escapeHtml($_option['label']) ?>: </dt>
+                            <dd>
+                                <?php if (isset($_formatedOptionValue['full_view'])) : ?>
+                                    <?= $block->escapeHtml($optionValue['full_view']) ?>
+                                <?php else : ?>
+                                    <?= $block->escapeHtml($optionValue['value'], ['span']) ?>
+                                <?php endif; ?>
+                            </dd>
+                        <?php endforeach; ?>
+                    </dl>
+                <?php endif; ?>
+            </td>
+            <td class="item-qty">
+                <span class="product-qty"><?= (int) $item->getQty() ?></span>
+            </td>
+            <td class="item-price">
+                <?php if ($block->getTaxConfig()->displayCartPricesInclTax()) : ?>
+                    <span class="price"><?= /* @noEscape */ $block->formatPrice($_item->getPriceInclTax(), $item->getStoreId()) ?></span>
+                <?php endif; ?>
+
+                <?php if ($block->getTaxConfig()->displayCartPricesExclTax()) : ?>
+                    <span class="price"><?= /* @noEscape */ $block->formatPrice($item->getCalculationPrice(), $item->getStoreId()) ?></span>
+                <?php endif; ?>
+                <?php if ($block->getTaxConfig()->displayCartPricesBoth()) : ?>
+                    <span class="label"><?= /* @noEscape */ __('Excl. Tax:') ?></span>
+                    <span class="price"><?= /* @noEscape */ $block->formatPrice($item->getPriceInclTax(), $item->getStoreId()) ?></span>
+                    <br>
+                    <span class="label"><?= /* @noEscape */ __('Incl. Tax:') ?></span>
+                    <span class="price"><?= /* @noEscape */ $block->formatPrice($item->getCalculationPrice(), $item->getStoreId()) ?></span>
+                <?php endif; ?>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+    <tfoot class="order-totals">
+    <?php if ($block->getTaxConfig()->displayCartSubtotalExclTax()) : ?>
+        <tr class="last-item">
+            <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal') ?></th>
+            <td><?= /* @noEscape */  $block->getSubtotal() ?></td>
+        </tr>
+    <?php endif; ?>
+    <?php if ($block->getTaxConfig()->displayCartSubtotalInclTax()) : ?>
+        <tr class="last-item">
+            <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal') ?></th>
+            <td><?= /* @noEscape */ $block->getSubtotal(true) ?></td>
+        </tr>
+    <?php endif; ?>
+    <?php if ($block->getTaxConfig()->displayCartSubtotalBoth()) : ?>
+        <tr>
+            <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal (Excl.Tax)') ?></th>
+            <td><?= /* @noEscape */  $block->getSubtotal() ?></td>
+        </tr>
+        <tr>
+            <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal (Incl.Tax)') ?></th>
+            <td><?= /* @noEscape */ $block->getSubtotal(true) ?></td>
+        </tr>
+    <?php endif; ?>
+
+    </tfoot>
+</table>

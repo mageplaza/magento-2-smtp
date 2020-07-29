@@ -4,7 +4,7 @@
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the mageplaza.com license that is
+ * This source file is subject to the Mageplaza.com license that is
  * available through the world-wide-web at this URL:
  * https://www.mageplaza.com/LICENSE.txt
  *
@@ -25,31 +25,38 @@ use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
-use Mageplaza\Smtp\Helper\Data;
+use Magento\Quote\Model\QuoteFactory;
+use Mageplaza\Smtp\Helper\AbandonedCart;
 
 /**
- * Class Actions
+ * Class CustomerName
  * @package Mageplaza\Smtp\Ui\Component\Listing\Column
  */
-class Actions extends Column
+class CustomerName extends Column
 {
     /**
      * @var UrlInterface
      */
-    private $urlBuilder;
+    protected $urlBuilder;
 
     /**
-     * @var Data
+     * @var QuoteFactory
      */
-    protected $helperData;
+    protected $quoteFactory;
 
     /**
-     * Actions constructor.
+     * @var AbandonedCart
+     */
+    protected $abandonedCartHelper;
+
+    /**
+     * CustomerName constructor.
      *
      * @param ContextInterface $context
      * @param UiComponentFactory $uiComponentFactory
      * @param UrlInterface $urlBuilder
-     * @param Data $helperData
+     * @param QuoteFactory $quoteFactory
+     * @param AbandonedCart $abandonedCartHelper
      * @param array $components
      * @param array $data
      */
@@ -57,19 +64,19 @@ class Actions extends Column
         ContextInterface $context,
         UiComponentFactory $uiComponentFactory,
         UrlInterface $urlBuilder,
-        Data $helperData,
+        QuoteFactory $quoteFactory,
+        AbandonedCart $abandonedCartHelper,
         array $components = [],
         array $data = []
     ) {
         parent::__construct($context, $uiComponentFactory, $components, $data);
 
-        $this->helperData = $helperData;
         $this->urlBuilder = $urlBuilder;
+        $this->quoteFactory = $quoteFactory;
+        $this->abandonedCartHelper = $abandonedCartHelper;
     }
 
     /**
-     * Prepare Data Source
-     *
      * @param array $dataSource
      *
      * @return array
@@ -77,31 +84,16 @@ class Actions extends Column
     public function prepareDataSource(array $dataSource)
     {
         if (isset($dataSource['data']['items'])) {
-            foreach ($dataSource['data']['items'] as & $item) {
-                $item[$this->getData('name')] = [
-                    'view'   => [
-                        'label' => __('View')
-                    ],
-                    'resend' => [
-                        'href'    => $this->urlBuilder->getUrl('adminhtml/smtp/email', ['id' => $item['id']]),
-                        'label'   => __('Resend'),
-                        'confirm' => [
-                            'title'   => __('Resend Email'),
-                            'message' => __(
-                                'Are you sure you want to resend the email <strong>"%1"</strong>?',
-                                $item['subject']
-                            )
-                        ]
-                    ],
-                    'delete' => [
-                        'href'    => $this->urlBuilder->getUrl('adminhtml/smtp/delete', ['id' => $item['id']]),
-                        'label'   => __('Delete'),
-                        'confirm' => [
-                            'title'   => __('Delete Log'),
-                            'message' => __('Are you sure you want to delete this log?')
-                        ]
-                    ],
-                ];
+            foreach ($dataSource['data']['items'] as &$item) {
+                $quoteId      = $item['quote_id'];
+                $quote        = $this->quoteFactory->create()->load($quoteId);
+                $customerName = $this->abandonedCartHelper->getCustomerName($quote);
+                if ($quote->getCustomerId()) {
+                    $url = $this->urlBuilder->getUrl('customer/index/edit', ['id' => $item['customer_id']]);
+                    $customerName = '<a href="' . $url . '" target="_blank">' . $customerName . '</a>';
+                }
+
+                $item[$this->getData('name')] = $customerName;
             }
         }
 
