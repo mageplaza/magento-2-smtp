@@ -68,6 +68,9 @@ Success,Success
 "A total of %1 record(s) have been sent.","A total of %1 record(s) have been sent."
 "Sent successfully! Please check your email box.","Sent successfully! Please check your email box."
 "Test Error","Test Error"
+"Email marketing connection is working properly.","Email marketing connection is working properly."
+"Can't connect to the email marketing app. Please check the app id and secret key.","Can't connect to the email marketing app. Please check the app id and secret key."
+"Error : %1","Error : %1"
 "A host is necessary for smtp transport, but none was given","A host is necessary for smtp transport, but none was given"
 NONE,NONE
 PLAIN,PLAIN
@@ -169,11 +172,14 @@ Password,Password
 "Send Test Email","Send Test Email"
 "Send From","Send From"
 "Send To","Send To"
-"Abandoned Cart Email","Abandoned Cart Email"
+"Email Marketing","Email Marketing"
 Enable,Enable
 "Select Yes to enable this feature.","Select Yes to enable this feature."
 "How to measure Abandoned Cart","How to measure Abandoned Cart"
 "Time to define an abandoned cart. The unit is minute. Default value is 30.</br> Example: If we enter 30, then after 30 minutes, carts will be considered abandoned. The carts under 30 minutes will be considered as a real-time cart.","Time to define an abandoned cart. The unit is minute. Default value is 30.</br> Example: If we enter 30, then after 30 minutes, carts will be considered abandoned. The carts under 30 minutes will be considered as a real-time cart."
+"App ID","App ID"
+"Create API key <a href=""https://app.avada.io/manage/keys"" target=""_blank"">here</a>.","Create API key <a href=""https://app.avada.io/manage/keys"" target=""_blank"">here</a>."
+"Secret key","Secret key"
 Developer,Developer
 "Developer Mode","Developer Mode"
 "If Enable, Magento will not delivery any email to receiver. This is useful for developers.","If Enable, Magento will not delivery any email to receiver. This is useful for developers."

@@ -46,8 +46,8 @@ use Mageplaza\Smtp\Model\ResourceModel\AbandonedCart\CollectionFactory;
  */
 class AbandonedCart extends Data
 {
-    const APP_URL = 'https://app.avada.io/webhook/abandonedCart';
-    const CUSTOMER_URL = 'https://app.avada.io/webhook/customer/create';
+    const APP_URL             = 'https://app.avada.io/webhook/abandonedCart';
+    const CUSTOMER_URL        = 'https://app.avada.io/webhook/customer/create';
 
     /**
      * @var UrlInterface
@@ -273,7 +273,7 @@ class AbandonedCart extends Data
                     ],
                     'cartItems'         => $this->getCartItems($quote),
                     'source'            => 'Magento',
-                    'currencyCode'      => $quote->getBaseCurrency(),
+                    'currencyCode'      => $quote->getBaseCurrencyCode(),
                     'cartCreateAt'      => $quote->getCreatedAt(),
                     'cartUpdateAt'      => $quote->getUpdatedAt(),
                     'recoverCartUrl'    => $this->getRecoveryUrl($ace->getToken(), $quote)
@@ -301,6 +301,7 @@ class AbandonedCart extends Data
             if ($item->getParentItemId()) {
                 continue;
             }
+
             $productType = $item->getData('product_type');
             $variant     = [];
             $bundleItems = [];
@@ -335,7 +336,7 @@ class AbandonedCart extends Data
                 'price'        => (float)$item->getPrice(),
                 'currency'     => $this->formatPrice($item->getPrice(), $item->getStoreId()),
                 'quantity'     => $item->getQty(),
-                'vendor'       => '??',
+                'vendor'       => '',
                 'sku'          => $item->getSku(),
                 'productId'    => $item->getProductId(),
                 'productImage' => $this->getProductImage($item->getProduct()),
@@ -381,13 +382,18 @@ class AbandonedCart extends Data
     /**
      * @param array $data
      * @param string $appID
+     * @param string $url
      * @param string $secretKey
      * @param bool $isTest
      * @return mixed
      * @throws LocalizedException
      */
-    public function sendRequest($data, $appID = '', $secretKey = '', $isTest = false)
+    public function sendRequest($data, $url = '', $appID = '', $secretKey = '', $isTest = false)
     {
+        if (!$url) {
+            $url = self::APP_URL;
+        }
+
         $body          = self::jsonEncode(['data' => $data]);
         $secretKey     = $secretKey ?: $this->getSecretKey();
         $generatedHash = base64_encode(hash_hmac('sha256', $body, $secretKey, true));
@@ -400,7 +406,7 @@ class AbandonedCart extends Data
                                      'X-EmailMarketing-Connection-Test' => $isTest
                                  ]);
 
-        $this->_curl->post(self::APP_URL, $body);
+        $this->_curl->post($url, $body);
         $body     = $this->_curl->getBody();
         $bodyData = self::jsonDecode($body);
         if (!isset($bodyData['success']) || !$bodyData['success']) {
@@ -422,7 +428,16 @@ class AbandonedCart extends Data
             $secretKey = $this->getSecretKey();
         }
 
-        return $this->sendRequest([['test' => 1]], $appID, $secretKey, true);
+        return $this->sendRequest([['test' => 1]], '', $appID, $secretKey, true);
     }
 
+    /**
+     * @param array $data
+     * @return mixed
+     * @throws LocalizedException
+     */
+    public function syncCustomer($data)
+    {
+        return $this->sendRequest($data, self::CUSTOMER_URL);
+    }
 }

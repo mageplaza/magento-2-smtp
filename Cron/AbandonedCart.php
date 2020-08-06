@@ -74,11 +74,10 @@ class AbandonedCart
 
     /**
      * AbandonedCart constructor.
-     *
      * @param StoreManagerInterface $storeManager
      * @param CollectionFactory $abandonedCartCollectionFactory
      * @param LoggerInterface $logger
-     * @param Data $helperData
+     * @param HelperAbandonedCart $helperAbandonedCart
      * @param QuoteCollectionFactory $quoteCollectionFactory
      * @param Random $random
      * @param ResourceAbandonedCart $resourceAbandonedCart
