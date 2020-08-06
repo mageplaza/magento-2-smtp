@@ -113,7 +113,7 @@
                 </group>
             </group>
             <group id="abandoned_cart" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Abandoned Cart Email</label>
+                <label>Email Marketing</label>
                 <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -123,6 +123,20 @@
                     <label>How to measure Abandoned Cart</label>
                     <comment><![CDATA[Time to define an abandoned cart. The unit is minute. Default value is 30.</br> Example: If we enter 30, then after 30 minutes, carts will be considered abandoned. The carts under 30 minutes will be considered as a real-time cart.]]></comment>
                     <validate>validate-digits validate-digits-range digits-range-0-1440</validate>
+                </field>
+                <field id="app_id" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>App ID</label>
+                    <comment><![CDATA[Create API key <a href="https://app.avada.io/manage/keys" target="_blank">here</a>.]]></comment>
+                </field>
+                <field id="secret_key" translate="label comment" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Secret key</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                </field>
+                <field id="test_connection" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label></label>
+                    <button_label>Test connection</button_label>
+                    <button_url>adminhtml/smtp/testconnection</button_url>
+                    <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\TestConnection</frontend_model>
                 </field>
             </group>
             <group id="developer" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
