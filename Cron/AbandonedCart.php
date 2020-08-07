@@ -26,7 +26,7 @@ use Magento\Framework\Math\Random;
 use Magento\Store\Model\StoreManagerInterface;
 use Mageplaza\Smtp\Model\ResourceModel\AbandonedCart\CollectionFactory;
 use Psr\Log\LoggerInterface;
-use Mageplaza\Smtp\Helper\Data;
+use Mageplaza\Smtp\Helper\AbandonedCart as HelperAbandonedCart ;
 use Magento\Quote\Model\ResourceModel\Quote\CollectionFactory as QuoteCollectionFactory;
 use Zend_Db_Expr;
 use Mageplaza\Smtp\Model\ResourceModel\AbandonedCart as ResourceAbandonedCart;
@@ -53,9 +53,9 @@ class AbandonedCart
     protected $logger;
 
     /**
-     * @var Data
+     * @var HelperAbandonedCart
      */
-    protected $helperData;
+    protected $helperAbandonedCart;
 
     /**
      * @var QuoteCollectionFactory
@@ -74,11 +74,10 @@ class AbandonedCart
 
     /**
      * AbandonedCart constructor.
-     *
      * @param StoreManagerInterface $storeManager
      * @param CollectionFactory $abandonedCartCollectionFactory
      * @param LoggerInterface $logger
-     * @param Data $helperData
+     * @param HelperAbandonedCart $helperAbandonedCart
      * @param QuoteCollectionFactory $quoteCollectionFactory
      * @param Random $random
      * @param ResourceAbandonedCart $resourceAbandonedCart
@@ -87,7 +86,7 @@ class AbandonedCart
         StoreManagerInterface $storeManager,
         CollectionFactory $abandonedCartCollectionFactory,
         LoggerInterface $logger,
-        Data $helperData,
+        HelperAbandonedCart $helperAbandonedCart,
         QuoteCollectionFactory $quoteCollectionFactory,
         Random $random,
         ResourceAbandonedCart $resourceAbandonedCart
@@ -95,7 +94,7 @@ class AbandonedCart
         $this->logger                         = $logger;
         $this->storeManager                   = $storeManager;
         $this->abandonedCartCollectionFactory = $abandonedCartCollectionFactory;
-        $this->helperData                     = $helperData;
+        $this->helperAbandonedCart            = $helperAbandonedCart;
         $this->quoteCollectionFactory         = $quoteCollectionFactory;
         $this->random                         = $random;
         $this->resourceAbandonedCart          = $resourceAbandonedCart;
@@ -107,10 +106,10 @@ class AbandonedCart
     public function execute()
     {
         foreach ($this->storeManager->getStores() as $store) {
-            if ($this->helperData->isEnableAbandonedCart($store->getId())) {
+            if ($this->helperAbandonedCart->isEnableAbandonedCart($store->getId())) {
                 $abandonedCartData = [];
                 try {
-                    $measure         = $this->helperData->getAbandonedCartConfig('measure', $store->getId());
+                    $measure         = $this->helperAbandonedCart->getAbandonedCartConfig('measure', $store->getId());
                     $quoteCollection = $this->quoteCollectionFactory->create()
                         ->addFieldToFilter('items_count', ['neq' => '0'])
                         ->addFieldToFilter('is_active', 1)
@@ -140,7 +139,9 @@ class AbandonedCart
                         );
 
                     if ($quoteCollection->getSize() > 0) {
+                        $quotes = [];
                         foreach ($quoteCollection->getItems() as $quote) {
+                            $quotes[$quote->getId()] = $quote;
                             $abandonedCartData[] = [
                                 'quote_id' => $quote->getId(),
                                 'token'    => $this->random->getUniqueHash(),
@@ -149,11 +150,28 @@ class AbandonedCart
                         }
 
                         $this->resourceAbandonedCart->insertAbandonedCart($abandonedCartData);
+
+                        /**
+                         * Ignore exception and continue insert abandoned cart data if sync error
+                         */
+                        $this->syncAbandonedCart($quotes);
                     }
                 } catch (Exception $e) {
                     $this->logger->critical($e);
                 }
             }
+        }
+    }
+
+    /**
+     * @param array $quotes
+     */
+    public function syncAbandonedCart($quotes)
+    {
+        try {
+            $this->helperAbandonedCart->syncAbandonedCart($quotes);
+        } catch (Exception $e) {
+            $this->logger->critical($e);
         }
     }
 }
