@@ -76,7 +76,8 @@ class CustomerSaveCommitAfter implements ObserverInterface
                     'lastName'     => $customer->getLastname(),
                     'phoneNumber'  => '',
                     'description'  => '',
-                    'isSubscriber' => $customer->getIsSubscribed()
+                    'isSubscriber' => $customer->getIsSubscribed(),
+                    'source'       => 'Magento',
                 ];
 
                 $this->helperAbandonedCart->syncCustomer($data);
