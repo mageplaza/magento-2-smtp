@@ -1,4 +1,4 @@
-# Magento 2 SMTP - Gmail, Amazon SES, Mailgun, SendGrid - AVADA Email Marketing Integration
+# Magento 2 SMTP - AVADA Email Marketing Integration
 
 Every day you send and receive so many even more hundreds of emails, however, you actually do not know whether they come to your targeted customers or not. Therefore, **Magento 2 SMTP Extension** is come out as the solution for this problem.
 
@@ -65,7 +65,9 @@ This feature allows admin test the [SMTP](https://github.com/magento-2/smtp) Set
 - Debug mode by SMTP email settings to test
 - Supports flexible servers
 - Check and preview sent emails
-
+- [NEW] Integration with AVADA Email Marketing
+- [NEW] Abandoned cart emails
+- [NEW] Welcome email to new subscribers, customers
 
 
 
