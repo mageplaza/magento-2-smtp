@@ -155,34 +155,6 @@ The Clean Email Log Every field limits the storage time for the email you sent. 
 	- No: Magento will deliver email to receiver
 
 
-
-
-
-
-**Mageplaza extensions on Magento Marketplace, Github**
-
-
-☞ [Magento 2 One Step Checkout extension](https://marketplace.magento.com/mageplaza-magento-2-one-step-checkout-extension.html)
-
-☞ [Magento 2 Blog extension Free](https://github.com/mageplaza/magento-2-blog)
-
-☞ [Magento 2 Layered Navigation Ultimate](https://www.mageplaza.com/magento-2-layered-navigation-extension/)
-
-☞ [Magento 2 Blog FREE](https://github.com/mageplaza/magento-2-blog)
-
-☞ [Magento 2 Social Login FREE](https://github.com/mageplaza/magento-2-social-login)
-
-☞ [Magento 2 SEO Suite FREE](https://github.com/mageplaza/magento-2-seo)
-
-☞ [Magento 2 Layered Navigation Free](https://github.com/mageplaza/magento-2-ajax-layered-navigation)
-
-☞ [Magento 2 SMTP FREE](https://github.com/mageplaza/magento-2-smtp) 
-
-☞ [Magento 2 Product Slider FREE](https://github.com/mageplaza/magento-2-product-slider)
-
-☞ [Magento 2 Slider FREE](https://github.com/mageplaza/magento-2-banner-slider)
-
-
 **People also search:**
 - mageplaza smtp
 - mageplaza smtp magento 2
