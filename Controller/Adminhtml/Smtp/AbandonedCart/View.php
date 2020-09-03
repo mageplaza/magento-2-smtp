@@ -23,10 +23,10 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\AbandonedCart;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\Math\Random;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Result\Page;
 use Magento\Framework\View\Result\PageFactory;
-use Mageplaza\Smtp\Model\AbandonedCartFactory;
 use Magento\Quote\Model\QuoteRepository;
 
 /**
@@ -41,16 +41,19 @@ class View extends Action
     protected $resultPageFactory;
 
     /**
-     * @var AbandonedCartFactory
-     */
-    protected $abandonedCartFactory;
-
-    /**
      * @var Registry
      */
     protected $registry;
 
+    /**
+     * @var QuoteRepository
+     */
     protected $quoteRepository;
+
+    /**
+     * @var Random
+     */
+    protected $random;
 
     /**
      * View constructor.
@@ -58,19 +61,20 @@ class View extends Action
      * @param Context $context
      * @param PageFactory $resultPageFactory
      * @param Registry $registry
-     * @param AbandonedCartFactory $abandonedCartFactory
+     * @param QuoteRepository $quoteRepository
+     * @param Random $random
      */
     public function __construct(
         Context $context,
         PageFactory $resultPageFactory,
         Registry $registry,
-        AbandonedCartFactory $abandonedCartFactory,
-        QuoteRepository $quoteRepository
+        QuoteRepository $quoteRepository,
+        Random $random
     ) {
         $this->resultPageFactory    = $resultPageFactory;
-        $this->abandonedCartFactory = $abandonedCartFactory;
         $this->registry             = $registry;
-        $this->quoteRepository = $quoteRepository;
+        $this->quoteRepository      = $quoteRepository;
+        $this->random               = $random;
 
         parent::__construct($context);
     }
@@ -80,27 +84,30 @@ class View extends Action
      */
     public function execute()
     {
-        $resultPage    = $this->resultPageFactory->create();
-        $id            = $this->getRequest()->getParam('id', 0);
-        $abandonedCart = $this->abandonedCartFactory->create();
-        $abandonedCart->load($id);
-
-        if ($abandonedCart->getId()) {
-            $quote                     = $this->quoteRepository->get($abandonedCart->getQuoteId());
-            $params                    = $this->getRequest()->getParams();
-            $params['quote_is_active'] = $quote->getIsActive();
-            $this->getRequest()->setParams($params);
-            if (!$abandonedCart->getStatus() && $quote->getIsActive()) {
-                $this->messageManager->addNoticeMessage(__('Cart recovery email is not sent to the customer yet.'));
-            }
-
-            /** @var Page $resultPage */
-            $resultPage->getConfig()->getTitle()->prepend(__('Abandoned Cart #%1', $abandonedCart->getId()));
-            $this->registry->register('abandonedCart', $abandonedCart);
-
-            return $resultPage;
+        $resultPage = $this->resultPageFactory->create();
+        $id         = $this->getRequest()->getParam('id', 0);
+        $quote      = $this->quoteRepository->get($id);
+        $isActive = (bool)$quote->getIsActive();
+        if (!$isActive) {
+            return $this->_redirect('reports/report_shopcart/abandoned');
         }
 
-        return $this->_redirect('adminhtml/smtp/abandonedcart');
+        if (!$quote->getData('mp_smtp_ace_token')) {
+            $quote->setData('mp_smtp_ace_token', $this->random->getUniqueHash())->save();
+        }
+
+        if ($quote->getIsActive()) {
+            $this->messageManager->addNoticeMessage(__('Cart recovery email is not sent to the customer yet.'));
+        }
+
+        $params                    = $this->getRequest()->getParams();
+        $params['quote_is_active'] = $quote->getIsActive();
+        $this->getRequest()->setParams($params);
+
+        /** @var Page $resultPage */
+        $resultPage->getConfig()->getTitle()->prepend(__('Abandoned Cart #%1', $quote->getId()));
+        $this->registry->register('quote', $quote);
+
+        return $resultPage;
     }
 }

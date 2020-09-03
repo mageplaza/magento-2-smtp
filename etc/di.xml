@@ -45,21 +45,10 @@
             <argument name="resourceModel" xsi:type="string">Mageplaza\Smtp\Model\ResourceModel\Log</argument>
         </arguments>
     </virtualType>
-
-    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
-        <arguments>
-            <argument name="collections" xsi:type="array">
-                <item name="mpsmtp_abandoned_cart_grid_data_source" xsi:type="string">Mageplaza\Smtp\Model\ResourceModel\AbandonedCart\Grid\Collection</item>
-            </argument>
-        </arguments>
-    </type>
-    <type name="Mageplaza\Smtp\Model\ResourceModel\AbandonedCart\Grid\Collection">
-        <arguments>
-            <argument name="mainTable" xsi:type="string">mageplaza_smtp_abandonedcart</argument>
-            <argument name="resourceModel" xsi:type="string">Mageplaza\Smtp\Model\ResourceModel\AbandonedCart</argument>
-        </arguments>
-    </type>
     <type name="Magento\Framework\Mail\Template\TransportBuilderByStore">
         <plugin name="mpsmtp_appTransportBuilder" type="Mageplaza\Smtp\Plugin\Message"/>
+    </type>
+    <type name="Magento\Reports\Block\Adminhtml\Shopcart\Abandoned\Grid">
+        <plugin name="mpsmtp_appTransportBuilder" type="Mageplaza\Smtp\Plugin\Shopcart\Abandoned\Grid"/>
     </type>
 </config>

@@ -21,6 +21,7 @@
 
 namespace Mageplaza\Smtp\Helper;
 
+use Exception;
 use Magento\Bundle\Helper\Catalog\Product\Configuration as BundleConfiguration;
 use Magento\Catalog\Helper\Data as CatalogHelper;
 use Magento\Catalog\Helper\Product\Configuration as CatalogConfiguration;
@@ -38,7 +39,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Store\Model\StoreManagerInterface;
-use Mageplaza\Smtp\Model\ResourceModel\AbandonedCart\CollectionFactory;
+use Magento\Quote\Model\ResourceModel\Quote as ResourceQuote;
 
 /**
  * Class AbandonedCart
@@ -46,7 +47,8 @@ use Mageplaza\Smtp\Model\ResourceModel\AbandonedCart\CollectionFactory;
  */
 class AbandonedCart extends Data
 {
-    const APP_URL             = 'https://app.avada.io/webhook/abandonedCart';
+    //const APP_URL             = 'https://app.avada.io/webhook/abandonedCart';
+    const APP_URL             = 'https://get-market-staging.firebaseapp.com/webhook/checkout/create';
     const CUSTOMER_URL        = 'https://app.avada.io/webhook/customer/create';
 
     /**
@@ -94,17 +96,23 @@ class AbandonedCart extends Data
     protected $_curl;
 
     /**
-     * @var
-     */
-    protected $collectionFactory;
-
-    /**
      * @var ProductRepository
      */
     protected $productRepository;
 
     /**
+     * @var ResourceQuote
+     */
+    protected $resourceQuote;
+
+    /**
+     * @var string
+     */
+    protected $url = '';
+
+    /**
      * AbandonedCart constructor.
+     *
      * @param Context $context
      * @param ObjectManagerInterface $objectManager
      * @param StoreManagerInterface $storeManager
@@ -116,6 +124,8 @@ class AbandonedCart extends Data
      * @param CatalogHelper $catalogHelper
      * @param EncryptorInterface $encryptor
      * @param Curl $curl
+     * @param ProductRepository $productRepository
+     * @param ResourceQuote $resourceQuote
      */
     public function __construct(
         Context $context,
@@ -129,8 +139,8 @@ class AbandonedCart extends Data
         CatalogHelper $catalogHelper,
         EncryptorInterface $encryptor,
         Curl $curl,
-        CollectionFactory $collectionFactory,
-        ProductRepository $productRepository
+        ProductRepository $productRepository,
+        ResourceQuote $resourceQuote
     ) {
         parent::__construct($context, $objectManager, $storeManager);
 
@@ -142,8 +152,16 @@ class AbandonedCart extends Data
         $this->catalogHelper              = $catalogHelper;
         $this->encryptor                  = $encryptor;
         $this->_curl                      = $curl;
-        $this->collectionFactory          = $collectionFactory;
-        $this->productRepository = $productRepository;
+        $this->resourceQuote              = $resourceQuote;
+        $this->productRepository          = $productRepository;
+    }
+
+    /**
+     * @return ResourceQuote
+     */
+    public function getResourceQuote()
+    {
+        return $this->resourceQuote;
     }
 
     /**
@@ -186,19 +204,18 @@ class AbandonedCart extends Data
     }
 
     /**
-     * @param string $token
      * @param Quote $quote
      *
      * @return string
      * @throws NoSuchEntityException
      */
-    public function getRecoveryUrl($token, Quote $quote)
+    public function getRecoveryUrl(Quote $quote)
     {
         $store       = $this->storeManager->getStore($quote->getStoreId());
         $routeParams = [
             '_current' => false,
             '_nosid'   => true,
-            'token'    => $token . '_' . base64_encode($quote->getId()),
+            'token'    => $quote->getMpSmtpAceToken() . '_' . base64_encode($quote->getId()),
             '_secure'  => $store->isUrlSecure()
         ];
         $this->frontendUrl->setScope($quote->getStoreId());
@@ -250,43 +267,58 @@ class AbandonedCart extends Data
     }
 
     /**
-     * @param array $quotes
+     * @param int $quoteId
+     *
+     * @return string
      * @throws LocalizedException
-     * @throws NoSuchEntityException
      */
-    public function syncAbandonedCart($quotes)
+    public function getQuoteUpdatedAt($quoteId)
     {
-        $quoteIds = array_keys($quotes);
-        if ($quoteIds && $this->getSecretKey() && $this->getAppID()) {
-            $aceCollection = $this->collectionFactory->create()->addFieldToFilter('quote_id', ['in' => $quoteIds]);
-            $aceData       = [];
-            foreach ($aceCollection->getItems() as $ace) {
-                $quote     = $quotes[$ace->getQuoteId()];
-                $aceData[] = [
-                    'checkoutId'        => $quote->getId(),
-                    'checkoutCompleted' => 'false',
-                    'customer'          => [
-                        'email'     => $quote->getCustomerEmail(),
-                        'name'      => $this->getCustomerName($quote),
-                        'firstName' => $quote->getCustomerFirstname(),
-                        'lastName'  => $quote->getCustomerLastname()
-                    ],
-                    'cartItems'         => $this->getCartItems($quote),
-                    'source'            => 'Magento',
-                    'currencyCode'      => $quote->getBaseCurrencyCode(),
-                    'cartCreateAt'      => $quote->getCreatedAt(),
-                    'cartUpdateAt'      => $quote->getUpdatedAt(),
-                    'recoverCartUrl'    => $this->getRecoveryUrl($ace->getToken(), $quote)
-                ];
+        $connection = $this->getResourceQuote()->getConnection();
+        $select     = $connection->select()->from($this->getResourceQuote()
+            ->getMainTable(), 'updated_at')
+            ->where('entity_id = :id');
 
-                if (count($aceData) === 100) {
-                    $this->sendRequest($aceData);
-                    $aceData = [];
-                }
-            }
+        return $connection->fetchOne($select, [':id' => $quoteId]);
+    }
 
-            $this->sendRequest($aceData);
+    /**
+     * @param Quote $quote
+     *
+     * @return array
+     * @throws NoSuchEntityException
+     * @throws LocalizedException
+     */
+    public function getACEData($quote)
+    {
+        $isActive         = (bool) $quote->getIsActive();
+        $quoteCompletedAt = null;
+        $updatedAt        = $this->getQuoteUpdatedAt($quote->getId());
+        if (!$isActive) {
+            $quoteCompletedAt = $updatedAt;
         }
+
+        return [
+            'id'           => (int)$quote->getId(),
+            'completed_at' => $quoteCompletedAt,
+            'customer'               => [
+                'id'         => (int)$quote->getCustomerId(),
+                'email'      => $quote->getCustomerEmail(),
+                'name'       => $this->getCustomerName($quote),
+                'first_name' => $quote->getCustomerFirstname(),
+                'last_name'  => $quote->getCustomerLastname()
+            ],
+            'line_items'             => $this->getCartItems($quote),
+            'currency'               => $quote->getStoreCurrencyCode(),
+            'presentment_currency'   => $quote->getStoreCurrencyCode(),
+            'created_at'             => $quote->getCreatedAt(),
+            'updated_at'             => $updatedAt,
+            'abandoned_checkout_url' => $this->getRecoveryUrl($quote),
+            'subtotal_price'         => $quote->getSubtotal(),
+            'total_price'            => $quote->getGrandTotal(),
+            'total_tax'              => !$quote->isVirtual() ? $quote->getShippingAddress()->getTaxAmount() : 0,
+            'customer_locale'        => null
+        ];
     }
 
     /**
@@ -303,48 +335,44 @@ class AbandonedCart extends Data
             }
 
             $productType = $item->getData('product_type');
-            $variant     = [];
             $bundleItems = [];
             $hasVariant  = $productType === 'configurable';
             $isBundle    = $productType === 'bundle';
+
+            $itemRequest = [
+                'title'        => $item->getName(),
+                'price'        => (float)$item->getPrice(),
+                'quantity'     => (int)$item->getQty(),
+                'sku'          => $item->getSku(),
+                'product_id'   => $item->getProductId(),
+                'image'        => $this->getProductImage($item->getProduct()),
+                'frontend_link' => $item->getProduct()->getProductUrl()
+            ];
+
             if ($item->getHasChildren()) {
                 foreach ($item->getChildren() as $child) {
                     if ($hasVariant) {
-                        $variant = [
-                            'title'        => $child->getName(),
-                            'productImage' => $this->getProductImage($child->getProduct()),
-                            'productId'    => $child->getProductId(),
-                            'sku'          => $child->getSku(),
-                        ];
+                        $itemRequest['variant_title'] = $child->getName();
+                        $itemRequest['variant_image'] = $this->getProductImage($child->getProduct());
+                        $itemRequest['variant_id']    = $child->getProductId();
+                        $itemRequest['variant_price'] = (float)$child->getPrice();
                     }
 
                     if ($isBundle) {
                         $bundleItems[] = [
-                            'title'        => $child->getName(),
-                            'productImage' => $this->getProductImage($child->getProduct()),
-                            'productId'    => $child->getProductId(),
-                            'sku'          => $child->getSku(),
-                            'quantity'     => $child->getQty(),
-                            'price'        => (float)$child->getPrice(),
+                            'title'      => $child->getName(),
+                            'image'      => $this->getProductImage($child->getProduct()),
+                            'product_id' => $child->getProductId(),
+                            'sku'        => $child->getSku(),
+                            'quantity'   => (int)$child->getQty(),
+                            'price'      => (float)$child->getPrice(),
                         ];
                     }
                 }
             }
 
-            $items[] = [
-                'title'        => $item->getName(),
-                'price'        => (float)$item->getPrice(),
-                'currency'     => $this->formatPrice($item->getPrice(), $item->getStoreId()),
-                'quantity'     => $item->getQty(),
-                'vendor'       => '',
-                'sku'          => $item->getSku(),
-                'productId'    => $item->getProductId(),
-                'productImage' => $this->getProductImage($item->getProduct()),
-                'isBundle'     => $isBundle,
-                'hasVariant'   => $hasVariant,
-                'variant'      => $variant,
-                'bundleItems'  => $bundleItems
-            ];
+            $itemRequest['bundle_items'] = $bundleItems;
+            $items[] = $itemRequest;
         }
 
         return $items;
@@ -390,23 +418,8 @@ class AbandonedCart extends Data
      */
     public function sendRequest($data, $url = '', $appID = '', $secretKey = '', $isTest = false)
     {
-        if (!$url) {
-            $url = self::APP_URL;
-        }
-
-        $body          = self::jsonEncode(['data' => $data]);
-        $secretKey     = $secretKey ?: $this->getSecretKey();
-        $generatedHash = base64_encode(hash_hmac('sha256', $body, $secretKey, true));
-        $appID         = $appID ?: $this->getAppID();
-
-        $this->_curl->setHeaders([
-                                     'Content-Type'                     => 'application/json',
-                                     'X-EmailMarketing-Hmac-Sha256'     => $generatedHash,
-                                     'X-EmailMarketing-App-Id'          => $appID,
-                                     'X-EmailMarketing-Connection-Test' => $isTest
-                                 ]);
-
-        $this->_curl->post($url, $body);
+        $body = $this->setHeaders($data, $url, $appID, $secretKey, $isTest);
+        $this->_curl->post($this->url, $body);
         $body     = $this->_curl->getBody();
         $bodyData = self::jsonDecode($body);
         if (!isset($bodyData['success']) || !$bodyData['success']) {
@@ -414,6 +427,55 @@ class AbandonedCart extends Data
         }
 
         return $bodyData;
+    }
+
+    /**
+     * @param array $data
+     * @param string $url
+     * @param string $appID
+     * @param string $secretKey
+     * @param bool $isTest
+     *
+     * @return string
+     */
+    public function setHeaders($data, $url = '', $appID = '', $secretKey = '', $isTest = false)
+    {
+        if (!$url) {
+            $url = self::APP_URL;
+        }
+
+        $this->url = $url;
+
+        $body          = self::jsonEncode(['data' => $data]);
+        $secretKey     = $secretKey ?: $this->getSecretKey();
+        $generatedHash = base64_encode(hash_hmac('sha256', $body, $secretKey, true));
+        $appID         = $appID ?: $this->getAppID();
+
+        $this->_curl->setHeaders([
+            'Content-Type'                     => 'application/json',
+            'X-EmailMarketing-Hmac-Sha256'     => $generatedHash,
+            'X-EmailMarketing-App-Id'          => $appID,
+            'X-EmailMarketing-Connection-Test' => $isTest
+        ]);
+
+        return $body;
+    }
+
+    /**
+     * @param array $data
+     * @param string $url
+     * @param string $appID
+     * @param string $secretKey
+     */
+    public function sendRequestWithoutWaitResponse($data, $url = '', $appID = '', $secretKey = '')
+    {
+        try {
+            $body = $this->setHeaders($data, $url, $appID, $secretKey);
+            $this->_curl->setOption(CURLOPT_TIMEOUT_MS, 500);
+            $this->_curl->post($this->url, $body);
+        } catch (Exception $e) {
+            // Ignore exception timeout
+        }
     }
 
     /**

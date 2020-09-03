@@ -119,11 +119,6 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Select Yes to enable this feature.</comment>
                 </field>
-                <field id="measure" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>How to measure Abandoned Cart</label>
-                    <comment><![CDATA[Time to define an abandoned cart. The unit is minute. Default value is 30.</br> Example: If we enter 30, then after 30 minutes, carts will be considered abandoned. The carts under 30 minutes will be considered as a real-time cart.]]></comment>
-                    <validate>validate-digits validate-digits-range digits-range-0-1440</validate>
-                </field>
                 <field id="app_id" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>App ID</label>
                     <comment><![CDATA[Create API key <a href="https://app.avada.io/manage/keys" target="_blank">here</a>.]]></comment>

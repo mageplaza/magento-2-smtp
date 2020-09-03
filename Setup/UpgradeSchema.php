@@ -133,6 +133,35 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $setup->getConnection()->createTable($table);
         }
 
+        if (version_compare($context->getVersion(), '1.2.1', '<')) {
+
+            $connection->addColumn($setup->getTable('quote'), 'mp_smtp_ace_token', [
+                'type'     => Table::TYPE_TEXT,
+                'nullable' => true,
+                'length'   => 255,
+                'comment'  => 'ACE Token'
+            ]);
+            $connection->addColumn($setup->getTable('quote'), 'mp_smtp_ace_sent', [
+                'type'     => Table::TYPE_SMALLINT,
+                'nullable' => true,
+                'length'   => null,
+                'default'  => 0,
+                'comment'  => 'ACE Sent'
+            ]);
+            $connection->addColumn($setup->getTable('quote'), 'mp_smtp_ace_log_ids', [
+                'type'     => Table::TYPE_TEXT,
+                'nullable' => true,
+                'length'   => '64k',
+                'comment'  => 'ACE Log Ids'
+            ]);
+            $connection->addColumn($setup->getTable('quote'), 'mp_smtp_ace_log_data', [
+                'type'     => Table::TYPE_TEXT,
+                'nullable' => true,
+                'length'   => '64k',
+                'comment'  => 'ACE Log Data'
+            ]);
+        }
+
         $setup->endSetup();
     }
 }

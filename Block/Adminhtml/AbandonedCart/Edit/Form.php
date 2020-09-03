@@ -20,6 +20,7 @@
  */
 namespace Mageplaza\Smtp\Block\Adminhtml\AbandonedCart\Edit;
 
+use Exception;
 use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Block\Widget\Form\Generic;
 use Magento\Customer\Model\Address\Config as AddressConfig;
@@ -37,6 +38,7 @@ use Magento\Config\Model\Config\Source\Email\Template;
 use Magento\Tax\Model\Config as TaxConfig;
 use Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory as LogCollectionFactory;
 use Mageplaza\Smtp\Helper\AbandonedCart;
+use Magento\Customer\Api\GroupRepositoryInterface;
 
 /**
  * Class Form
@@ -90,6 +92,13 @@ class Form extends Generic
     protected $helperAbandonedCart;
 
     /**
+     * Group service
+     *
+     * @var GroupRepositoryInterface
+     */
+    protected $groupRepository;
+
+    /**
      * Form constructor.
      *
      * @param Context $context
@@ -102,6 +111,7 @@ class Form extends Generic
      * @param TaxConfig $taxConfig
      * @param LogCollectionFactory $logCollectionFactory
      * @param AbandonedCart $helperAbandonedCart
+     * @param GroupRepositoryInterface $groupRepository
      * @param array $data
      */
     public function __construct(
@@ -115,6 +125,7 @@ class Form extends Generic
         TaxConfig $taxConfig,
         LogCollectionFactory $logCollectionFactory,
         AbandonedCart $helperAbandonedCart,
+        GroupRepositoryInterface $groupRepository,
         array $data = []
     ) {
         $this->addressConfig               = $addressConfig;
@@ -124,6 +135,7 @@ class Form extends Generic
         $this->taxConfig                   = $taxConfig;
         $this->logCollectionFactory        = $logCollectionFactory;
         $this->helperAbandonedCart         = $helperAbandonedCart;
+        $this->groupRepository = $groupRepository;
 
         parent::__construct($context, $registry, $formFactory, $data);
     }
@@ -251,7 +263,7 @@ class Form extends Generic
      */
     public function getQuote()
     {
-        return $this->getModel()->getQuote();
+        return $this->_coreRegistry->registry('quote');
     }
 
     /**
@@ -386,5 +398,21 @@ class Form extends Generic
         }
 
         return $formatType->getRenderer()->renderArray($address->getData());
+    }
+
+    /**
+     * @return string
+     */
+    public function getCustomerGroupName($customerGroupId)
+    {
+        if ($customerGroupId !== null) {
+            try {
+                return $this->groupRepository->getById($customerGroupId)->getCode();
+            } catch (Exception $e) {
+                return '';
+            }
+        }
+
+        return '';
     }
 }

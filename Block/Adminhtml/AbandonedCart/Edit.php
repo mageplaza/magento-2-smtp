@@ -39,7 +39,7 @@ class Edit extends Container
         $this->buttonList->remove('delete');
         $this->buttonList->remove('save');
 
-        if($this->getRequest()->getParam('quote_is_active')){
+        if ($this->getRequest()->getParam('quote_is_active')) {
             $this->addButton(
                 'send',
                 [
@@ -58,6 +58,6 @@ class Edit extends Container
      */
     public function getBackUrl()
     {
-        return $this->getUrl('adminhtml/smtp/abandonedcart');
+        return $this->getUrl('reports/report_shopcart/abandoned');
     }
 }
