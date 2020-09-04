@@ -293,16 +293,20 @@ class AbandonedCart extends Data
     {
         $isActive         = (bool) $quote->getIsActive();
         $quoteCompletedAt = null;
-        $updatedAt        = $this->getQuoteUpdatedAt($quote->getId());
+        $updatedAt = $this->getQuoteUpdatedAt($quote->getId());
+
+        //first time created is the same updated
+        $createdAt = $quote->getCreatedAt() ?: $updatedAt;
         if (!$isActive) {
             $quoteCompletedAt = $updatedAt;
         }
 
         return [
-            'id'           => (int)$quote->getId(),
-            'completed_at' => $quoteCompletedAt,
+            'id'                     => (int) $quote->getId(),
+            'email'                  => $quote->getCustomerEmail(),
+            'completed_at'           => $quoteCompletedAt,
             'customer'               => [
-                'id'         => (int)$quote->getCustomerId(),
+                'id'         => (int) $quote->getCustomerId(),
                 'email'      => $quote->getCustomerEmail(),
                 'name'       => $this->getCustomerName($quote),
                 'first_name' => $quote->getCustomerFirstname(),
@@ -311,7 +315,7 @@ class AbandonedCart extends Data
             'line_items'             => $this->getCartItems($quote),
             'currency'               => $quote->getStoreCurrencyCode(),
             'presentment_currency'   => $quote->getStoreCurrencyCode(),
-            'created_at'             => $quote->getCreatedAt(),
+            'created_at'             => $createdAt,
             'updated_at'             => $updatedAt,
             'abandoned_checkout_url' => $this->getRecoveryUrl($quote),
             'subtotal_price'         => $quote->getSubtotal(),
@@ -340,13 +344,14 @@ class AbandonedCart extends Data
             $isBundle    = $productType === 'bundle';
 
             $itemRequest = [
-                'title'        => $item->getName(),
-                'price'        => (float)$item->getPrice(),
-                'quantity'     => (int)$item->getQty(),
-                'sku'          => $item->getSku(),
-                'product_id'   => $item->getProductId(),
-                'image'        => $this->getProductImage($item->getProduct()),
-                'frontend_link' => $item->getProduct()->getProductUrl()
+                'title'         => $item->getName(),
+                'price'         => (float) $item->getPrice(),
+                'quantity'      => (int) $item->getQty(),
+                'sku'           => $item->getSku(),
+                'product_id'    => $item->getProductId(),
+                'image'         => $this->getProductImage($item->getProduct()),
+                'frontend_link' => $item->getProduct()->getProductUrl(),
+                'line_price'    => $item->getRowTotal()
             ];
 
             if ($item->getHasChildren()) {

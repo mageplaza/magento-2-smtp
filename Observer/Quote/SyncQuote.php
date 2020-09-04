@@ -69,7 +69,7 @@ class SyncQuote implements ObserverInterface
             try {
                 /* @var \Magento\Quote\Model\Quote $quote */
                 $quote = $observer->getEvent()->getQuote();
-                if ($quote->getId() && $quote->getCustomerEmail()) {
+                if ($quote->getId()) {
 
                     $ACEData    = $this->helperAbandonedCart->getACEData($quote);
                     $oldACEData = $quote->getData('mp_smtp_ace_log_data') ?
