@@ -96,16 +96,6 @@
                 </item>
             </argument>
         </selectionsColumn>
-        <column name="id">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="filter" xsi:type="string">textRange</item>
-                    <item name="sorting" xsi:type="string">asc</item>
-                    <item name="label" xsi:type="string" translate="true">ID</item>
-                    <item name="sortOrder" xsi:type="number">10</item>
-                </item>
-            </argument>
-        </column>
         <column name="store_id" class="Magento\Store\Ui\Component\Listing\Column\Store">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -149,7 +139,7 @@
                 </item>
             </argument>
         </column>
-        <column name="status">
+        <column name="mp_smtp_ace_sent">
             <argument name="data" xsi:type="array">
                 <item name="options" xsi:type="object">Mageplaza\Smtp\Model\Source\AbandonedCartStatus</item>
                 <item name="config" xsi:type="array">

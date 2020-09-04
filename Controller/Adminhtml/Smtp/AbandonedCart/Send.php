@@ -32,7 +32,6 @@ use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Registry;
 use Magento\Quote\Model\QuoteRepository;
 use Magento\Framework\View\Result\Page;
-use Mageplaza\Smtp\Model\AbandonedCartFactory;
 use Psr\Log\LoggerInterface;
 use Mageplaza\Smtp\Helper\AbandonedCart;
 
@@ -42,11 +41,6 @@ use Mageplaza\Smtp\Helper\AbandonedCart;
  */
 class Send extends Action
 {
-    /**
-     * @var AbandonedCartFactory
-     */
-    protected $abandonedCartFactory;
-
     /**
      * @var QuoteRepository
      */
@@ -91,7 +85,6 @@ class Send extends Action
      * Send constructor.
      *
      * @param Context $context
-     * @param AbandonedCartFactory $abandonedCartFactory
      * @param QuoteRepository $quoteRepository
      * @param AreaList $areaList
      * @param Template $emailTemplate
@@ -103,7 +96,6 @@ class Send extends Action
      */
     public function __construct(
         Context $context,
-        AbandonedCartFactory $abandonedCartFactory,
         QuoteRepository $quoteRepository,
         AreaList $areaList,
         Template $emailTemplate,
@@ -113,7 +105,6 @@ class Send extends Action
         Registry $registry,
         AbandonedCart $helperAbandonedCart
     ) {
-        $this->abandonedCartFactory = $abandonedCartFactory;
         $this->quoteRepository      = $quoteRepository;
         $this->logger               = $logger;
         $this->emailTemplate        = $emailTemplate;
@@ -131,18 +122,10 @@ class Send extends Action
      */
     public function execute()
     {
-        $id            = $this->getRequest()->getParam('id', 0);
-        $abandonedCart = $this->abandonedCartFactory->create();
-        $abandonedCart->load($id);
-
-        if (!$abandonedCart->getId()) {
-            $this->messageManager->addErrorMessage(__('Invalid abandoned cart'));
-
-            return $this->_redirect('adminhtml/smtp/abandonedcart');
-        }
+        $id = $this->getRequest()->getParam('id', 0);
 
         try {
-            $quote         = $this->quoteRepository->get($abandonedCart->getQuoteId());
+            $quote         = $this->quoteRepository->get($id);
             $customerEmail = $quote->getCustomerEmail();
             $customerName  = $this->helperAbandonedCart->getCustomerName($quote);
 
@@ -150,7 +133,7 @@ class Send extends Action
             $templateId        = $this->getRequest()->getParam('email_template');
             $additionalMessage = $this->getRequest()->getParam('additional_message');
             $from              = $this->senderResolver->resolve($from, $quote->getStoreId());
-            $recoveryUrl       = $this->helperAbandonedCart->getRecoveryUrl($abandonedCart->getToken(), $quote);
+            $recoveryUrl       = $this->helperAbandonedCart->getRecoveryUrl($quote);
 
             $vars = [
                 'quote_id'           => $quote->getId(),
@@ -169,7 +152,7 @@ class Send extends Action
                 ->setTemplateVars($vars)
                 ->getTransport();
 
-            $this->registry->register('smtp_abandoned_cart', $abandonedCart);
+            $this->registry->register('smtp_abandoned_cart', $quote);
             $transport->sendMessage();
             $this->messageManager->addSuccessMessage(__('Cart recovery email was sent to the customer successfully!'));
 

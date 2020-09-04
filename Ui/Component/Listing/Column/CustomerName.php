@@ -85,7 +85,7 @@ class CustomerName extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as &$item) {
-                $quoteId      = $item['quote_id'];
+                $quoteId      = $item['entity_id'];
                 $quote        = $this->quoteFactory->create()->load($quoteId);
                 $customerName = $this->abandonedCartHelper->getCustomerName($quote);
                 if ($quote->getCustomerId()) {

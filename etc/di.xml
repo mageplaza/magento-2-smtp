@@ -45,7 +45,9 @@
             <argument name="resourceModel" xsi:type="string">Mageplaza\Smtp\Model\ResourceModel\Log</argument>
         </arguments>
     </virtualType>
-
+    <type name="Magento\Framework\Mail\Template\TransportBuilderByStore">
+        <plugin name="mpsmtp_appTransportBuilder" type="Mageplaza\Smtp\Plugin\Message"/>
+    </type>
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
             <argument name="collections" xsi:type="array">
@@ -55,11 +57,8 @@
     </type>
     <type name="Mageplaza\Smtp\Model\ResourceModel\AbandonedCart\Grid\Collection">
         <arguments>
-            <argument name="mainTable" xsi:type="string">mageplaza_smtp_abandonedcart</argument>
-            <argument name="resourceModel" xsi:type="string">Mageplaza\Smtp\Model\ResourceModel\AbandonedCart</argument>
+            <argument name="mainTable" xsi:type="string">quote</argument>
+            <argument name="resourceModel" xsi:type="string">Magento\Quote\Model\ResourceModel\Quote</argument>
         </arguments>
-    </type>
-    <type name="Magento\Framework\Mail\Template\TransportBuilderByStore">
-        <plugin name="mpsmtp_appTransportBuilder" type="Mageplaza\Smtp\Plugin\Message"/>
     </type>
 </config>

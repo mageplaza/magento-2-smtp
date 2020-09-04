@@ -34,30 +34,11 @@ class Collection extends SearchResult
      */
     public function _initSelect()
     {
-        $quoteTable = $this->getResource()->getTable('quote');
-        $quoteField =  [
-            'store_id',
-            'customer_id',
-            'customer_group_id',
-            'customer_email',
-            'customer_firstname',
-            'customer_lastname'
-        ];
         $this->getSelect()
-            ->from(
-                ['main_table' => $this->getMainTable()]
-            )
-            ->join(
-                ['quote' => $quoteTable],
-                'quote.entity_id = main_table.quote_id',
-                $quoteField
-            );
-
-        $this->addFilterToMap('created_at', 'main_table.created_at');
-
-        foreach ($quoteField as $column) {
-            $this->addFilterToMap($column, 'quote.' . $column);
-        }
+            ->from(['main_table' => $this->getMainTable()])
+            ->where('main_table.is_active = ?', 1)
+            ->where('main_table.customer_email != ?', null)
+            ->where('main_table.items_count != ?', 0);
 
         return $this;
     }

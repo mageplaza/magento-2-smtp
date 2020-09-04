@@ -24,8 +24,5 @@
         <job name="mageplaza_smtp_clear_log" instance="Mageplaza\Smtp\Cron\ClearLog" method="execute">
             <schedule>0 0 * * *</schedule>
         </job>
-        <job name="mageplaza_smtp_abandonedcart" instance="Mageplaza\Smtp\Cron\AbandonedCart" method="execute">
-            <schedule>* * * * *</schedule>
-        </job>
     </group>
 </config>

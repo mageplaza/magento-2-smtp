@@ -24,7 +24,7 @@
  */
 $abandonedCart = $block->getModel();
 
-$quote = $abandonedCart->getQuote();
+$quote = $block->getQuote();
 $store = $quote->getStore();
 
 $customerName = $block->getHelperAbandonedCart()->getCustomerName($quote);
@@ -37,7 +37,7 @@ $storeDate = $this->formatDate(
 );
 
 $previewUrl = $block->getUrl('adminhtml/smtp_abandonedcart/preview', ['_current' => true]);
-$sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $abandonedCart->getId()]);
+$sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $quote->getId()]);
 ?>
 <div class="entry-edit form-inline" id="smtp-abandoned-cart">
     <div class="entry-edit form-inline">
@@ -56,7 +56,7 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $abandon
                 </label>
                 <div class="admin__field-control control">
                     <div id="recovery_link" class="control-value admin__field-value">
-                       <span> <?= $block->escapeUrl($block->getHelperAbandonedCart()->getRecoveryUrl($abandonedCart->getToken(), $quote)) ?></span>
+                       <span> <?= $block->escapeUrl($block->getHelperAbandonedCart()->getRecoveryUrl($quote)) ?></span>
                         <div class="tooltip">
                             <a id="copy" style="cursor: pointer"><?= $block->escapeHtml(__('Copy link')) ?></a>
                             <span class="tooltip-text" id="link-tooltip"><?= $block->escapeHtml(__('Copy to clipboard')) ?> </span>
@@ -71,7 +71,7 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $abandon
                     <span><?= $block->escapeHtml(__('Cart Recovery Email Status')) ?></span>
                 </label>
                 <div class="admin__field-control control">
-                    <div id="status" class="control-value admin__field-value"><?= /* @noEscape */ $block->getStatus($abandonedCart->getStatus()) ?></div>
+                    <div id="status" class="control-value admin__field-value"><?= /* @noEscape */ $block->getStatus($quote->getMpSmtpAceSent()) ?></div>
                 </div>
             </div>
             <div class="admin__field field field-log with-note" >
@@ -79,7 +79,7 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $abandon
                     <span><?= $block->escapeHtml(__('Sent Date Logs')) ?></span>
                 </label>
                 <div class="admin__field-control control">
-                    <?=  /* @noEscape */ $block->getSentDateLogs($abandonedCart->getLogIds()) ?>
+                    <?=  /* @noEscape */ $block->getSentDateLogs($quote->getMpSmtpAceLogIds()) ?>
                     <div class="note admin__field-note" id="log-note"><?= $block->escapeHtml(__('View all email logs ')) ?>
                         <a target="_blank" href="<?= $block->escapeUrl($block->getUrl('adminhtml/smtp/log')) ?>"><?= $block->escapeHtml(__('here')) ?></a>
                     </div>
@@ -152,7 +152,7 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $abandon
                 </label>
                 <div class="admin__field-control control">
                     <div id="customer_group" class="control-value admin__field-value">
-                        <?= /* @noEscape */ $abandonedCart->getCustomerGroupName() ?>
+                        <?= /* @noEscape */ $block->getCustomerGroupName($quote->getCustomerGroupId()) ?>
                     </div>
                 </div>
             </div>
@@ -392,7 +392,7 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $abandon
                 "preview_url": "<?= $block->escapeUrl($previewUrl) ?>",
                 "send_url": "<?= $block->escapeUrl($sendUrl) ?>",
                 "quote_id": "<?= /* @noEscape */ $quote->getId() ?>",
-                "customer_name": "<?= $customerName ?>",
+                "customer_name": "<?= /* @noEscape */ $customerName ?>",
                 "copied_message": "<?= $block->escapeHtml(__('Copied the link')) ?>",
                 "tooltip": "<?= $block->escapeHtml(__('Copy to clipboard')) ?>"
             }

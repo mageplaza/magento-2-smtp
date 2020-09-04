@@ -39,7 +39,7 @@ class Edit extends Container
         $this->buttonList->remove('delete');
         $this->buttonList->remove('save');
 
-        if($this->getRequest()->getParam('quote_is_active')){
+        if ($this->getRequest()->getParam('quote_is_active')) {
             $this->addButton(
                 'send',
                 [
