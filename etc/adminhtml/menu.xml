@@ -24,6 +24,6 @@
         <add id="Mageplaza_Smtp::smtp" title="SMTP" module="Mageplaza_Smtp" sortOrder="45" resource="Mageplaza_Smtp::smtp" parent="Magento_Backend::stores"/>
         <add id="Mageplaza_Smtp::log" title="Email Logs" module="Mageplaza_Smtp" sortOrder="10" parent="Mageplaza_Smtp::smtp" action="adminhtml/smtp/log" resource="Mageplaza_Smtp::log"/>
         <add id="Mageplaza_Smtp::configuration" title="Configuration" module="Mageplaza_Smtp" sortOrder="100" action="adminhtml/system_config/edit/section/smtp" resource="Mageplaza_Smtp::configuration" parent="Mageplaza_Smtp::smtp"/>
-        <add id="Mageplaza_Smtp::abandoned_cart" title="Abandoned Carts" module="Mageplaza_Smtp" sortOrder="80" parent="Magento_Sales::sales_operation" action="reports/report_shopcart/abandoned" resource="Mageplaza_Smtp::abandoned_cart"/>
+        <add id="Mageplaza_Smtp::abandoned_cart" title="Abandoned Carts" module="Mageplaza_Smtp" sortOrder="80" parent="Magento_Sales::sales_operation" action="adminhtml/smtp/abandonedcart" resource="Mageplaza_Smtp::abandoned_cart"/>
     </menu>
 </config>

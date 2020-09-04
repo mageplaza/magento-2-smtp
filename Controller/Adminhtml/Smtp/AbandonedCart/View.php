@@ -89,7 +89,7 @@ class View extends Action
         $quote      = $this->quoteRepository->get($id);
         $isActive = (bool)$quote->getIsActive();
         if (!$isActive) {
-            return $this->_redirect('reports/report_shopcart/abandoned');
+            return $this->_redirect('adminhtml/smtp/abandonedcart');
         }
 
         if (!$quote->getData('mp_smtp_ace_token')) {

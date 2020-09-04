@@ -58,6 +58,6 @@ class Edit extends Container
      */
     public function getBackUrl()
     {
-        return $this->getUrl('reports/report_shopcart/abandoned');
+        return $this->getUrl('adminhtml/smtp/abandonedcart');
     }
 }

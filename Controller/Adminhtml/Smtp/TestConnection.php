@@ -68,7 +68,7 @@ class TestConnection extends Action
                 'status'  => true,
                 'content' => __('Email marketing connection is working properly.')
             ];
-            $appID     = $this->getRequest()->getParam('appID');
+            $appID     = trim($this->getRequest()->getParam('appID'));
             $secretKey = $this->getRequest()->getParam('secretKey');
             $this->helperAbandonedCart->testConnection($appID, $secretKey);
 
