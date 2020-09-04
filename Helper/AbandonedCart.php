@@ -47,8 +47,8 @@ use Magento\Quote\Model\ResourceModel\Quote as ResourceQuote;
  */
 class AbandonedCart extends Data
 {
-    //const APP_URL             = 'https://app.avada.io/webhook/abandonedCart';
-    const APP_URL             = 'https://get-market-staging.firebaseapp.com/webhook/checkout/create';
+    const APP_URL             = 'https://app.avada.io/webhook/checkout/create';
+//    const APP_URL             = 'https://get-market-staging.firebaseapp.com/webhook/checkout/create';
     const CUSTOMER_URL        = 'https://app.avada.io/webhook/customer/create';
 
     /**
