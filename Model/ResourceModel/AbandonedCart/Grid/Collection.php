@@ -34,8 +34,9 @@ class Collection extends SearchResult
      */
     public function _initSelect()
     {
+        parent::_initSelect();
+
         $this->getSelect()
-            ->from(['main_table' => $this->getMainTable()])
             ->where('main_table.is_active = ?', 1)
             ->where('main_table.customer_email != ?', null)
             ->where('main_table.items_count != ?', 0);
