@@ -406,7 +406,11 @@ class AbandonedCart extends Data
     public function getProductImage($product)
     {
         $baseUrl  = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
-        $imageUrl = $baseUrl . 'catalog/product' . $product->getSmallImage();
+        $image = $product->getSmallImage();
+        if ($image[0] !== '/') {
+            $image = '/' . $image;
+        }
+        $imageUrl = $baseUrl . 'catalog/product' . $image;
 
         return str_replace('\\', '/', $imageUrl);
     }
