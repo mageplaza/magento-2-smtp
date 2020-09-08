@@ -332,7 +332,7 @@ class AbandonedCart extends Data
     public function getCartItems(Quote $quote)
     {
         $items = [];
-        foreach ($quote->getItemsCollection() as $item) {
+        foreach ($quote->getAllItems() as $item) {
             if ($item->getParentItemId()) {
                 continue;
             }
