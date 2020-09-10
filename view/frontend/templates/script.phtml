@@ -1,0 +1,26 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Smtp
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+$shopId = $block->getHelperAbandonedCart()->getAppID();
+?>
+<!-- BEGIN MAGEPLAZA SMTP SCRIPT-->
+<script data-cfasync="false" type="text/javascript">const date=new Date,params=new URL(document.location).searchParams;"true"===params.get("isEmCheckout")&&params.get("token")&&(localStorage.getItem("avada-em-converted")&&localStorage.removeItem("avada-em-converted"),localStorage.setItem("avada-em-converted",JSON.stringify({token:params.get("token"),expiredAt:date.setHours(date.getHours()+72)})),params.get("redirectUrl")&&window.location.replace(params.get("redirectUrl")));const sdk=document.createElement("script");sdk.type="text/javascript",sdk.async=!0,sdk.src="https://app.avada.io/scripttag/avada-email-marketing.min.js?shopId=<?=  /* @noEscape */ $shopId ?>";const currentScript=document.getElementsByTagName("script")[0];currentScript.parentNode.insertBefore(sdk,currentScript);</script>
+<!-- END MAGEPLAZA SMTP SCRIPT-->
