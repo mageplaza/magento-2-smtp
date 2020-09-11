@@ -28,17 +28,45 @@ $isSuccessPage = $block->isSuccessPage();
 ?>
 <!-- BEGIN MAGEPLAZA SMTP SCRIPT-->
 <?php if ($isSuccessPage && $block->getCurrentOrder()) {
-    $order        = $block->getCurrentOrder();
-    $grandTotal   = $order->getGrandTotal();
+    $order = $block->getCurrentOrder();
+    $grandTotal = $order->getGrandTotal();
     $currencyCode = $order->getOrderCurrencyCode();
-    $checkoutId   = $order->getQuoteId();
-    $email        = $order->getCustomerEmail();
+    $checkoutId = $order->getQuoteId();
+    $email = $order->getCustomerEmail();
 
     ?>
-    <script data-cfasync="false" type="text/javascript">var AVADA_EM={vendor:"magento",checkout:{revenue:"<?=  /* @noEscape */ $grandTotal ?>",currency:"<?=  /* @noEscape */ $currencyCode ?>",checkoutId:"<?=  /* @noEscape */ $checkoutId ?>",checkoutEmail:"<?=  /* @noEscape */ $email ?>"}};</script>
-<?php } else { ?>
-
-    <script data-cfasync="false" type="text/javascript">const date=new Date,params=new URL(document.location).searchParams;"true"===params.get("isEmCheckout")&&params.get("token")&&(localStorage.getItem("avada-em-converted")&&localStorage.removeItem("avada-em-converted"),localStorage.setItem("avada-em-converted",JSON.stringify({token:params.get("token"),expiredAt:date.setHours(date.getHours()+72)})),params.get("redirectUrl")&&window.location.replace(params.get("redirectUrl")));const sdk=document.createElement("script");sdk.type="text/javascript",sdk.async=!0,sdk.src="https://app.avada.io/scripttag/avada-email-marketing.min.js?shopId=<?=  /* @noEscape */ $shopId ?>";const currentScript=document.getElementsByTagName("script")[0];currentScript.parentNode.insertBefore(sdk,currentScript);</script>
-
+    <script data-cfasync="false" type="text/javascript">
+        var AVADA_EM = {
+            vendor: "magento",
+            checkout: {
+                revenue: "<?=  /* @noEscape */ $grandTotal ?>",
+                currency: "<?=  /* @noEscape */ $currencyCode ?>",
+                checkoutId: "<?=  /* @noEscape */ $checkoutId ?>",
+                checkoutEmail: "<?=  /* @noEscape */ $email ?>"
+            }
+        };
+    </script>
 <?php } ?>
+<script data-cfasync="false" type="text/javascript">
+    var EM_date = new Date();
+    var EM_params = new URL(document.location).searchParams;
+
+    if (EM_params.get('isEmCheckout') === 'true' && EM_params.get('token')) {
+        if (localStorage.getItem('avada-em-converted')) {
+            localStorage.removeItem('avada-em-converted');
+        }
+        localStorage.setItem('avada-em-converted', JSON.stringify({
+            token: EM_params.get('token'),
+            expiredAt: EM_date.setHours(EM_date.getHours() + 24 * 3)
+        }));
+        if (EM_params.get('redirectUrl')) {
+            window.location.replace(EM_params.get('redirectUrl'));
+        }
+    }
+
+    var EM_script = document.createElement("script");
+    (EM_script.type = "text/javascript"), (EM_script.async = !0), (EM_script.src = "https://app.avada.io/scripttag/avada-email-marketing.min.js");
+    var EM_firstScript = document.getElementsByTagName("script")[0];
+    EM_firstScript.parentNode.insertBefore(EM_script, EM_firstScript);
+</script>
 <!-- END MAGEPLAZA SMTP SCRIPT-->
