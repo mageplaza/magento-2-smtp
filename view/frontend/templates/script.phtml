@@ -26,7 +26,7 @@
 $shopId = $block->getHelperAbandonedCart()->getAppID();
 $isSuccessPage = $block->isSuccessPage();
 ?>
-<!-- BEGIN MAGEPLAZA SMTP SCRIPT-->
+<!-- BEGIN AVADA EMAIL MARKETING SCRIPT-->
 <?php if ($isSuccessPage && $block->getCurrentOrder()) {
     $order = $block->getCurrentOrder();
     $grandTotal = $order->getGrandTotal();
@@ -69,4 +69,4 @@ $isSuccessPage = $block->isSuccessPage();
     var EM_firstScript = document.getElementsByTagName("script")[0];
     EM_firstScript.parentNode.insertBefore(EM_script, EM_firstScript);
 </script>
-<!-- END MAGEPLAZA SMTP SCRIPT-->
+<!-- END AVADA EMAIL MARKETING SCRIPT-->
