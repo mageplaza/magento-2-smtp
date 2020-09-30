@@ -13,7 +13,7 @@
  * version in the future.
  *
  * @category    Mageplaza
- * @package     Mageplaza_PdfInvoice
+ * @package     Mageplaza_SMTP
  * @copyright   Copyright (c) Mageplaza (http://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
