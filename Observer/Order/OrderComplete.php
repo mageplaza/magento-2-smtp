@@ -26,7 +26,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order as ResourceOrder;
-use Mageplaza\Smtp\Helper\AbandonedCart;
+use Mageplaza\Smtp\Helper\EmailMarketing;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -36,9 +36,9 @@ use Psr\Log\LoggerInterface;
 class OrderComplete implements ObserverInterface
 {
     /**
-     * @var AbandonedCart
+     * @var EmailMarketing
      */
-    protected $helperAbandonedCart;
+    protected $helperEmailMarketing;
 
     /**
      * @var LoggerInterface
@@ -53,18 +53,18 @@ class OrderComplete implements ObserverInterface
     /**
      * OrderComplete constructor.
      *
-     * @param AbandonedCart $helperAbandonedCart
+     * @param EmailMarketing $helperEmailMarketing
      * @param LoggerInterface $logger
      * @param ResourceOrder $resourceOrder
      */
     public function __construct(
-        AbandonedCart $helperAbandonedCart,
+        EmailMarketing $helperEmailMarketing,
         LoggerInterface $logger,
         ResourceOrder $resourceOrder
     ) {
-        $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->logger = $logger;
-        $this->resourceOrder = $resourceOrder;
+        $this->helperEmailMarketing = $helperEmailMarketing;
+        $this->logger              = $logger;
+        $this->resourceOrder       = $resourceOrder;
     }
 
     /**
@@ -73,16 +73,16 @@ class OrderComplete implements ObserverInterface
     public function execute(Observer $observer)
     {
 
-        if ($this->helperAbandonedCart->isEnableAbandonedCart() &&
-            $this->helperAbandonedCart->getSecretKey() &&
-            $this->helperAbandonedCart->getAppID()
+        if ($this->helperEmailMarketing->isEnableAbandonedCart() &&
+            $this->helperEmailMarketing->getSecretKey() &&
+            $this->helperEmailMarketing->getAppID()
         ) {
             try {
                 /* @var Order $order */
                 $order = $observer->getEvent()->getOrder();
                 if ($order->getState() === Order::STATE_COMPLETE &&
                     !$order->getData('mp_smtp_email_marketing_synced')) {
-                    $this->helperAbandonedCart->sendOrderRequest($order, 'orders/complete');
+                    $this->helperEmailMarketing->sendOrderRequest($order, 'orders/complete');
                     $resource = $this->resourceOrder;
                     $resource->getConnection()->update(
                         $resource->getMainTable(),

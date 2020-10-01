@@ -24,9 +24,9 @@ namespace Mageplaza\Smtp\Ui\Component\Listing\Column;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
-use Magento\Quote\Model\QuoteFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
-use Mageplaza\Smtp\Helper\AbandonedCart;
+use Magento\Quote\Model\QuoteFactory;
+use Mageplaza\Smtp\Helper\EmailMarketing;
 
 /**
  * Class CustomerName
@@ -45,9 +45,9 @@ class CustomerName extends Column
     protected $quoteFactory;
 
     /**
-     * @var AbandonedCart
+     * @var EmailMarketing
      */
-    protected $abandonedCartHelper;
+    protected $helperEmailMarketing;
 
     /**
      * CustomerName constructor.
@@ -56,7 +56,7 @@ class CustomerName extends Column
      * @param UiComponentFactory $uiComponentFactory
      * @param UrlInterface $urlBuilder
      * @param QuoteFactory $quoteFactory
-     * @param AbandonedCart $abandonedCartHelper
+     * @param EmailMarketing $helperEmailMarketing
      * @param array $components
      * @param array $data
      */
@@ -65,15 +65,15 @@ class CustomerName extends Column
         UiComponentFactory $uiComponentFactory,
         UrlInterface $urlBuilder,
         QuoteFactory $quoteFactory,
-        AbandonedCart $abandonedCartHelper,
+        EmailMarketing $helperEmailMarketing,
         array $components = [],
         array $data = []
     ) {
         parent::__construct($context, $uiComponentFactory, $components, $data);
 
-        $this->urlBuilder = $urlBuilder;
-        $this->quoteFactory = $quoteFactory;
-        $this->abandonedCartHelper = $abandonedCartHelper;
+        $this->urlBuilder           = $urlBuilder;
+        $this->quoteFactory         = $quoteFactory;
+        $this->helperEmailMarketing = $helperEmailMarketing;
     }
 
     /**
@@ -85,9 +85,9 @@ class CustomerName extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as &$item) {
-                $quoteId = $item['entity_id'];
-                $quote = $this->quoteFactory->create()->load($quoteId);
-                $customerName = $this->abandonedCartHelper->getCustomerName($quote);
+                $quoteId      = $item['entity_id'];
+                $quote        = $this->quoteFactory->create()->load($quoteId);
+                $customerName = $this->helperEmailMarketing->getCustomerName($quote);
                 if ($quote->getCustomerId()) {
                     $url = $this->urlBuilder->getUrl('customer/index/edit', ['id' => $item['customer_id']]);
                     $customerName = '<a href="' . $url . '" target="_blank">' . $customerName . '</a>';

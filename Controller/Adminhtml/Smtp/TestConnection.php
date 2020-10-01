@@ -24,9 +24,7 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\ResponseInterface;
-use Magento\Framework\Controller\ResultInterface;
-use Mageplaza\Smtp\Helper\AbandonedCart;
+use Mageplaza\Smtp\Helper\EmailMarketing;
 
 /**
  * Class TestConnection
@@ -42,45 +40,46 @@ class TestConnection extends Action
     const ADMIN_RESOURCE = 'Mageplaza_Smtp::smtp';
 
     /**
-     * @var AbandonedCart
+     * @var EmailMarketing
      */
-    protected $helperAbandonedCart;
+    protected $helperEmailMarketing;
 
     /**
      * TestConnection constructor.
+     *
      * @param Context $context
-     * @param AbandonedCart $helperAbandonedCart
+     * @param EmailMarketing $helperEmailMarketing
      */
     public function __construct(
         Context $context,
-        AbandonedCart $helperAbandonedCart
+        EmailMarketing $helperEmailMarketing
     ) {
-        $this->helperAbandonedCart = $helperAbandonedCart;
+        $this->helperEmailMarketing = $helperEmailMarketing;
         parent::__construct($context);
     }
 
     /**
-     * @return ResponseInterface|ResultInterface
+     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
      */
     public function execute()
     {
         try {
 
-            $result = [
-                'status' => true,
+            $result    = [
+                'status'  => true,
                 'content' => __('Email marketing connection is working properly.')
             ];
-            $appID = trim($this->getRequest()->getParam('appID'));
+            $appID     = trim($this->getRequest()->getParam('appID'));
             $secretKey = $this->getRequest()->getParam('secretKey');
-            $this->helperAbandonedCart->testConnection($appID, $secretKey);
+            $this->helperEmailMarketing->testConnection($appID, $secretKey);
 
         } catch (Exception $e) {
             $result = [
-                'status' => false,
+                'status'  => false,
                 'content' => __('Can\'t connect to the email marketing app. Please check the app id and secret key.')
             ];
         }
 
-        return $this->getResponse()->representJson(AbandonedCart::jsonEncode($result));
+        return $this->getResponse()->representJson(EmailMarketing::jsonEncode($result));
     }
 }

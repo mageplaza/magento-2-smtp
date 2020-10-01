@@ -22,10 +22,10 @@
 namespace Mageplaza\Smtp\Observer\Customer;
 
 use Exception;
-use Magento\Customer\Model\Customer;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Mageplaza\Smtp\Helper\AbandonedCart;
+use Mageplaza\Smtp\Helper\EmailMarketing;
+use Magento\Customer\Model\Customer;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -35,9 +35,9 @@ use Psr\Log\LoggerInterface;
 class CustomerSaveCommitAfter implements ObserverInterface
 {
     /**
-     * @var AbandonedCart
+     * @var EmailMarketing
      */
-    protected $helperAbandonedCart;
+    protected $helperEmailMarketing;
 
     /**
      * @var LoggerInterface
@@ -46,13 +46,16 @@ class CustomerSaveCommitAfter implements ObserverInterface
 
     /**
      * CustomerSaveCommitAfter constructor.
-     * @param AbandonedCart $helperAbandonedCart
+     *
+     * @param EmailMarketing $helperEmailMarketing
      * @param LoggerInterface $logger
      */
-    public function __construct(AbandonedCart $helperAbandonedCart, LoggerInterface $logger)
-    {
-        $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->logger = $logger;
+    public function __construct(
+        EmailMarketing $helperEmailMarketing,
+        LoggerInterface $logger
+    ) {
+        $this->helperEmailMarketing = $helperEmailMarketing;
+        $this->logger               = $logger;
     }
 
     /**
@@ -64,23 +67,15 @@ class CustomerSaveCommitAfter implements ObserverInterface
          * @var Customer $customer
          */
         $customer = $observer->getEvent()->getDataObject();
-        if ($this->helperAbandonedCart->isEnableAbandonedCart() &&
-            $this->helperAbandonedCart->getSecretKey() &&
-            $this->helperAbandonedCart->getAppID() &&
+        if ($this->helperEmailMarketing->isEnableAbandonedCart() &&
+            $this->helperEmailMarketing->getSecretKey() &&
+            $this->helperEmailMarketing->getAppID() &&
             $customer->getIsNewRecord()
         ) {
             try {
-                $data = [
-                    'email' => $customer->getEmail(),
-                    'firstName' => $customer->getFirstname(),
-                    'lastName' => $customer->getLastname(),
-                    'phoneNumber' => '',
-                    'description' => '',
-                    'isSubscriber' => !!$customer->getIsSubscribed(),
-                    'source' => 'Magento',
-                ];
+                $data = $this->helperEmailMarketing->getCustomerData($customer);
 
-                $this->helperAbandonedCart->syncCustomer($data);
+                $this->helperEmailMarketing->syncCustomer($data);
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
             }
