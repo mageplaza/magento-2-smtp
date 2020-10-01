@@ -24,6 +24,7 @@ namespace Mageplaza\Smtp\Block;
 use Magento\Catalog\Block\Product\Context;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\View\Element\Template;
+use Magento\Sales\Model\Order;
 use Mageplaza\Smtp\Helper\AbandonedCart as HelperAbandonedCart;
 
 /**
@@ -57,7 +58,7 @@ class Script extends Template
         array $data = []
     ) {
         $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->checkoutSession     = $checkoutSession;
+        $this->checkoutSession = $checkoutSession;
         parent::__construct($context, $data);
     }
 
@@ -75,13 +76,13 @@ class Script extends Template
     public function isSuccessPage()
     {
         $fullActionName = $this->getRequest()->getFullActionName();
-        $pages          = ['checkout_onepage_success','mpthankyoupage_index_index'];
+        $pages = ['checkout_onepage_success', 'mpthankyoupage_index_index'];
 
         return in_array($fullActionName, $pages);
     }
 
     /**
-     * @return \Magento\Sales\Model\Order
+     * @return Order
      */
     public function getCurrentOrder()
     {

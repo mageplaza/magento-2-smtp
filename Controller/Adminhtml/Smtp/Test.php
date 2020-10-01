@@ -91,11 +91,11 @@ class Test extends Action
         TransportBuilder $transportBuilder,
         SenderResolver $senderResolver
     ) {
-        $this->logger            = $logger;
-        $this->smtpDataHelper    = $smtpDataHelper;
-        $this->mailResource      = $mailResource;
+        $this->logger = $logger;
+        $this->smtpDataHelper = $smtpDataHelper;
+        $this->mailResource = $mailResource;
         $this->_transportBuilder = $transportBuilder;
-        $this->senderResolver    = $senderResolver;
+        $this->senderResolver = $senderResolver;
 
         parent::__construct($context);
     }
@@ -111,10 +111,10 @@ class Test extends Action
         $params = $this->getRequest()->getParams();
         if ($params && $params['to']) {
             $config = [
-                'type'       => 'smtp',
-                'host'       => $params['host'],
-                'auth'       => $params['authentication'],
-                'username'   => $params['username'],
+                'type' => 'smtp',
+                'host' => $params['host'],
+                'auth' => $params['authentication'],
+                'username' => $params['username'],
                 'ignore_log' => true,
                 'force_sent' => true
             ];
@@ -152,7 +152,7 @@ class Test extends Action
                 $this->_transportBuilder->getTransport()->sendMessage();
 
                 $result = [
-                    'status'  => true,
+                    'status' => true,
                     'content' => __('Sent successfully! Please check your email box.')
                 ];
             } catch (Exception $e) {

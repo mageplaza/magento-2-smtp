@@ -107,19 +107,19 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $quote->
                 </div>
             </div>
             <?php
-                if (!$block->isSingleStoreMode()) :
-            ?>
+            if (!$block->isSingleStoreMode()):
+                ?>
             <div class="admin__field field field-store_view">
                 <label class="label admin__field-label">
                     <span><?= __('Store View') ?></span>
                 </label>
                 <div class="admin__field-control control">
                     <div id="store_view" class="control-value admin__field-value">
-                        <?= $block->escapeHtml($block->getStoreName($quote), ['br']) ?>
+                    <?= $block->escapeHtml($block->getStoreName($quote), ['br']) ?>
                     </div>
                 </div>
             </div>
-            <?php
+                <?php
                 endif;
             ?>
             <div class="admin__field field field-created_date">
@@ -157,19 +157,19 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $quote->
                 </div>
             </div>
             <?php
-             if (!$quote->isVirtual()) :
-            ?>
+            if (!$quote->isVirtual()):
+                ?>
                 <div class="admin__field field field-shipping_address ">
                     <label class="label admin__field-label">
                         <span><?= $block->escapeHtml(__('Shipping Address')) ?></span>
                     </label>
                     <div class="admin__field-control control">
                         <div id="shipping_address" class="control-value admin__field-value">
-                            <?= $block->getFormattedAddress($quote->getShippingAddress(), $quote->getStoreId()) ?>
+                           <?= $block->getFormattedAddress($quote->getShippingAddress(), $quote->getStoreId()) ?>
                         </div>
                     </div>
                 </div>
-            <?php
+                <?php
                 endif;
             ?>
             <div class="admin__field field field-billing_address ">
@@ -202,11 +202,11 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $quote->
                     </tr>
                     </thead>
                     <?php $items = $quote->getItemsCollection();?>
-                    <?php $i = 0; foreach ($items as $item) :
+                    <?php $i = 0; foreach ($items as $item):
                         ?>
-                        <?php if ($item->getParentItem()) :
+                        <?php if ($item->getParentItem()):
                             continue;
-                        else :
+                        else:
                             $i++;
                         endif; ?>
                         <tbody class="<?= /* @noEscape */ $i%2 ? 'even' : 'odd' ?>">
@@ -222,15 +222,15 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $quote->
                                     <?= /* @noEscape */ implode('<br />', $block->getHelperAbandonedCart()->splitSku($block->escapeHtml($item->getSku()))) ?>
                                 </div>
 
-                                <?php if ($options = $block->getHelperAbandonedCart()->getProductOptions($item)) : ?>
+                                <?php if ($options = $block->getHelperAbandonedCart()->getProductOptions($item)): ?>
                                     <dl class="item-options">
-                                        <?php foreach ($options as $_option) :?>
+                                        <?php foreach ($options as $_option):?>
                                             <?php $optionValue = $block->getHelperAbandonedCart()->getFormatedOptionValue($_option) ?>
                                             <dt><?= $block->escapeHtml($_option['label']) ?>: </dt>
                                             <dd>
-                                                <?php if (isset($_formatedOptionValue['full_view'])) :?>
+                                                <?php if (isset($_formatedOptionValue['full_view'])):?>
                                                     <?= $block->escapeHtml($optionValue['full_view']) ?>
-                                                <?php else :?>
+                                                <?php else:?>
                                                     <?= $block->escapeHtml($optionValue['value'], ['span']) ?>
                                                 <?php endif; ?>
                                             </dd>
@@ -261,26 +261,26 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $quote->
                 <span><?= $block->escapeHtml(__('Cart Total')) ?></span>
             </legend>
             <table class="data-table admin__table-secondary order-subtotal-table" style="width: 30%">
-                <?php if ($block->displayCartSubtotalExclTax($quote->getStoreId())) : ?>
+                <?php if ($block->displayCartSubtotalExclTax($quote->getStoreId())): ?>
                     <tr class="last-item">
                         <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal') ?></th>
                         <td><?= /* @noEscape */  $block->getSubtotal($quote) ?></td>
                     </tr>
                 <?php endif; ?>
-                <?php if ($block->displayCartSubtotalInclTax($quote->getStoreId())) : ?>
+                <?php if ($block->displayCartSubtotalInclTax($quote->getStoreId())): ?>
                     <tr class="last-item">
                         <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal') ?></th>
-                        <td><?= /* @noEscape */ $block->getSubtotal($quote,true) ?></td>
+                        <td><?= /* @noEscape */ $block->getSubtotal($quote, true) ?></td>
                     </tr>
                 <?php endif; ?>
-                <?php if ($block->displayCartSubtotalBoth($quote->getStoreId())) : ?>
+                <?php if ($block->displayCartSubtotalBoth($quote->getStoreId())): ?>
                     <tr class="last-item">
                         <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal (Excl. Tax)') ?></th>
                         <td><?= /* @noEscape */  $block->getSubtotal($quote) ?></td>
                     </tr>
                     <tr class="last-item">
                         <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal (Incl. Tax)') ?></th>
-                        <td><?= /* @noEscape */ $block->getSubtotal($quote,true) ?></td>
+                        <td><?= /* @noEscape */ $block->getSubtotal($quote, true) ?></td>
                     </tr>
                 <?php endif; ?>
 

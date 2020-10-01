@@ -29,7 +29,7 @@ use Magento\Framework\Data\OptionSourceInterface;
  */
 class AbandonedCartStatus implements OptionSourceInterface
 {
-    const SENT          = 1;
+    const SENT = 1;
     const WAIT_FOR_SEND = 0;
 
     /**
@@ -38,7 +38,7 @@ class AbandonedCartStatus implements OptionSourceInterface
     public static function getOptionArray()
     {
         return [
-            self::SENT   => __('Sent'),
+            self::SENT => __('Sent'),
             self::WAIT_FOR_SEND => __('Wait for send')
         ];
     }

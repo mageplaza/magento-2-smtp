@@ -52,7 +52,7 @@ class Message
         Mail $resourceMail,
         SenderResolverInterface $senderResolver
     ) {
-        $this->resourceMail   = $resourceMail;
+        $this->resourceMail = $resourceMail;
         $this->senderResolver = $senderResolver;
     }
 

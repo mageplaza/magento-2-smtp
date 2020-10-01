@@ -18,6 +18,7 @@
  * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
+
 namespace Mageplaza\Smtp\Block\Adminhtml\AbandonedCart;
 
 use Magento\Backend\Block\Widget\Form\Container;
