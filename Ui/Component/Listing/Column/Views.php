@@ -71,9 +71,9 @@ class Views extends Column
             foreach ($dataSource['data']['items'] as & $item) {
                 $url = $this->urlBuilder->getUrl('adminhtml/smtp_abandonedcart/view', ['id' => $item['entity_id']]);
                 $item[$this->getData('name')] = [
-                    'view'   => [
+                    'view' => [
                         'label' => __('View'),
-                         'href'    => $url
+                        'href' => $url
                     ]
                 ];
             }

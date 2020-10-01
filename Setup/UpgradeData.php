@@ -65,8 +65,8 @@ class UpgradeData implements UpgradeDataInterface
         AttributeSetFactory $attributeSetFactory,
         CustomerSetupFactory $customerSetupFactory
     ) {
-        $this->salesSetupFactory    = $salesSetupFactory;
-        $this->attributeSetFactory  = $attributeSetFactory;
+        $this->salesSetupFactory = $salesSetupFactory;
+        $this->attributeSetFactory = $attributeSetFactory;
         $this->customerSetupFactory = $customerSetupFactory;
     }
 
@@ -88,27 +88,27 @@ class UpgradeData implements UpgradeDataInterface
             $attributeSetId = $customerEntity->getDefaultAttributeSetId();
 
             /** @var $attributeSet AttributeSet */
-            $attributeSet     = $this->attributeSetFactory->create();
+            $attributeSet = $this->attributeSetFactory->create();
             $attributeGroupId = $attributeSet->getDefaultGroupId($attributeSetId);
 
             $customerSetup->addAttribute(Customer::ENTITY, 'mp_smtp_is_synced', [
-                'type'            => 'int',
-                'label'           => 'Mp SMTP is synced',
-                'input'           => 'hidden',
-                'required'        => false,
-                'visible'         => false,
-                'user_defined'    => false,
-                'sort_order'      => 90,
-                'position'        => 90,
-                'system'          => 0,
+                'type' => 'int',
+                'label' => 'Mp SMTP is synced',
+                'input' => 'hidden',
+                'required' => false,
+                'visible' => false,
+                'user_defined' => false,
+                'sort_order' => 90,
+                'position' => 90,
+                'system' => 0,
                 'is_used_in_grid' => false,
             ]);
 
             $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'mp_smtp_is_synced')
                 ->addData([
-                    'attribute_set_id'   => $attributeSetId,
+                    'attribute_set_id' => $attributeSetId,
                     'attribute_group_id' => $attributeGroupId,
-                    'used_in_forms'      => ['adminhtml_customer']
+                    'used_in_forms' => ['adminhtml_customer']
                 ])
                 ->save();
         }

@@ -26,11 +26,13 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Email\Model\Template\SenderResolver;
 use Magento\Framework\App\Area;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Mail\Template\FactoryInterface;
 use Magento\Framework\View\Result\Page;
-use Mageplaza\Smtp\Helper\Data as SmtpData;
 use Magento\Quote\Model\QuoteFactory;
+use Mageplaza\Smtp\Helper\Data as SmtpData;
 
 /**
  * Class Preview
@@ -70,19 +72,19 @@ class Preview extends Action
         QuoteFactory $quoteFactory
     ) {
         $this->templateFactory = $templateFactory;
-        $this->senderResolver  = $senderResolver;
-        $this->quoteFactory    = $quoteFactory;
+        $this->senderResolver = $senderResolver;
+        $this->quoteFactory = $quoteFactory;
         parent::__construct($context);
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|Page
+     * @return ResponseInterface|ResultInterface|Page
      */
     public function execute()
     {
-        $from         = $this->getRequest()->getParam('from');
-        $templateId   = $this->getRequest()->getParam('template_id');
-        $quoteId      = $this->getRequest()->getParam('quote_id');
+        $from = $this->getRequest()->getParam('from');
+        $templateId = $this->getRequest()->getParam('template_id');
+        $quoteId = $this->getRequest()->getParam('quote_id');
         $customerName = $this->getRequest()->getParam('customer_name');
         $additionalMessage = $this->getRequest()->getParam('additional_message');
 
@@ -94,26 +96,26 @@ class Preview extends Action
                 throw NoSuchEntityException::singleField('quote_id', $quoteId);
             }
 
-            $storeId  = $quote->getStoreId();
-            $from     = $this->senderResolver->resolve($from, $storeId);
+            $storeId = $quote->getStoreId();
+            $from = $this->senderResolver->resolve($from, $storeId);
             $template = $this->templateFactory->get($templateId, null)
                 ->setVars(
                     [
-                        'quote_id'           => $quoteId,
-                        'customer_name'      => ucfirst(trim($customerName)),
+                        'quote_id' => $quoteId,
+                        'customer_name' => ucfirst(trim($customerName)),
                         'additional_message' => trim(strip_tags($additionalMessage)),
                         'cart_recovery_link' => '#'
                     ]
                 )
                 ->setOptions(['area' => Area::AREA_FRONTEND, 'store' => $storeId]);
-            $content  = $template->processTemplate();
-            $subject  = html_entity_decode((string) $template->getSubject(), ENT_QUOTES);
+            $content = $template->processTemplate();
+            $subject = html_entity_decode((string)$template->getSubject(), ENT_QUOTES);
 
             $result = [
-                'status'  => true,
+                'status' => true,
                 'subject' => $subject,
                 'content' => $content,
-                'from'    => $from
+                'from' => $from
             ];
         } catch (Exception $e) {
             $result['message'] = $e->getMessage();

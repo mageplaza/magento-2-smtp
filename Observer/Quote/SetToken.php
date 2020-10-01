@@ -23,7 +23,10 @@ namespace Mageplaza\Smtp\Observer\Quote;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Math\Random;
+use Magento\Quote\Model\Quote;
 
 /**
  * Class SetToken
@@ -49,12 +52,12 @@ class SetToken implements ObserverInterface
     /**
      * @param Observer $observer
      *
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function execute(Observer $observer)
     {
-        /* @var \Magento\Quote\Model\Quote $quote */
+        /* @var Quote $quote */
         $quote = $observer->getEvent()->getQuote();
         if (!$quote->getData('mp_smtp_ace_token')) {
             $quote->setData('mp_smtp_ace_token', $this->random->getUniqueHash());

@@ -22,10 +22,10 @@
 namespace Mageplaza\Smtp\Observer\Customer;
 
 use Exception;
+use Magento\Customer\Model\Customer;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Mageplaza\Smtp\Helper\AbandonedCart;
-use Magento\Customer\Model\Customer;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -52,7 +52,7 @@ class CustomerSaveCommitAfter implements ObserverInterface
     public function __construct(AbandonedCart $helperAbandonedCart, LoggerInterface $logger)
     {
         $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->logger              = $logger;
+        $this->logger = $logger;
     }
 
     /**
@@ -71,13 +71,13 @@ class CustomerSaveCommitAfter implements ObserverInterface
         ) {
             try {
                 $data = [
-                    'email'        => $customer->getEmail(),
-                    'firstName'    => $customer->getFirstname(),
-                    'lastName'     => $customer->getLastname(),
-                    'phoneNumber'  => '',
-                    'description'  => '',
+                    'email' => $customer->getEmail(),
+                    'firstName' => $customer->getFirstname(),
+                    'lastName' => $customer->getLastname(),
+                    'phoneNumber' => '',
+                    'description' => '',
                     'isSubscriber' => !!$customer->getIsSubscribed(),
-                    'source'       => 'Magento',
+                    'source' => 'Magento',
                 ];
 
                 $this->helperAbandonedCart->syncCustomer($data);

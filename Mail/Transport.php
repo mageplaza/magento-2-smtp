@@ -90,10 +90,10 @@ class Transport
         LoggerInterface $logger
     ) {
         $this->resourceMail = $resourceMail;
-        $this->logFactory   = $logFactory;
-        $this->registry     = $registry;
-        $this->helper       = $helper;
-        $this->logger       = $logger;
+        $this->logFactory = $logFactory;
+        $this->registry = $registry;
+        $this->helper = $helper;
+        $this->logger = $logger;
     }
 
     /**
@@ -108,7 +108,7 @@ class Transport
         Closure $proceed
     ) {
         $this->_storeId = $this->registry->registry('mp_smtp_store_id');
-        $message        = $this->getMessage($subject);
+        $message = $this->getMessage($subject);
 
         if ($this->resourceMail->isModuleEnable($this->_storeId) && $message) {
             if ($this->helper->versionCompare('2.2.8')) {
@@ -116,7 +116,7 @@ class Transport
             }
 
             if (!$this->validateBlacklist($message)) {
-                $message   = $this->resourceMail->processMessage($message, $this->_storeId);
+                $message = $this->resourceMail->processMessage($message, $this->_storeId);
                 $transport = $this->resourceMail->getTransport($this->_storeId);
                 try {
                     if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
@@ -160,7 +160,7 @@ class Transport
 
         try {
             $reflectionClass = new ReflectionClass($transport);
-            $message         = $reflectionClass->getProperty('_message');
+            $message = $reflectionClass->getProperty('_message');
         } catch (Exception $e) {
             return null;
         }
@@ -202,7 +202,7 @@ class Transport
         $blacklist = $this->helper->getBlacklist();
         if ($blacklist) {
             $recipient = $this->getRecipient($message);
-            $patterns  = array_unique(explode(PHP_EOL, $blacklist));
+            $patterns = array_unique(explode(PHP_EOL, $blacklist));
             foreach ($patterns as $pattern) {
                 try {
                     if (preg_match($pattern, $recipient)) {

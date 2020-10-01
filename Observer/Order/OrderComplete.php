@@ -63,8 +63,8 @@ class OrderComplete implements ObserverInterface
         ResourceOrder $resourceOrder
     ) {
         $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->logger              = $logger;
-        $this->resourceOrder       = $resourceOrder;
+        $this->logger = $logger;
+        $this->resourceOrder = $resourceOrder;
     }
 
     /**

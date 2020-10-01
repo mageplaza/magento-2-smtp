@@ -23,10 +23,11 @@ namespace Mageplaza\Smtp\Observer\Customer;
 
 use Exception;
 use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Customer\Model\Customer;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Mageplaza\Smtp\Helper\AbandonedCart;
-use Magento\Customer\Model\Customer;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -61,7 +62,7 @@ class SubscriberSaveCommitAfter implements ObserverInterface
         LoggerInterface $logger
     ) {
         $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->logger              = $logger;
+        $this->logger = $logger;
         $this->customerRepository = $customerRepository;
     }
 
@@ -79,11 +80,11 @@ class SubscriberSaveCommitAfter implements ObserverInterface
             try {
 
                 $data = [
-                    'email'        => $subscriber->getSubscriberEmail(),
-                    'firstName'    => '',
-                    'lastName'     => '',
-                    'phoneNumber'  => '',
-                    'description'  => '',
+                    'email' => $subscriber->getSubscriberEmail(),
+                    'firstName' => '',
+                    'lastName' => '',
+                    'phoneNumber' => '',
+                    'description' => '',
                     'source' => 'Magento',
                     'isSubscriber' => !!$subscriber->getSubscriberStatus()
                 ];
@@ -94,7 +95,7 @@ class SubscriberSaveCommitAfter implements ObserverInterface
                 $customer = $this->getCustomerByEmail($subscriber->getSubscriberEmail());
                 if ($customer && $customer->getId()) {
                     $data['firstName'] = $customer->getFirstname();
-                    $data['lastName']  = $customer->getLastname();
+                    $data['lastName'] = $customer->getLastname();
                 }
 
                 $this->helperAbandonedCart->syncCustomer($data);
@@ -106,7 +107,7 @@ class SubscriberSaveCommitAfter implements ObserverInterface
 
     /**
      * @param string $email
-     * @return \Magento\Customer\Api\Data\CustomerInterface|string
+     * @return CustomerInterface|string
      */
     public function getCustomerByEmail($email)
     {

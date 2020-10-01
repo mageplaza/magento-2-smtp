@@ -24,6 +24,7 @@ namespace Mageplaza\Smtp\Observer\Order;
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Sales\Model\Order\Shipment;
 use Mageplaza\Smtp\Helper\AbandonedCart;
 use Psr\Log\LoggerInterface;
 
@@ -54,7 +55,7 @@ class ShipmentCreate implements ObserverInterface
         LoggerInterface $logger
     ) {
         $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->logger              = $logger;
+        $this->logger = $logger;
     }
 
     /**
@@ -68,7 +69,7 @@ class ShipmentCreate implements ObserverInterface
             $this->helperAbandonedCart->getAppID()
         ) {
             try {
-                /* @var \Magento\Sales\Model\Order\Shipment $shipment */
+                /* @var Shipment $shipment */
                 $shipment = $observer->getEvent()->getDataObject();
                 if ($shipment->getId() && $shipment->getCreatedAt() == $shipment->getUpdatedAt()) {
                     $this->helperAbandonedCart->sendOrderRequest($shipment, 'fulfillments/create');

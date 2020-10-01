@@ -24,8 +24,10 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync;
 use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Mageplaza\Smtp\Helper\AbandonedCart;
 use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
+use Mageplaza\Smtp\Helper\AbandonedCart;
 
 /**
  * Class EstimateCustomer
@@ -61,12 +63,12 @@ class EstimateCustomer extends Action
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
+     * @return ResponseInterface|ResultInterface
      */
     public function execute()
     {
         try {
-            $attribute          = 'mp_smtp_is_synced';
+            $attribute = 'mp_smtp_is_synced';
             $customerCollection = $this->customerCollectionFactory->create();
             $storeId = $this->getRequest()->getParam('storeId');
             $websiteId = $this->getRequest()->getParam('websiteId');
@@ -81,7 +83,7 @@ class EstimateCustomer extends Action
             $ids = $customerCollection->addFieldToFilter($attribute, ['null' => 1])
                 ->getAllIds();
 
-            $result['ids']   = $ids;
+            $result['ids'] = $ids;
             $result['total'] = count($ids);
 
             if ($result['total'] === 0) {
@@ -92,7 +94,7 @@ class EstimateCustomer extends Action
 
         } catch (Exception $e) {
             $result = [
-                'status'  => false,
+                'status' => false,
                 'message' => $e->getMessage()
             ];
         }

@@ -24,6 +24,7 @@ namespace Mageplaza\Smtp\Observer\Quote;
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Quote\Model\Quote;
 use Mageplaza\Smtp\Helper\AbandonedCart;
 use Psr\Log\LoggerInterface;
 
@@ -53,7 +54,7 @@ class DeleteQuote implements ObserverInterface
         LoggerInterface $logger
     ) {
         $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->logger              = $logger;
+        $this->logger = $logger;
     }
 
     /**
@@ -67,7 +68,7 @@ class DeleteQuote implements ObserverInterface
             $this->helperAbandonedCart->getAppID()
         ) {
             try {
-                /* @var \Magento\Quote\Model\Quote $quote */
+                /* @var Quote $quote */
                 $quote = $observer->getEvent()->getDataObject();
                 if ($quote->getId()) {
                     $this->helperAbandonedCart->deleteQuote($quote->getId(), $quote->getStoreId());

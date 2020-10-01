@@ -41,7 +41,7 @@
             }}">
     <div class="accordion">
         <div class="entry-edit form-inline">
-            <?php foreach ($block->getOptionProvider() as $id => $provider) : ?>
+            <?php foreach ($block->getOptionProvider() as $id => $provider): ?>
                 <div class="section-config">
                     <div class="entry-edit-head admin__collapsible-block">
                         <span id="smtp_provider_<?= /** @noEscape */ $id ?>-link" class="entry-edit-head-link"></span>
@@ -57,9 +57,9 @@
                             <colgroup class="scope-label"></colgroup>
                             <colgroup class=""></colgroup>
                             <tbody>
-                            <?php foreach ($provider['info'] as $infoId => $info) : ?>
+                            <?php foreach ($provider['info'] as $infoId => $info): ?>
                                 <?php $note = isset($provider['note']) ? $provider['note'] : [] ?>
-                                <?php if (is_array($info)) : ?>
+                                <?php if (is_array($info)): ?>
                                     <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>">
                                         <td colspan="4">
                                             <div class="section-config">
@@ -81,7 +81,7 @@
                                                         <colgroup class="scope-label"></colgroup>
                                                         <colgroup class=""></colgroup>
                                                         <tbody>
-                                                        <?php foreach ($info['info'] as $key => $infoItem) : ?>
+                                                        <?php foreach ($info['info'] as $key => $infoItem): ?>
                                                             <?php $note = isset($info['note']) ? $info['note'] : [] ?>
                                                             <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_<?= /** @noEscape */ $key ?>">
                                                                 <td class="label">
@@ -91,14 +91,14 @@
                                                                 </td>
                                                                 <td class="value">
                                                                     <span class="control-value special"><?=  $block->escapeHtml($block->getLabel($infoItem)) ?></span>
-                                                                    <?php if (isset($note[$key])) : ?>
+                                                                    <?php if (isset($note[$key])): ?>
                                                                         <p class="note"><?= /** @noEscape */ $note[$key] ?></p>
                                                                     <?php endif; ?>
                                                                 </td>
                                                                 <td></td>
                                                             </tr>
                                                         <?php endforeach; ?>
-                                                        <?php if (isset($note['global'])) : ?>
+                                                        <?php if (isset($note['global'])): ?>
                                                             <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_<?= /** @noEscape */ $key ?>_note">
                                                                 <td class="label"></td>
                                                                 <td class="value">
@@ -136,7 +136,7 @@
                                         </td>
                                     </tr>
                                     <?php $provider['add_button'] = false; ?>
-                                <?php else : ?>
+                                <?php else: ?>
                                     <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>">
                                         <td class="label">
                                             <label for="smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>">
@@ -145,7 +145,7 @@
                                         </td>
                                         <td class="value">
                                             <span class="control-value special"><?=  $block->escapeHtml($block->getLabel($info)) ?></span>
-                                            <?php if (isset($note[$infoId])) : ?>
+                                            <?php if (isset($note[$infoId])): ?>
                                                 <p class="note"><?= /** @noEscape */ $note[$infoId] ?></p>
                                             <?php endif; ?>
                                         </td>
@@ -153,8 +153,8 @@
                                     </tr>
                                 <?php endif; ?>
                             <?php endforeach; ?>
-                            <?php if (!isset($provider['add_button'])) : ?>
-                                <?php if (isset($note['global'])) : ?>
+                            <?php if (!isset($provider['add_button'])): ?>
+                                <?php if (isset($note['global'])): ?>
                                     <tr id="row_smtp_provider_<?= /** @noEscape */ $id ?>_<?= /** @noEscape */ $infoId ?>_note">
                                         <td class="label"></td>
                                         <td class="value">

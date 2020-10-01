@@ -23,6 +23,8 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\AbandonedCart;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Math\Random;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Result\Page;
@@ -71,22 +73,22 @@ class View extends Action
         QuoteRepository $quoteRepository,
         Random $random
     ) {
-        $this->resultPageFactory    = $resultPageFactory;
-        $this->registry             = $registry;
-        $this->quoteRepository      = $quoteRepository;
-        $this->random               = $random;
+        $this->resultPageFactory = $resultPageFactory;
+        $this->registry = $registry;
+        $this->quoteRepository = $quoteRepository;
+        $this->random = $random;
 
         parent::__construct($context);
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|Page
+     * @return ResponseInterface|ResultInterface|Page
      */
     public function execute()
     {
         $resultPage = $this->resultPageFactory->create();
-        $id         = $this->getRequest()->getParam('id', 0);
-        $quote      = $this->quoteRepository->get($id);
+        $id = $this->getRequest()->getParam('id', 0);
+        $quote = $this->quoteRepository->get($id);
         $isActive = (bool)$quote->getIsActive();
         if (!$isActive) {
             return $this->_redirect('adminhtml/smtp/abandonedcart');
@@ -100,7 +102,7 @@ class View extends Action
             $this->messageManager->addNoticeMessage(__('Cart recovery email is not sent to the customer yet.'));
         }
 
-        $params                    = $this->getRequest()->getParams();
+        $params = $this->getRequest()->getParams();
         $params['quote_is_active'] = $quote->getIsActive();
         $this->getRequest()->setParams($params);
 

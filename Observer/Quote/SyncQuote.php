@@ -24,6 +24,7 @@ namespace Mageplaza\Smtp\Observer\Quote;
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Quote\Model\Quote;
 use Mageplaza\Smtp\Helper\AbandonedCart;
 use Psr\Log\LoggerInterface;
 
@@ -53,7 +54,7 @@ class SyncQuote implements ObserverInterface
         LoggerInterface $logger
     ) {
         $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->logger              = $logger;
+        $this->logger = $logger;
     }
 
     /**
@@ -67,11 +68,11 @@ class SyncQuote implements ObserverInterface
             $this->helperAbandonedCart->getAppID()
         ) {
             try {
-                /* @var \Magento\Quote\Model\Quote $quote */
+                /* @var Quote $quote */
                 $quote = $observer->getEvent()->getQuote();
                 if ($quote->getId()) {
 
-                    $ACEData    = $this->helperAbandonedCart->getACEData($quote);
+                    $ACEData = $this->helperAbandonedCart->getACEData($quote);
                     $oldACEData = $quote->getData('mp_smtp_ace_log_data') ?
                         AbandonedCart::jsonDecode($quote->getData('mp_smtp_ace_log_data')) : [];
                     if ($oldACEData !== $ACEData && empty($oldACEData['checkoutCompleted'])) {

@@ -53,9 +53,9 @@ class ClearButton implements ButtonProviderInterface
     public function getButtonData()
     {
         return [
-            'label'      => __('Clear All Logs'),
-            'class'      => 'primary',
-            'on_click'   => 'deleteConfirm(\'' . __(
+            'label' => __('Clear All Logs'),
+            'class' => 'primary',
+            'on_click' => 'deleteConfirm(\'' . __(
                 'Are you sure you want to clear all email logs?'
             ) . '\', \'' . $this->_urlBuilder->getUrl('*/*/clear') . '\')',
             'sort_order' => 10,

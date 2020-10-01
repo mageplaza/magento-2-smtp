@@ -80,9 +80,9 @@ class Email extends Action
         TransportBuilder $transportBuilder,
         StoreManagerInterface $storeManager
     ) {
-        $this->logFactory        = $logFactory;
-        $this->scopeConfig       = $scopeConfig;
-        $this->storeManager      = $storeManager;
+        $this->logFactory = $logFactory;
+        $this->scopeConfig = $scopeConfig;
+        $this->storeManager = $storeManager;
         $this->_transportBuilder = $transportBuilder;
         $this->inlineTranslation = $inlineTranslation;
 

@@ -24,6 +24,7 @@ namespace Mageplaza\Smtp\Observer\Order;
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Sales\Model\Order\Creditmemo;
 use Mageplaza\Smtp\Helper\AbandonedCart;
 use Psr\Log\LoggerInterface;
 
@@ -54,7 +55,7 @@ class CreditmemoCreate implements ObserverInterface
         LoggerInterface $logger
     ) {
         $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->logger              = $logger;
+        $this->logger = $logger;
     }
 
     /**
@@ -68,7 +69,7 @@ class CreditmemoCreate implements ObserverInterface
             $this->helperAbandonedCart->getAppID()
         ) {
             try {
-                /* @var \Magento\Sales\Model\Order\Creditmemo $creditmemo */
+                /* @var Creditmemo $creditmemo */
                 $creditmemo = $observer->getEvent()->getDataObject();
                 if ($creditmemo->getId() && $creditmemo->getCreatedAt() == $creditmemo->getUpdatedAt()) {
                     $this->helperAbandonedCart->sendOrderRequest($creditmemo, 'refunds/create');

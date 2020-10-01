@@ -21,16 +21,18 @@
 
 namespace Mageplaza\Smtp\Controller\AbandonedCart;
 
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\ResourceModel\Quote\Collection;
 use Magento\Store\Model\StoreManagerInterface;
 use Mageplaza\Smtp\Helper\Data;
-use Magento\Quote\Model\ResourceModel\Quote\Collection;
-use Magento\Quote\Model\Quote;
-use Magento\Checkout\Model\Session as CheckoutSession;
-use Magento\Customer\Model\Session as CustomerSession;
 
 /**
  * Class Recover
@@ -88,9 +90,9 @@ class Recover extends Action
         CustomerSession $customerSession,
         CheckoutSession $checkoutSession
     ) {
-        $this->helperData      = $helperData;
+        $this->helperData = $helperData;
         $this->quoteCollection = $quoteCollection;
-        $this->storeManager    = $storeManager;
+        $this->storeManager = $storeManager;
         $this->checkoutSession = $checkoutSession;
         $this->customerSession = $customerSession;
 
@@ -98,7 +100,7 @@ class Recover extends Action
     }
 
     /**
-     * @return ResponseInterface|\Magento\Framework\Controller\ResultInterface
+     * @return ResponseInterface|ResultInterface
      */
     public function execute()
     {
@@ -133,7 +135,7 @@ class Recover extends Action
      *
      * @return bool
      * @throws LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
     public function recover($token)
     {
@@ -141,14 +143,14 @@ class Recover extends Action
             throw new LocalizedException(__('SMTP abandoned cart is disabled.'));
         }
 
-        $token              = explode('_', $token);
+        $token = explode('_', $token);
         $quoteId = isset($token[1]) ? base64_decode($token[1]) : '';
         $abandonedCartToken = isset($token[0]) ? $token[0] : '';
 
         /**
          * @var Quote $quote
          */
-        $quote   = $this->quoteCollection
+        $quote = $this->quoteCollection
             ->addFieldToFilter('entity_id', $quoteId)
             ->addFieldToFilter('mp_smtp_ace_token', $abandonedCartToken)
             ->getFirstItem();
@@ -160,7 +162,7 @@ class Recover extends Action
             throw new LocalizedException(__('An error occurred while recovering your cart.'));
         }
 
-        $customerId = (int) $quote->getCustomerId();
+        $customerId = (int)$quote->getCustomerId();
 
         if (!$customerId) {
             $this->checkoutSession->setQuoteId($quoteId);
@@ -176,7 +178,7 @@ class Recover extends Action
             }
 
             $this->customerSession->regenerateId();
-        } elseif ((int) $this->customerSession->getId() !== $customerId) {
+        } elseif ((int)$this->customerSession->getId() !== $customerId) {
             $this->noticeMessage = __('Please login with %1', $quote->getCustomerEmail());
 
             return false;

@@ -24,11 +24,13 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync;
 use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\Exception\LocalizedException;
-use Mageplaza\Smtp\Helper\AbandonedCart;
+use Magento\Customer\Model\Attribute;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
-use Magento\Customer\Model\Attribute;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Mageplaza\Smtp\Helper\AbandonedCart;
 
 /**
  * Class Customer
@@ -79,15 +81,15 @@ class Customer extends Action
         CustomerCollectionFactory $customerCollectionFactory,
         Attribute $customerAttribute
     ) {
-        $this->helperAbandonedCart       = $helperAbandonedCart;
-        $this->customerFactory           = $customerFactory;
+        $this->helperAbandonedCart = $helperAbandonedCart;
+        $this->customerFactory = $customerFactory;
         $this->customerCollectionFactory = $customerCollectionFactory;
-        $this->customerAttribute         = $customerAttribute;
+        $this->customerAttribute = $customerAttribute;
         parent::__construct($context);
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
+     * @return ResponseInterface|ResultInterface
      */
     public function execute()
     {
@@ -115,20 +117,20 @@ class Customer extends Action
                 $data[] = $this->helperAbandonedCart->getCustomerData($customer);
                 $attributeData[] = [
                     'attribute_id' => $attribute->getId(),
-                    'entity_id'    => $customer->getId(),
-                    'value'        => 1
+                    'entity_id' => $customer->getId(),
+                    'value' => 1
                 ];
             }
 
             $result['status'] = true;
-            $result['total']  = count($ids);
+            $result['total'] = count($ids);
             $response = $this->helperAbandonedCart->syncCustomers($data);
             if (isset($response['success'])) {
                 $this->insertData($customerCollection->getConnection(), $attributeData);
             }
 
         } catch (Exception $e) {
-            $result['status']  = false;
+            $result['status'] = false;
             $result['message'] = $e->getMessage();
         }
 
