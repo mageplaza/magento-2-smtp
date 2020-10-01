@@ -19,20 +19,19 @@
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
-namespace Mageplaza\Smtp\Observer\Customer;
+namespace Mageplaza\Smtp\Observer\Quote;
 
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Mageplaza\Smtp\Helper\AbandonedCart;
-use Magento\Customer\Model\Customer;
 use Psr\Log\LoggerInterface;
 
 /**
- * Class CustomerSaveCommitAfter
- * @package Mageplaza\Smtp\Observer\Customer
+ * Class DeleteQuote
+ * @package Mageplaza\Smtp\Observer\Quote
  */
-class CustomerSaveCommitAfter implements ObserverInterface
+class DeleteQuote implements ObserverInterface
 {
     /**
      * @var AbandonedCart
@@ -49,8 +48,10 @@ class CustomerSaveCommitAfter implements ObserverInterface
      * @param AbandonedCart $helperAbandonedCart
      * @param LoggerInterface $logger
      */
-    public function __construct(AbandonedCart $helperAbandonedCart, LoggerInterface $logger)
-    {
+    public function __construct(
+        AbandonedCart $helperAbandonedCart,
+        LoggerInterface $logger
+    ) {
         $this->helperAbandonedCart = $helperAbandonedCart;
         $this->logger              = $logger;
     }
@@ -60,27 +61,17 @@ class CustomerSaveCommitAfter implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        /**
-         * @var Customer $customer
-         */
-        $customer = $observer->getEvent()->getDataObject();
+
         if ($this->helperAbandonedCart->isEnableAbandonedCart() &&
             $this->helperAbandonedCart->getSecretKey() &&
-            $this->helperAbandonedCart->getAppID() &&
-            $customer->getIsNewRecord()
+            $this->helperAbandonedCart->getAppID()
         ) {
             try {
-                $data = [
-                    'email'        => $customer->getEmail(),
-                    'firstName'    => $customer->getFirstname(),
-                    'lastName'     => $customer->getLastname(),
-                    'phoneNumber'  => '',
-                    'description'  => '',
-                    'isSubscriber' => !!$customer->getIsSubscribed(),
-                    'source'       => 'Magento',
-                ];
-
-                $this->helperAbandonedCart->syncCustomer($data);
+                /* @var \Magento\Quote\Model\Quote $quote */
+                $quote = $observer->getEvent()->getDataObject();
+                if ($quote->getId()) {
+                    $this->helperAbandonedCart->deleteQuote($quote->getId(), $quote->getStoreId());
+                }
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
             }

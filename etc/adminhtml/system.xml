@@ -133,6 +133,15 @@
                     <button_url>adminhtml/smtp/testconnection</button_url>
                     <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\TestConnection</frontend_model>
                 </field>
+                <group id="synchronization" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Synchronization</label>
+                    <field id="sync_customer" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label></label>
+                        <button_label>Synchronize Customers</button_label>
+                        <button_url>adminhtml/smtp_sync/customer</button_url>
+                        <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncCustomer</frontend_model>
+                    </field>
+                </group>
             </group>
             <group id="developer" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Developer</label>

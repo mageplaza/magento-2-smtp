@@ -26,20 +26,26 @@ use Magento\Bundle\Helper\Catalog\Product\Configuration as BundleConfiguration;
 use Magento\Catalog\Helper\Data as CatalogHelper;
 use Magento\Catalog\Helper\Product\Configuration as CatalogConfiguration;
 use Magento\Catalog\Model\ProductRepository;
+use Magento\Customer\Model\Customer;
 use Magento\Directory\Model\PriceCurrency;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Escaper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\UrlInterface;
+use Magento\Newsletter\Model\Subscriber;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Item;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Creditmemo;
+use Magento\Sales\Model\Order\Shipment;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Quote\Model\ResourceModel\Quote as ResourceQuote;
+use Magento\Shipping\Helper\Data as ShippingHelper;
+use Magento\Framework\HTTP\Client\Curl;
 
 /**
  * Class AbandonedCart
@@ -47,8 +53,13 @@ use Magento\Quote\Model\ResourceModel\Quote as ResourceQuote;
  */
 class AbandonedCart extends Data
 {
-    const APP_URL             = 'https://app.avada.io/webhook/checkout/create';
-    const CUSTOMER_URL        = 'https://app.avada.io/webhook/customer/create';
+//    const APP_URL      = 'https://app.avada.io/webhook/checkout/create';
+//    const CUSTOMER_URL = 'https://app.avada.io/webhook/customer/create';
+    const APP_URL           = 'https://get-market-staging.firebaseapp.com/webhook/checkout/create';
+    const CUSTOMER_URL      = 'https://get-market-staging.firebaseapp.com/webhook/customer/create';
+    const ORDER_URL         = 'https://get-market-staging.firebaseapp.com/webhook/order/processing';
+    const DELETE_URL        = 'https://get-market-staging.firebaseapp.com/webhook/checkout?id=';
+    const SYNC_CUSTOMER_URL = 'https://get-market-staging.firebaseapp.com/sync/customer';
 
     /**
      * @var UrlInterface
@@ -105,9 +116,19 @@ class AbandonedCart extends Data
     protected $resourceQuote;
 
     /**
+     * @var ShippingHelper
+     */
+    protected $shippingHelper;
+
+    /**
      * @var string
      */
     protected $url = '';
+
+    /**
+     * @var string
+     */
+    protected $storeId = '';
 
     /**
      * AbandonedCart constructor.
@@ -125,6 +146,7 @@ class AbandonedCart extends Data
      * @param Curl $curl
      * @param ProductRepository $productRepository
      * @param ResourceQuote $resourceQuote
+     * @param ShippingHelper $shippingHelper
      */
     public function __construct(
         Context $context,
@@ -139,7 +161,8 @@ class AbandonedCart extends Data
         EncryptorInterface $encryptor,
         Curl $curl,
         ProductRepository $productRepository,
-        ResourceQuote $resourceQuote
+        ResourceQuote $resourceQuote,
+        ShippingHelper $shippingHelper
     ) {
         parent::__construct($context, $objectManager, $storeManager);
 
@@ -153,6 +176,7 @@ class AbandonedCart extends Data
         $this->_curl                      = $curl;
         $this->resourceQuote              = $resourceQuote;
         $this->productRepository          = $productRepository;
+        $this->shippingHelper             = $shippingHelper;
     }
 
     /**
@@ -282,6 +306,127 @@ class AbandonedCart extends Data
     }
 
     /**
+     * @param Shipment|Creditmemo|Order $object
+     *
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    public function getOrderData($object)
+    {
+        $data = [
+            'id'         => $object->getId(),
+            'currency'   => $object->getOrderCurrencyCode(),
+            'created_at' => $object->getCreatedAt(),
+            'updated_at' => $object->getUpdatedAt()
+        ];
+
+        $path              = null;
+        $customerEmail     = $object->getCustomerEmail();
+        $customerId        = $object->getCustomerId();
+        $customerFirstname = $object->getCustomerFirstname();
+        $customerLastname  = $object->getCustomerLastname();
+        $isShipment        = $object instanceof Shipment;
+        $isCreditmemo      = $object instanceof Creditmemo;
+        if ($isCreditmemo || $isShipment) {
+            $order             = $object->getOrder();
+            $customerEmail     = $order->getCustomerEmail();
+            $customerId        = $order->getCustomerId();
+            $customerFirstname = $order->getCustomerFirstname();
+            $customerLastname  = $order->getCustomerLastname();
+            $data['order_id']  = $object->getOrderId();
+
+            $path = 'sales/order/creditmemo';
+            if ($isShipment) {
+                $path = 'sales/order/shipment';
+            }
+        }
+
+        $data['email']            = $customerEmail;
+        $data['customer']         = [
+            'id'         => $customerId,
+            'email'      => $customerEmail,
+            'first_name' => $customerFirstname ?: '',
+            'last_name'  => $customerLastname ?: '',
+            'telephone'  => $object->getBillingAddress()->getTelephone() ?: ''
+        ];
+        $data['order_status_url'] = $this->getOrderViewUrl($object->getStoreId(), $object->getId(), $path);
+
+        if ($isShipment) {
+            if ($object->getData('tracks')) {
+                $data['trackingUrl'] = $this->shippingHelper->getTrackingPopupUrlBySalesModel($object);
+                $tracks              = [];
+                foreach ($object->getData('tracks') as $track) {
+                    $tracks[] = [
+                        'company' => $track->getTitle(),
+                        'number'  => $track->getTrackNumber(),
+                        'url'     => $this->shippingHelper->getTrackingPopupUrlBySalesModel($track)
+                    ];
+                }
+
+                if ($tracks) {
+                    $data['tracks'] = $tracks;
+                }
+            }
+
+            $shippingAddress = $object->getOrder()->getShippingAddress();
+            if ($shippingAddress) {
+                $data['destination'] = [
+                    'first_name' => $shippingAddress->getFirstname(),
+                    'last_name'  => $shippingAddress->getLastname(),
+                    'address1'   => $shippingAddress->getStreetLine(1),
+                    'city'       => $shippingAddress->getCity(),
+                    'zip'        => $shippingAddress->getPostcode(),
+                    'country'    => $shippingAddress->getCountryId(),
+                    'phone'      => $shippingAddress->getTelephone()
+                ];
+            }
+        }
+
+        if ($isShipment || $isCreditmemo) {
+            $data['line_items'] = $this->getShipmentOrCreditmemoItems($object);
+
+        } else {
+            $data['line_items'] = $this->getCartItems($object);
+        }
+
+        if ($object instanceof Order) {
+            $data['total_price']    = $object->getGrandTotal();
+            $data['subtotal_price'] = $object->getSubtotal();
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param Shipment|Creditmemo|Order $object
+     * @param string $type
+     *
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function sendOrderRequest($object, $type = 'orders/create')
+    {
+        $data = $this->getOrderData($object);
+        $this->storeId = $object->getStoreId();
+        $this->_curl->addHeader('X-EmailMarketing-Topic', $type);
+        $this->sendRequest($data, self::ORDER_URL);
+    }
+
+    /**
+     * @param int $storeId
+     * @param int $orderId
+     * @param string $path
+     *
+     * @return string
+     */
+    public function getOrderViewUrl($storeId, $orderId, $path = 'sales/order/view')
+    {
+        $this->frontendUrl->setScope($storeId);
+
+        return $this->frontendUrl->getUrl($path, ['order_id' => $orderId]);
+    }
+
+    /**
      * @param Quote $quote
      *
      * @return array
@@ -320,56 +465,166 @@ class AbandonedCart extends Data
             'subtotal_price'         => $quote->getSubtotal(),
             'total_price'            => $quote->getGrandTotal(),
             'total_tax'              => !$quote->isVirtual() ? $quote->getShippingAddress()->getTaxAmount() : 0,
-            'customer_locale'        => null
+            'customer_locale'        => null,
+            'shipping_address'       => $this->getShippingAddress($quote)
         ];
     }
 
     /**
      * @param Quote $quote
+     *
+     * @return array
+     */
+    public function getShippingAddress(Quote $quote)
+    {
+        $address = [];
+
+        if (!$quote->isVirtual() && $quote->getShippingAddress()) {
+
+            /**
+             * @var \Magento\Quote\Model\Quote\Address $shippingAddress
+             */
+            $shippingAddress = $quote->getShippingAddress();
+            $address         = [
+                'name'          => $shippingAddress->getName(),
+                'last_name'     => $shippingAddress->getLastname(),
+                'phone'         => $shippingAddress->getTelephone(),
+                'company'       => $shippingAddress->getCompany(),
+                'country_code'  => $shippingAddress->getCountryId(),
+                'zip'           => $shippingAddress->getPostcode(),
+                'address1'      => $shippingAddress->getStreetLine(1),
+                'address2'      => $shippingAddress->getStreetLine(2),
+                'city'          => $shippingAddress->getCity(),
+                'province_code' => $shippingAddress->getRegionCode(),
+                'province'      => $shippingAddress->getRegion()
+            ];
+        }
+
+        return $address;
+    }
+
+    /**
+     * @param Shipment | Creditmemo $object
+     *
      * @return array
      * @throws NoSuchEntityException
      */
-    public function getCartItems(Quote $quote)
+    public function getShipmentOrCreditmemoItems($object)
     {
         $items = [];
-        foreach ($quote->getItemsCollection() as $item) {
+        foreach ($object->getItems() as $item) {
+            $orderItem = $item->getOrderItem();
+            $product   = $orderItem->getProduct();
+            if ($orderItem->getParentItemId() && isset($items[$orderItem->getParentItemId()]['bundle_items'])) {
+                $items[$orderItem->getParentItemId()]['bundle_items'][] = [
+                    'title'      => $item->getName(),
+                    'image'      => $this->getProductImage($product),
+                    'product_id' => $orderItem->getProductId(),
+                    'sku'        => $orderItem->getSku(),
+                    'quantity'   => $item->getQty(),
+                    'price'      => (float) $item->getPrice()
+                ];
+
+                continue;
+            }
+
+            if ($orderItem->getParentItemId() && isset($items[$orderItem->getParentItemId()])) {
+                $items[$orderItem->getParentItemId()]['variant_title'] = $item->getName();
+                $items[$orderItem->getParentItemId()]['variant_image'] = $this->getProductImage($product);
+                $items[$orderItem->getParentItemId()]['variant_id']    = $orderItem->getProductId();
+                $items[$orderItem->getParentItemId()]['variant_price'] = (float) $item->getPrice();
+
+                continue;
+            }
+
+            $productType                = $orderItem->getData('product_type');
+            $items[$orderItem->getId()] = [
+                'type'          => $productType,
+                'title'         => $item->getName(),
+                'price'         => (float) $item->getPrice(),
+                'quantity'      => $item->getQty(),
+                'sku'           => $item->getSku(),
+                'product_id'    => $item->getProductId(),
+                'image'         => $this->getProductImage($product),
+                'frontend_link' => $product->getProductUrl()
+            ];
+
+            if ($productType === 'bundle') {
+                $items[$orderItem->getId()]['bundle_items'] = [];
+            }
+        }
+
+        /**
+         * Reformat data to compatible with API
+         */
+        $data = [];
+        foreach ($items as $item) {
+            $data[] = $item;
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param Quote|Shipment|Creditmemo|Order $object
+     *
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    public function getCartItems($object)
+    {
+        $items        = [];
+        $isQuote      = $object instanceof Quote;
+
+        foreach ($object->getAllItems() as $item) {
             if ($item->getParentItemId()) {
                 continue;
             }
 
+            /**
+             * @var \Magento\Catalog\Model\Product $product
+             */
+            $product = $item->getProduct();
             $productType = $item->getData('product_type');
+
             $bundleItems = [];
             $hasVariant  = $productType === 'configurable';
             $isBundle    = $productType === 'bundle';
 
             $itemRequest = [
+                'type'          => $productType,
                 'title'         => $item->getName(),
                 'price'         => (float) $item->getPrice(),
-                'quantity'      => (int) $item->getQty(),
+                'quantity'      => (int) ($isQuote ? $item->getQty() : $item->getQtyOrdered()),
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
-                'image'         => $this->getProductImage($item->getProduct()),
-                'frontend_link' => $item->getProduct()->getProductUrl(),
-                'line_price'    => $item->getRowTotal()
+                'image'         => $this->getProductImage($product),
+                'frontend_link' => $product->getProductUrl()
             ];
 
+            if ($isQuote) {
+                $itemRequest['line_price'] = $item->getRowTotal();
+            }
+
             if ($item->getHasChildren()) {
-                foreach ($item->getChildren() as $child) {
+                $children = $isQuote ? $item->getChildren() : $item->getChildrenItems();
+                foreach ($children as $child) {
+                    $product = $child->getProduct();
                     if ($hasVariant) {
                         $itemRequest['variant_title'] = $child->getName();
-                        $itemRequest['variant_image'] = $this->getProductImage($child->getProduct());
+                        $itemRequest['variant_image'] = $this->getProductImage($product);
                         $itemRequest['variant_id']    = $child->getProductId();
-                        $itemRequest['variant_price'] = (float)$child->getPrice();
+                        $itemRequest['variant_price'] = (float) $child->getPrice();
                     }
 
                     if ($isBundle) {
                         $bundleItems[] = [
                             'title'      => $child->getName(),
-                            'image'      => $this->getProductImage($child->getProduct()),
+                            'image'      => $this->getProductImage($product),
                             'product_id' => $child->getProductId(),
                             'sku'        => $child->getSku(),
-                            'quantity'   => (int)$child->getQty(),
-                            'price'      => (float)$child->getPrice(),
+                            'quantity'   => (int) ($isQuote ? $child->getQty() : $child->getQtyOrdered()),
+                            'price'      => (float) $child->getPrice()
                         ];
                     }
                 }
@@ -405,8 +660,17 @@ class AbandonedCart extends Data
      */
     public function getProductImage($product)
     {
+        $image = $product->getSmallImage();
+        if (!$image) {
+            return 'https://cdn1.avada.io/email-marketing/placeholder-image.gif';
+        }
+
+        if ($image[0] !== '/') {
+            $image = '/' . $image;
+        }
+
         $baseUrl  = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
-        $imageUrl = $baseUrl . 'catalog/product' . $product->getSmallImage();
+        $imageUrl = $baseUrl . 'catalog/product' . $image;
 
         return str_replace('\\', '/', $imageUrl);
     }
@@ -451,18 +715,29 @@ class AbandonedCart extends Data
         $this->url = $url;
 
         $body          = self::jsonEncode(['data' => $data]);
-        $secretKey     = $secretKey ?: $this->getSecretKey();
+        $storeId       = $this->storeId ?: $this->getStoreId();
+        $secretKey     = $secretKey ?: $this->getSecretKey($storeId);
         $generatedHash = base64_encode(hash_hmac('sha256', $body, $secretKey, true));
-        $appID         = $appID ?: $this->getAppID();
-
-        $this->_curl->setHeaders([
-            'Content-Type'                     => 'application/json',
-            'X-EmailMarketing-Hmac-Sha256'     => $generatedHash,
-            'X-EmailMarketing-App-Id'          => $appID,
-            'X-EmailMarketing-Connection-Test' => $isTest
-        ]);
+        $appID         = $appID ?: $this->getAppID($storeId);
+        $this->_curl->addHeader('Content-Type', 'application/json');
+        $this->_curl->addHeader('X-EmailMarketing-Hmac-Sha256', $generatedHash);
+        $this->_curl->addHeader('X-EmailMarketing-App-Id', $appID);
+        $this->_curl->addHeader('X-EmailMarketing-Connection-Test', $isTest);
 
         return $body;
+    }
+
+    /**
+     * @return int|string
+     * @throws NoSuchEntityException
+     */
+    public function getStoreId()
+    {
+        if (!$this->storeId) {
+            return $this->storeManager->getStore()->getId();
+        }
+
+        return $this->storeId;
     }
 
     /**
@@ -480,6 +755,50 @@ class AbandonedCart extends Data
         } catch (Exception $e) {
             // Ignore exception timeout
         }
+    }
+
+    /**
+     * @param int $id
+     * @param int $storeId
+     */
+    public function deleteQuote($id, $storeId)
+    {
+        $url       = self::DELETE_URL . $id;
+        $secretKey = $this->getSecretKey($storeId);
+        $generatedHash = base64_encode(hash_hmac('sha256', '', $secretKey, true));
+        $appID         = $this->getAppID($storeId);
+        $this->_curl->addHeader('Content-Type', 'application/json');
+        $this->_curl->addHeader('X-EmailMarketing-Hmac-Sha256', $generatedHash);
+        $this->_curl->addHeader('X-EmailMarketing-App-Id', $appID);
+
+        /**
+         * Remove logic post request and use delete request
+         */
+        $this->_curl->setOption(CURLOPT_POST, null);
+        $this->_curl->setOption(CURLOPT_CUSTOMREQUEST, 'DELETE');
+
+        $this->_curl->post($url, []);
+    }
+
+    /**
+     * @param Customer $customer
+     *
+     * @return array
+     */
+    public function getCustomerData(Customer $customer)
+    {
+        $subscriberStatus = (int) $customer->getData('subscriber_status');
+        $isSubscriber = $subscriberStatus === Subscriber::STATUS_SUBSCRIBED ?
+            true : !!$customer->getIsSubscribed();
+        return [
+            'email'        => $customer->getEmail(),
+            'firstName'    => $customer->getFirstname(),
+            'lastName'     => $customer->getLastname(),
+            'phoneNumber'  => '',
+            'description'  => '',
+            'isSubscriber' => $isSubscriber,
+            'source'       => 'Magento',
+        ];
     }
 
     /**
@@ -505,5 +824,15 @@ class AbandonedCart extends Data
     public function syncCustomer($data)
     {
         return $this->sendRequest($data, self::CUSTOMER_URL);
+    }
+
+    /**
+     * @param array $data
+     * @return mixed
+     * @throws LocalizedException
+     */
+    public function syncCustomers($data)
+    {
+        return $this->sendRequest($data, self::SYNC_CUSTOMER_URL);
     }
 }

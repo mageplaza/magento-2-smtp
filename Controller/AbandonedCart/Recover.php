@@ -103,6 +103,9 @@ class Recover extends Action
     public function execute()
     {
         $token = $this->getRequest()->getParam('token');
+        $isEmCheckout = $this->getRequest()->getParam('isEmCheckout');
+        $emToken = $this->getRequest()->getParam('emToken');
+
         if (!$token) {
             return $this->_redirect('checkout/cart');
         }
@@ -116,6 +119,10 @@ class Recover extends Action
 
         } catch (LocalizedException $e) {
             $this->messageManager->addErrorMessage(__($e->getMessage()));
+        }
+
+        if ($isEmCheckout && $emToken) {
+            return $this->_redirect('checkout/cart?isEmCheckout=' . $isEmCheckout . '&token=' . urlencode($emToken));
         }
 
         return $this->_redirect('checkout/cart');

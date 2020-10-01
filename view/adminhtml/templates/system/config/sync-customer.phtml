@@ -1,0 +1,82 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Smtp
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+/** @var \Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncCustomer $block */
+?>
+<div class="actions actions-test-email" id="mp-sync-customer">
+    <div id="mp-sync">
+        <div id="progress-content" style="display: none">
+            <p class="text-right">
+                <span id="syncing"><?= /* @noEscape */ __('Syncing...') ?></span>
+                <span id="sync-percent">0%</span>
+            </p>
+            <div class="progress">
+                <div class="progress-bar">
+                </div>
+            </div>
+        </div>
+        <div class="message" style="display: none;padding: 10px 10px 10px 48px;margin-bottom: 5px">
+            <span class="message-text">
+                <strong></strong>
+            </span>
+            <br>
+        </div>
+    </div>
+    <button class="actions-sync-customer" type="button" id="<?= $block->getHtmlId() ?>">
+        <span><?= $block->escapeHtml($block->getButtonLabel()) ?></span>
+    </button>
+
+</div>
+<script type="text/x-magento-init">
+    {
+        "#mp-sync-customer": {
+            "Mageplaza_Smtp/js/sync/customer": {
+                "ajaxUrl": "<?= $block->escapeHtml($block->getButtonUrl())?>",
+                "estimateUrl": "<?= $block->escapeHtml($block->getEstimateUrl())?>",
+                 "websiteId": "<?= $block->escapeHtml($block->getWebsiteId())?>",
+                 "storeId": "<?= $block->escapeHtml($block->getStoreId())?>",
+                 "successMessage": "<?= $block->escapeHtml($block->getSyncSuccessMessage())?>"
+            }
+        }
+    }
+</script>
+<style>
+    .text-right {text-align: right;}
+
+    .progress {
+        background-color: #fafafa;
+        border: 1px solid #ccc;
+        clear: left;
+        height: 30px;
+        margin-bottom: 30px;
+        overflow: hidden;
+    }
+    .progress-bar {
+        background-color: #79a22e;
+        color: #fff;
+        float: left;
+        height: 100%;
+        text-align: center;
+        width: 0;
+        transition: width .6s ease;
+    }
+
+</style>

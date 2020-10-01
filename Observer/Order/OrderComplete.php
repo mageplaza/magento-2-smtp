@@ -19,20 +19,21 @@
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
-namespace Mageplaza\Smtp\Observer\Customer;
+namespace Mageplaza\Smtp\Observer\Order;
 
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\ResourceModel\Order as ResourceOrder;
 use Mageplaza\Smtp\Helper\AbandonedCart;
-use Magento\Customer\Model\Customer;
 use Psr\Log\LoggerInterface;
 
 /**
- * Class CustomerSaveCommitAfter
- * @package Mageplaza\Smtp\Observer\Customer
+ * Class OrderComplete
+ * @package Mageplaza\Smtp\Observer\Order
  */
-class CustomerSaveCommitAfter implements ObserverInterface
+class OrderComplete implements ObserverInterface
 {
     /**
      * @var AbandonedCart
@@ -45,14 +46,25 @@ class CustomerSaveCommitAfter implements ObserverInterface
     protected $logger;
 
     /**
-     * CustomerSaveCommitAfter constructor.
+     * @var ResourceOrder
+     */
+    protected $resourceOrder;
+
+    /**
+     * OrderComplete constructor.
+     *
      * @param AbandonedCart $helperAbandonedCart
      * @param LoggerInterface $logger
+     * @param ResourceOrder $resourceOrder
      */
-    public function __construct(AbandonedCart $helperAbandonedCart, LoggerInterface $logger)
-    {
+    public function __construct(
+        AbandonedCart $helperAbandonedCart,
+        LoggerInterface $logger,
+        ResourceOrder $resourceOrder
+    ) {
         $this->helperAbandonedCart = $helperAbandonedCart;
         $this->logger              = $logger;
+        $this->resourceOrder       = $resourceOrder;
     }
 
     /**
@@ -60,27 +72,24 @@ class CustomerSaveCommitAfter implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        /**
-         * @var Customer $customer
-         */
-        $customer = $observer->getEvent()->getDataObject();
+
         if ($this->helperAbandonedCart->isEnableAbandonedCart() &&
             $this->helperAbandonedCart->getSecretKey() &&
-            $this->helperAbandonedCart->getAppID() &&
-            $customer->getIsNewRecord()
+            $this->helperAbandonedCart->getAppID()
         ) {
             try {
-                $data = [
-                    'email'        => $customer->getEmail(),
-                    'firstName'    => $customer->getFirstname(),
-                    'lastName'     => $customer->getLastname(),
-                    'phoneNumber'  => '',
-                    'description'  => '',
-                    'isSubscriber' => !!$customer->getIsSubscribed(),
-                    'source'       => 'Magento',
-                ];
-
-                $this->helperAbandonedCart->syncCustomer($data);
+                /* @var Order $order */
+                $order = $observer->getEvent()->getOrder();
+                if ($order->getState() === Order::STATE_COMPLETE &&
+                    !$order->getData('mp_smtp_email_marketing_synced')) {
+                    $this->helperAbandonedCart->sendOrderRequest($order, 'orders/complete');
+                    $resource = $this->resourceOrder;
+                    $resource->getConnection()->update(
+                        $resource->getMainTable(),
+                        ['mp_smtp_email_marketing_synced' => 1],
+                        ['entity_id = ?' => $order->getId()]
+                    );
+                }
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
             }
