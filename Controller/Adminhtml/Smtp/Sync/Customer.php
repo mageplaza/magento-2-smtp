@@ -144,7 +144,7 @@ class Customer extends Action
     {
         $connection->beginTransaction();
         try {
-            $connection->insertMultiple('mp_customer_entity_int', $data);
+            $connection->insertMultiple('customer_entity_int', $data);
             $connection->commit();
         } catch (Exception $e) {
             $connection->rollBack();
