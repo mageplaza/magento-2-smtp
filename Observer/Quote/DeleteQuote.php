@@ -25,7 +25,7 @@ use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Quote\Model\Quote;
-use Mageplaza\Smtp\Helper\AbandonedCart;
+use Mageplaza\Smtp\Helper\EmailMarketing;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -35,9 +35,9 @@ use Psr\Log\LoggerInterface;
 class DeleteQuote implements ObserverInterface
 {
     /**
-     * @var AbandonedCart
+     * @var EmailMarketing
      */
-    protected $helperAbandonedCart;
+    protected $helperEmailMarketing;
 
     /**
      * @var LoggerInterface
@@ -45,16 +45,17 @@ class DeleteQuote implements ObserverInterface
     protected $logger;
 
     /**
-     * CustomerSaveCommitAfter constructor.
-     * @param AbandonedCart $helperAbandonedCart
+     * DeleteQuote constructor.
+     *
+     * @param EmailMarketing $helperEmailMarketing
      * @param LoggerInterface $logger
      */
     public function __construct(
-        AbandonedCart $helperAbandonedCart,
+        EmailMarketing $helperEmailMarketing,
         LoggerInterface $logger
     ) {
-        $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->logger = $logger;
+        $this->helperEmailMarketing = $helperEmailMarketing;
+        $this->logger              = $logger;
     }
 
     /**
@@ -63,15 +64,15 @@ class DeleteQuote implements ObserverInterface
     public function execute(Observer $observer)
     {
 
-        if ($this->helperAbandonedCart->isEnableAbandonedCart() &&
-            $this->helperAbandonedCart->getSecretKey() &&
-            $this->helperAbandonedCart->getAppID()
+        if ($this->helperEmailMarketing->isEnableAbandonedCart() &&
+            $this->helperEmailMarketing->getSecretKey() &&
+            $this->helperEmailMarketing->getAppID()
         ) {
             try {
                 /* @var Quote $quote */
                 $quote = $observer->getEvent()->getDataObject();
                 if ($quote->getId()) {
-                    $this->helperAbandonedCart->deleteQuote($quote->getId(), $quote->getStoreId());
+                    $this->helperEmailMarketing->deleteQuote($quote->getId(), $quote->getStoreId());
                 }
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());

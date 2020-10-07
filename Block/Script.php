@@ -25,7 +25,7 @@ use Magento\Catalog\Block\Product\Context;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\View\Element\Template;
 use Magento\Sales\Model\Order;
-use Mageplaza\Smtp\Helper\AbandonedCart as HelperAbandonedCart;
+use Mageplaza\Smtp\Helper\EmailMarketing;
 
 /**
  * Class Script
@@ -34,9 +34,9 @@ use Mageplaza\Smtp\Helper\AbandonedCart as HelperAbandonedCart;
 class Script extends Template
 {
     /**
-     * @var HelperAbandonedCart
+     * @var EmailMarketing
      */
-    protected $helperAbandonedCart;
+    protected $helperEmailMarketing;
 
     /**
      * @var Session
@@ -47,27 +47,27 @@ class Script extends Template
      * Script constructor.
      *
      * @param Context $context
-     * @param HelperAbandonedCart $helperAbandonedCart
+     * @param EmailMarketing $helperEmailMarketing
      * @param Session $checkoutSession
      * @param array $data
      */
     public function __construct(
         Context $context,
-        HelperAbandonedCart $helperAbandonedCart,
+        EmailMarketing $helperEmailMarketing,
         Session $checkoutSession,
         array $data = []
     ) {
-        $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->checkoutSession = $checkoutSession;
+        $this->helperEmailMarketing = $helperEmailMarketing;
+        $this->checkoutSession      = $checkoutSession;
         parent::__construct($context, $data);
     }
 
     /**
-     * @return HelperAbandonedCart
+     * @return EmailMarketing
      */
-    public function getHelperAbandonedCart()
+    public function getHelperEmailMarketing()
     {
-        return $this->helperAbandonedCart;
+        return $this->helperEmailMarketing;
     }
 
     /**
@@ -76,7 +76,7 @@ class Script extends Template
     public function isSuccessPage()
     {
         $fullActionName = $this->getRequest()->getFullActionName();
-        $pages = ['checkout_onepage_success', 'mpthankyoupage_index_index'];
+        $pages          = ['checkout_onepage_success','mpthankyoupage_index_index'];
 
         return in_array($fullActionName, $pages);
     }

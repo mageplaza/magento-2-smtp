@@ -25,7 +25,7 @@ use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
-use Mageplaza\Smtp\Helper\AbandonedCart;
+use Mageplaza\Smtp\Helper\EmailMarketing;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -35,9 +35,9 @@ use Psr\Log\LoggerInterface;
 class OrderCreate implements ObserverInterface
 {
     /**
-     * @var AbandonedCart
+     * @var EmailMarketing
      */
-    protected $helperAbandonedCart;
+    protected $helperEmailMarketing;
 
     /**
      * @var LoggerInterface
@@ -47,15 +47,15 @@ class OrderCreate implements ObserverInterface
     /**
      * OrderCreate constructor.
      *
-     * @param AbandonedCart $helperAbandonedCart
+     * @param EmailMarketing $helperEmailMarketing
      * @param LoggerInterface $logger
      */
     public function __construct(
-        AbandonedCart $helperAbandonedCart,
+        EmailMarketing $helperEmailMarketing,
         LoggerInterface $logger
     ) {
-        $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->logger = $logger;
+        $this->helperEmailMarketing = $helperEmailMarketing;
+        $this->logger              = $logger;
     }
 
     /**
@@ -64,15 +64,15 @@ class OrderCreate implements ObserverInterface
     public function execute(Observer $observer)
     {
 
-        if ($this->helperAbandonedCart->isEnableAbandonedCart() &&
-            $this->helperAbandonedCart->getSecretKey() &&
-            $this->helperAbandonedCart->getAppID()
+        if ($this->helperEmailMarketing->isEnableAbandonedCart() &&
+            $this->helperEmailMarketing->getSecretKey() &&
+            $this->helperEmailMarketing->getAppID()
         ) {
             try {
                 /* @var Order $order */
                 $order = $observer->getEvent()->getOrder();
                 if ($order->getId()) {
-                    $this->helperAbandonedCart->sendOrderRequest($order);
+                    $this->helperEmailMarketing->sendOrderRequest($order);
                 }
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());

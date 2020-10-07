@@ -24,13 +24,11 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync;
 use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Customer\Model\Attribute;
+use Magento\Framework\Exception\LocalizedException;
+use Mageplaza\Smtp\Helper\EmailMarketing;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
-use Magento\Framework\App\ResponseInterface;
-use Magento\Framework\Controller\ResultInterface;
-use Magento\Framework\Exception\LocalizedException;
-use Mageplaza\Smtp\Helper\AbandonedCart;
+use Magento\Customer\Model\Attribute;
 
 /**
  * Class Customer
@@ -46,9 +44,9 @@ class Customer extends Action
     const ADMIN_RESOURCE = 'Mageplaza_Smtp::smtp';
 
     /**
-     * @var AbandonedCart
+     * @var EmailMarketing
      */
-    protected $helperAbandonedCart;
+    protected $helperEmailMarketing;
 
     /**
      * @var CustomerFactory
@@ -69,27 +67,27 @@ class Customer extends Action
      * Customer constructor.
      *
      * @param Context $context
-     * @param AbandonedCart $helperAbandonedCart
+     * @param EmailMarketing $helperEmailMarketing
      * @param CustomerFactory $customerFactory
      * @param CustomerCollectionFactory $customerCollectionFactory
      * @param Attribute $customerAttribute
      */
     public function __construct(
         Context $context,
-        AbandonedCart $helperAbandonedCart,
+        EmailMarketing $helperEmailMarketing,
         CustomerFactory $customerFactory,
         CustomerCollectionFactory $customerCollectionFactory,
         Attribute $customerAttribute
     ) {
-        $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->customerFactory = $customerFactory;
+        $this->helperEmailMarketing = $helperEmailMarketing;
+        $this->customerFactory           = $customerFactory;
         $this->customerCollectionFactory = $customerCollectionFactory;
-        $this->customerAttribute = $customerAttribute;
+        $this->customerAttribute         = $customerAttribute;
         parent::__construct($context);
     }
 
     /**
-     * @return ResponseInterface|ResultInterface
+     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
      */
     public function execute()
     {
@@ -114,27 +112,27 @@ class Customer extends Action
             $data = [];
             $attributeData = [];
             foreach ($customers as $customer) {
-                $data[] = $this->helperAbandonedCart->getCustomerData($customer);
+                $data[] = $this->helperEmailMarketing->getCustomerData($customer);
                 $attributeData[] = [
                     'attribute_id' => $attribute->getId(),
-                    'entity_id' => $customer->getId(),
-                    'value' => 1
+                    'entity_id'    => $customer->getId(),
+                    'value'        => 1
                 ];
             }
 
             $result['status'] = true;
-            $result['total'] = count($ids);
-            $response = $this->helperAbandonedCart->syncCustomers($data);
+            $result['total']  = count($ids);
+            $response = $this->helperEmailMarketing->syncCustomers($data);
             if (isset($response['success'])) {
                 $this->insertData($customerCollection->getConnection(), $attributeData);
             }
 
         } catch (Exception $e) {
-            $result['status'] = false;
+            $result['status']  = false;
             $result['message'] = $e->getMessage();
         }
 
-        return $this->getResponse()->representJson(AbandonedCart::jsonEncode($result));
+        return $this->getResponse()->representJson(EmailMarketing::jsonEncode($result));
     }
 
     /**

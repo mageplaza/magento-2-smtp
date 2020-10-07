@@ -34,7 +34,7 @@ use Magento\Quote\Model\QuoteFactory;
 use Magento\Store\Model\Store;
 use Magento\Tax\Helper\Data;
 use Magento\Tax\Model\Config;
-use Mageplaza\Smtp\Helper\AbandonedCart as HelperAbandonedCart;
+use Mageplaza\Smtp\Helper\EmailMarketing;
 
 /**
  * Class AbandonedCart
@@ -63,9 +63,9 @@ class AbandonedCart extends Template
     protected $quoteFactory;
 
     /**
-     * @var HelperAbandonedCart
+     * @var EmailMarketing
      */
-    protected $helperAbandonedCart;
+    protected $helperEmailMarketing;
 
     /**
      * AbandonedCart constructor.
@@ -74,7 +74,7 @@ class AbandonedCart extends Template
      * @param ProductRepositoryInterface $productRepository
      * @param PriceCurrency $priceCurrency
      * @param QuoteFactory $quoteFactory
-     * @param HelperAbandonedCart $helperAbandonedCart
+     * @param EmailMarketing $helperEmailMarketing
      * @param array $data
      */
     public function __construct(
@@ -82,14 +82,14 @@ class AbandonedCart extends Template
         ProductRepositoryInterface $productRepository,
         PriceCurrency $priceCurrency,
         QuoteFactory $quoteFactory,
-        HelperAbandonedCart $helperAbandonedCart,
+        EmailMarketing $helperEmailMarketing,
         array $data = []
     ) {
-        $this->_productRepository = $productRepository;
-        $this->priceCurrency = $priceCurrency;
-        $this->taxHelper = $context->getTaxData();
-        $this->quoteFactory = $quoteFactory;
-        $this->helperAbandonedCart = $helperAbandonedCart;
+        $this->_productRepository   = $productRepository;
+        $this->priceCurrency        = $priceCurrency;
+        $this->taxHelper            = $context->getTaxData();
+        $this->quoteFactory         = $quoteFactory;
+        $this->helperEmailMarketing = $helperEmailMarketing;
         parent::__construct($context, $data);
     }
 
@@ -106,11 +106,11 @@ class AbandonedCart extends Template
     }
 
     /**
-     * @return HelperAbandonedCart
+     * @return EmailMarketing
      */
-    public function getHelperAbandonedCart()
+    public function getHelperEmailMarketing()
     {
-        return $this->helperAbandonedCart;
+        return $this->helperEmailMarketing;
     }
 
     /**

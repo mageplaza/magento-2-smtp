@@ -25,7 +25,7 @@ use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Quote\Model\Quote;
-use Mageplaza\Smtp\Helper\AbandonedCart;
+use Mageplaza\Smtp\Helper\EmailMarketing;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -35,9 +35,9 @@ use Psr\Log\LoggerInterface;
 class SyncQuote implements ObserverInterface
 {
     /**
-     * @var AbandonedCart
+     * @var EmailMarketing
      */
-    protected $helperAbandonedCart;
+    protected $helperEmailMarketing;
 
     /**
      * @var LoggerInterface
@@ -45,16 +45,17 @@ class SyncQuote implements ObserverInterface
     protected $logger;
 
     /**
-     * CustomerSaveCommitAfter constructor.
-     * @param AbandonedCart $helperAbandonedCart
+     * SyncQuote constructor.
+     *
+     * @param EmailMarketing $helperEmailMarketing
      * @param LoggerInterface $logger
      */
     public function __construct(
-        AbandonedCart $helperAbandonedCart,
+        EmailMarketing $helperEmailMarketing,
         LoggerInterface $logger
     ) {
-        $this->helperAbandonedCart = $helperAbandonedCart;
-        $this->logger = $logger;
+        $this->helperEmailMarketing = $helperEmailMarketing;
+        $this->logger               = $logger;
     }
 
     /**
@@ -63,27 +64,28 @@ class SyncQuote implements ObserverInterface
     public function execute(Observer $observer)
     {
 
-        if ($this->helperAbandonedCart->isEnableAbandonedCart() &&
-            $this->helperAbandonedCart->getSecretKey() &&
-            $this->helperAbandonedCart->getAppID()
+        if ($this->helperEmailMarketing->isEnableAbandonedCart() &&
+            $this->helperEmailMarketing->getSecretKey() &&
+            $this->helperEmailMarketing->getAppID()
         ) {
             try {
                 /* @var Quote $quote */
                 $quote = $observer->getEvent()->getQuote();
-                if ($quote->getId()) {
-
-                    $ACEData = $this->helperAbandonedCart->getACEData($quote);
-                    $oldACEData = $quote->getData('mp_smtp_ace_log_data') ?
-                        AbandonedCart::jsonDecode($quote->getData('mp_smtp_ace_log_data')) : [];
+                $aceLogData = $quote->getData('mp_smtp_ace_log_data');
+                $itemCount = (int) $quote->getItemsCount();
+                $isValid = ($itemCount > 0 || ($aceLogData && $itemCount < 1));
+                if ($isValid) {
+                    $ACEData    = $this->helperEmailMarketing->getACEData($quote);
+                    $oldACEData = $aceLogData ? EmailMarketing::jsonDecode($aceLogData) : [];
                     if ($oldACEData !== $ACEData && empty($oldACEData['checkoutCompleted'])) {
-                        $resource = $this->helperAbandonedCart->getResourceQuote();
+                        $resource = $this->helperEmailMarketing->getResourceQuote();
                         $resource->getConnection()->update(
                             $resource->getMainTable(),
-                            ['mp_smtp_ace_log_data' => AbandonedCart::jsonEncode($ACEData)],
+                            ['mp_smtp_ace_log_data' => EmailMarketing::jsonEncode($ACEData)],
                             ['entity_id = ?' => $quote->getId()]
                         );
 
-                        $this->helperAbandonedCart->sendRequestWithoutWaitResponse($ACEData);
+                        $this->helperEmailMarketing->sendRequestWithoutWaitResponse($ACEData);
                     }
                 }
             } catch (Exception $e) {

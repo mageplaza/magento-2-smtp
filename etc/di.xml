@@ -23,7 +23,7 @@
     <type name="Magento\Framework\Mail\Template\TransportBuilder">
         <plugin name="mageplaza_mail_template_transport_builder" type="Mageplaza\Smtp\Mail\Template\TransportBuilder" sortOrder="1" disabled="false"/>
     </type>
-    <type name="Mageplaza\Smtp\Helper\AbandonedCart">
+    <type name="Mageplaza\Smtp\Helper\EmailMarketing">
         <arguments>
             <argument name="frontendUrl" xsi:type="object" shared="false">Magento\Framework\Url</argument>
         </arguments>
