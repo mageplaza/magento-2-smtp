@@ -29,6 +29,7 @@ use Mageplaza\Smtp\Helper\EmailMarketing;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
 use Magento\Customer\Model\Attribute;
+use Zend_Db_Expr;
 
 /**
  * Class Customer
@@ -101,10 +102,13 @@ class Customer extends Action
 
             $customerCollection = $this->customerCollectionFactory->create();
             $ids = $this->getRequest()->getParam('ids');
-            $customerCollection->getSelect()->joinLeft(
-                ['subscriber' => $customerCollection->getTable('newsletter_subscriber')],
-                'e.entity_id = subscriber.customer_id',
-                ['subscriber_status']
+            $subscriberTable = $customerCollection->getTable('newsletter_subscriber');
+            $customerCollection->getSelect()->columns(
+                [
+                    'subscriber_status' => new Zend_Db_Expr(
+                        '(SELECT `s`.`subscriber_status` FROM `' . $subscriberTable . '` as `s` WHERE `s`.`customer_id` = `e`.`entity_id` LIMIT 1)'
+                    )
+                ]
             );
 
             $customers = $customerCollection->addFieldToFilter('entity_id', ['in' => $ids]);
