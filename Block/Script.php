@@ -88,4 +88,16 @@ class Script extends Template
     {
         return $this->checkoutSession->getLastRealOrder();
     }
+
+    /**
+     * @return string
+     */
+    public function toHtml()
+    {
+        if (!$this->helperEmailMarketing->isEnableAbandonedCart()) {
+            return '';
+        }
+
+        return parent::toHtml();
+    }
 }
