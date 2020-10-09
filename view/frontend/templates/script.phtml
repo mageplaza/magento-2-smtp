@@ -37,6 +37,7 @@ $isSuccessPage = $block->isSuccessPage();
     ?>
     <script data-cfasync="false" type="text/javascript">
         var AVADA_EM = {
+            shopId: "<?= /* @noEscape */ $shopId ?>",
             vendor: "magento",
             checkout: {
                 revenue: "<?=  /* @noEscape */ $grandTotal ?>",
@@ -45,32 +46,8 @@ $isSuccessPage = $block->isSuccessPage();
                 checkoutEmail: "<?=  /* @noEscape */ $email ?>"
             }
         };
+        window.AVADA_EM = window.AVADA_EM||{};
+        window.AVADA_EM.shopId = "<?= /* @noEscape */ $shopId ?>";
     </script>
 <?php } ?>
-<script data-cfasync="false" type="text/javascript">
-    var EM_date = new Date();
-    var EM_params = new URL(document.location).searchParams;
-
-    if (EM_params.get('isEmCheckout') === 'true' && EM_params.get('token')) {
-        if (localStorage.getItem('avada-em-converted')) {
-            localStorage.removeItem('avada-em-converted');
-        }
-        localStorage.setItem('avada-em-converted', JSON.stringify({
-            token: EM_params.get('token'),
-            expiredAt: EM_date.setHours(EM_date.getHours() + 24 * 3)
-        }));
-        if (EM_params.get('redirectUrl')) {
-            window.location.replace(EM_params.get('redirectUrl'));
-        }
-    }
-
-    var EM_script = document.createElement("script");
-    (EM_script.type = "text/javascript"), (EM_script.async = !0), (EM_script.src = "https://app.avada.io/scripttag/avada-email-marketing.min.js");
-    var EM_firstScript = document.getElementsByTagName("script")[0];
-    EM_firstScript.parentNode.insertBefore(EM_script, EM_firstScript);
-</script>
-<!-- END AVADA EMAIL MARKETING SCRIPT-->
-
-<!-- BEGIN AVADA POPUP SCRIPT-->
-<script data-cfasync="false" type="text/javascript">(function(b,d){window.AVADA_EM=window.AVADA_EM||{};window.AVADA_EM.shopId="<?= /* @noEscape */ $shopId ?>";var s=document.createElement("script");s.type="text/javascript";s.async=true;s.src=b;var x=document.getElementsByTagName("script")[0];x.parentNode.insertBefore(s,x);})("https://app.avada.io/scripttag/popup/avada-popup.min.js","3hFq9BOEZWQQKTXqFdtx");</script>
-<!-- END AVADA POPUP SCRIPT-->
+<script data-cfasync="false" type="text/javascript">(function(b){var s=document.createElement("script");s.type="text/javascript";s.async=true;s.src=b;var x=document.getElementsByTagName("script")[0];x.parentNode.insertBefore(s,x);})("https://app.avada.io/avada-sdk.min.js");</script>
