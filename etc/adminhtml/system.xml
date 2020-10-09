@@ -52,7 +52,7 @@
                     <comment><![CDATA[Enter the main email pattern format. Separated by line breaks.<br />
                         For the email having the same pattern format with this main pattern, it can not receive email from the system.<br />
                         For example: Enter the pattern: /^[0-9][a-z0-9\$\%\&]+@[a-z]+\.[a-z]{2,}$/ means that email format must start with number, the following characters can be normal text, number or special character ($, %, &). The domain after @ with normal-text characters will not receive email from system. For instance: 1abc@example.com</br>
-                        For more details of writing email pattern, please see it <a href=" https://docs.mageplaza.com/smtp-m2/index.html" target="_blank">here</a>.]]>
+                        For more details of writing email pattern, please see it <a href="https://docs.mageplaza.com/smtp-m2/index.html" target="_blank">here</a>.]]>
                     </comment>
                 </field>
             </group>
@@ -117,7 +117,7 @@
                 <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment>Select Yes to enable this feature.</comment>
+                    <comment><![CDATA[By enable AVADA Email Marketing, it means that you agree with the <a href="https://avada.io/tos.html" target="_blank">Terms & Conditions</a> and <a href="https://avada.io/dpa.html" target="_blank">Data processing agreement</a>.]]></comment>
                 </field>
                 <field id="app_id" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>App ID</label>
