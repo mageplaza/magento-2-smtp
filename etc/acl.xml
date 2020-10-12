@@ -33,6 +33,7 @@
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
                             <resource id="Mageplaza_Smtp::configuration" title="Mageplaza Smtp"/>
+                            <resource id="Mageplaza_Smtp::email_marketing" title="Marketing Automation"/>
                         </resource>
                     </resource>
                 </resource>

@@ -272,7 +272,7 @@ class EmailMarketing extends Data
      */
     public function getAppID($storeId = null)
     {
-        return $this->getAbandonedCartConfig('app_id', $storeId);
+        return $this->getEmailMarketingConfig('app_id', $storeId);
     }
 
     /**
@@ -282,7 +282,7 @@ class EmailMarketing extends Data
      */
     public function getSecretKey($storeId = null)
     {
-        $secretKey = $this->getAbandonedCartConfig('secret_key', $storeId);
+        $secretKey = $this->getEmailMarketingConfig('secret_key', $storeId);
 
         return $this->encryptor->decrypt($secretKey);
     }

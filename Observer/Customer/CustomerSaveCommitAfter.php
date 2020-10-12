@@ -67,7 +67,7 @@ class CustomerSaveCommitAfter implements ObserverInterface
          * @var Customer $customer
          */
         $customer = $observer->getEvent()->getDataObject();
-        if ($this->helperEmailMarketing->isEnableAbandonedCart() &&
+        if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID() &&
             $customer->getIsNewRecord()

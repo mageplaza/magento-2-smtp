@@ -28,7 +28,7 @@ define([
             websiteId: '',
             storeId: '',
             estimateUrl: '',
-            buttonElement: '#smtp_abandoned_cart_synchronization_sync_customer'
+            buttonElement: '#email_marketing_general_synchronization_sync_customer'
         },
         currentResult: {},
         totalSync: 0,

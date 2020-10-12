@@ -52,7 +52,7 @@
                     <comment><![CDATA[Enter the main email pattern format. Separated by line breaks.<br />
                         For the email having the same pattern format with this main pattern, it can not receive email from the system.<br />
                         For example: Enter the pattern: /^[0-9][a-z0-9\$\%\&]+@[a-z]+\.[a-z]{2,}$/ means that email format must start with number, the following characters can be normal text, number or special character ($, %, &). The domain after @ with normal-text characters will not receive email from system. For instance: 1abc@example.com</br>
-                        For more details of writing email pattern, please see it <a href="https://docs.mageplaza.com/smtp-m2/index.html" target="_blank">here</a>.]]>
+                        For more details of writing email pattern, please see it <a href=" https://docs.mageplaza.com/smtp-m2/index.html" target="_blank">here</a>.]]>
                     </comment>
                 </field>
             </group>
@@ -112,8 +112,21 @@
                     </field>
                 </group>
             </group>
-            <group id="abandoned_cart" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Email Marketing</label>
+            <group id="developer" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Developer</label>
+                <field id="developer_mode" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Developer Mode</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>If Enable, Magento will not delivery any email to receiver. This is useful for developers.</comment>
+                </field>
+            </group>
+        </section>
+        <section id="email_marketing" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Marketing Automation</label>
+            <tab>mageplaza</tab>
+            <resource>Mageplaza_Smtp::email_marketing</resource>
+            <group id="general" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Configuration</label>
                 <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -122,16 +135,25 @@
                 <field id="app_id" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>App ID</label>
                     <comment><![CDATA[Create API key <a href="https://app.avada.io/manage/keys" target="_blank">here</a>.]]></comment>
+                    <depends>
+                        <field id="email_marketing/general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="secret_key" translate="label comment" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Secret key</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <depends>
+                        <field id="email_marketing/general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="test_connection" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label></label>
                     <button_label>Test connection</button_label>
                     <button_url>adminhtml/smtp/testconnection</button_url>
                     <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\TestConnection</frontend_model>
+                    <depends>
+                        <field id="email_marketing/general/enabled">1</field>
+                    </depends>
                 </field>
                 <group id="synchronization" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Synchronization</label>
@@ -141,15 +163,10 @@
                         <button_url>adminhtml/smtp_sync/customer</button_url>
                         <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncCustomer</frontend_model>
                     </field>
+                    <depends>
+                        <field id="email_marketing/general/enabled">1</field>
+                    </depends>
                 </group>
-            </group>
-            <group id="developer" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Developer</label>
-                <field id="developer_mode" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Developer Mode</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment>If Enable, Magento will not delivery any email to receiver. This is useful for developers.</comment>
-                </field>
             </group>
         </section>
     </system>

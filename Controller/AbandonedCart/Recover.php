@@ -139,8 +139,8 @@ class Recover extends Action
      */
     public function recover($token)
     {
-        if (!$this->helperData->isEnableAbandonedCart($this->storeManager->getStore()->getId())) {
-            throw new LocalizedException(__('SMTP abandoned cart is disabled.'));
+        if (!$this->helperData->isEnableEmailMarketing($this->storeManager->getStore()->getId())) {
+            throw new LocalizedException(__('Marketing Automation is disabled.'));
         }
 
         $token = explode('_', $token);

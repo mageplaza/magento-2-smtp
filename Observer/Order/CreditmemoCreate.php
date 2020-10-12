@@ -64,7 +64,7 @@ class CreditmemoCreate implements ObserverInterface
     public function execute(Observer $observer)
     {
 
-        if ($this->helperEmailMarketing->isEnableAbandonedCart() &&
+        if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()
         ) {

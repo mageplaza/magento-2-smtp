@@ -94,7 +94,7 @@ class Script extends Template
      */
     public function toHtml()
     {
-        if (!$this->helperEmailMarketing->isEnableAbandonedCart()) {
+        if (!$this->helperEmailMarketing->isEnableEmailMarketing()) {
             return '';
         }
 

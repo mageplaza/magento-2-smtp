@@ -33,7 +33,8 @@ use Mageplaza\Core\Helper\AbstractData;
 class Data extends AbstractData
 {
     const CONFIG_MODULE_PATH = 'smtp';
-    const CONFIG_GROUP_SMTP = 'configuration_option';
+    const EMAIL_MARKETING    = 'email_marketing';
+    const CONFIG_GROUP_SMTP  = 'configuration_option';
     const DEVELOP_GROUP_SMTP = 'developer';
 
     /**
@@ -128,11 +129,11 @@ class Data extends AbstractData
      *
      * @return mixed
      */
-    public function getAbandonedCartConfig($code = '', $storeId = null)
+    public function getEmailMarketingConfig($code = '', $storeId = null)
     {
         $code = ($code !== '') ? '/' . $code : '';
 
-        return $this->getConfigValue(static::CONFIG_MODULE_PATH . '/abandoned_cart' . $code, $storeId);
+        return $this->getConfigValue(static::EMAIL_MARKETING . '/general' . $code, $storeId);
     }
 
     /**
@@ -140,8 +141,8 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function isEnableAbandonedCart($storeId = null)
+    public function isEnableEmailMarketing($storeId = null)
     {
-        return $this->isEnabled($storeId) && $this->getAbandonedCartConfig('enabled');
+        return $this->getEmailMarketingConfig('enabled', $storeId);
     }
 }
