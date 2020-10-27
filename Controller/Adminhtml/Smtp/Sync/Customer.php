@@ -30,6 +30,7 @@ use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
 use Magento\Customer\Model\Attribute;
 use Zend_Db_Expr;
+use Magento\Customer\Model\ResourceModel\Customer\Collection;
 
 /**
  * Class Customer
@@ -128,7 +129,8 @@ class Customer extends Action
             $result['total']  = count($ids);
             $response = $this->helperEmailMarketing->syncCustomers($data);
             if (isset($response['success'])) {
-                $this->insertData($customerCollection->getConnection(), $attributeData);
+                $table = $customerCollection->getTable('customer_entity_int');
+                $this->insertData($customerCollection->getConnection(), $attributeData, $table);
             }
 
         } catch (Exception $e) {
@@ -140,15 +142,17 @@ class Customer extends Action
     }
 
     /**
+     * @param Collection $connection
      * @param array $data
+     * @param string $table
      *
      * @throws Exception
      */
-    public function insertData($connection, $data)
+    public function insertData($connection, $data, $table)
     {
         $connection->beginTransaction();
         try {
-            $connection->insertMultiple('customer_entity_int', $data);
+            $connection->insertMultiple($table, $data);
             $connection->commit();
         } catch (Exception $e) {
             $connection->rollBack();
