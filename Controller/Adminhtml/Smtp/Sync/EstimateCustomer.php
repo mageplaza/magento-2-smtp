@@ -76,7 +76,7 @@ class EstimateCustomer extends Action
     {
         try {
 
-            if (!$this->emailMarketing->getAppID() || $this->emailMarketing->getSecretKey()) {
+            if (!$this->emailMarketing->getAppID() || !$this->emailMarketing->getSecretKey()) {
                 throw new LocalizedException(__('App ID or Secret Key is empty'));
             }
 

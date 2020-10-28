@@ -24,13 +24,13 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync;
 use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
 use Magento\Customer\Model\Attribute;
 use Zend_Db_Expr;
-use Magento\Customer\Model\ResourceModel\Customer\Collection;
 
 /**
  * Class Customer
@@ -142,7 +142,7 @@ class Customer extends Action
     }
 
     /**
-     * @param Collection $connection
+     * @param AdapterInterface $connection
      * @param array $data
      * @param string $table
      *
