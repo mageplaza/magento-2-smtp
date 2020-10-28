@@ -80,7 +80,7 @@ define([
                         }
                         
                         percentText = self.currentResult.percent.toFixed(2) + '%';
-                        if(percentText === '100.00%'){
+                        if(percentText === '100.00%' || self.totalSync === self.currentResult.total){
                             percentText = '100%';
                             $(self.options.buttonElement).removeClass('disabled');
                         }

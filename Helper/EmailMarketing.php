@@ -46,6 +46,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Quote\Model\ResourceModel\Quote as ResourceQuote;
 use Magento\Shipping\Helper\Data as ShippingHelper;
 use Magento\Framework\HTTP\Client\Curl;
+use Magento\Customer\Model\Attribute;
 
 /**
  * Class EmailMarketing
@@ -53,6 +54,8 @@ use Magento\Framework\HTTP\Client\Curl;
  */
 class EmailMarketing extends Data
 {
+    const IS_SYNCED_ATTRIBUTE = 'mp_smtp_is_synced';
+
     const APP_URL           = 'https://app.avada.io/webhook/checkout/create';
     const CUSTOMER_URL      = 'https://app.avada.io/webhook/customer/create';
     const ORDER_URL         = 'https://app.avada.io/webhook/order/processing';
@@ -119,6 +122,11 @@ class EmailMarketing extends Data
     protected $shippingHelper;
 
     /**
+     * @var Attribute
+     */
+    protected $customerAttribute;
+
+    /**
      * @var string
      */
     protected $url = '';
@@ -127,6 +135,11 @@ class EmailMarketing extends Data
      * @var string
      */
     protected $storeId = '';
+
+    /**
+     * @var bool
+     */
+    protected $isSyncCustomer = false;
 
     /**
      * EmailMarketing constructor.
@@ -145,6 +158,7 @@ class EmailMarketing extends Data
      * @param ProductRepository $productRepository
      * @param ResourceQuote $resourceQuote
      * @param ShippingHelper $shippingHelper
+     * @param Attribute $customerAttribute
      */
     public function __construct(
         Context $context,
@@ -160,7 +174,8 @@ class EmailMarketing extends Data
         Curl $curl,
         ProductRepository $productRepository,
         ResourceQuote $resourceQuote,
-        ShippingHelper $shippingHelper
+        ShippingHelper $shippingHelper,
+        Attribute $customerAttribute
     ) {
         parent::__construct($context, $objectManager, $storeManager);
 
@@ -175,6 +190,7 @@ class EmailMarketing extends Data
         $this->resourceQuote              = $resourceQuote;
         $this->productRepository          = $productRepository;
         $this->shippingHelper             = $shippingHelper;
+        $this->customerAttribute          = $customerAttribute;
     }
 
     /**
@@ -833,5 +849,36 @@ class EmailMarketing extends Data
     public function syncCustomers($data)
     {
         return $this->sendRequest($data, self::SYNC_CUSTOMER_URL);
+    }
+
+    /**
+     * @return Attribute|string
+     * @throws LocalizedException
+     */
+    public function getSyncedAttribute()
+    {
+        $attribute = self::IS_SYNCED_ATTRIBUTE;
+        $attribute = $this->customerAttribute->loadByCode('customer', $attribute);
+        if (!$attribute->getId()) {
+            throw new LocalizedException(__('%1 not found.', $attribute));
+        }
+
+        return $attribute;
+    }
+
+    /**
+     * @param boolean $value
+     */
+    public function setIsSyncedCustomer($value)
+    {
+        $this->isSyncCustomer = $value;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isSyncedCustomer()
+    {
+        return $this->isSyncCustomer;
     }
 }

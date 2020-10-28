@@ -25,11 +25,9 @@ use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\DB\Adapter\AdapterInterface;
-use Magento\Framework\Exception\LocalizedException;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
-use Magento\Customer\Model\Attribute;
 use Zend_Db_Expr;
 
 /**
@@ -61,30 +59,22 @@ class Customer extends Action
     protected $customerCollectionFactory;
 
     /**
-     * @var Attribute
-     */
-    protected $customerAttribute;
-
-    /**
      * Customer constructor.
      *
      * @param Context $context
      * @param EmailMarketing $helperEmailMarketing
      * @param CustomerFactory $customerFactory
      * @param CustomerCollectionFactory $customerCollectionFactory
-     * @param Attribute $customerAttribute
      */
     public function __construct(
         Context $context,
         EmailMarketing $helperEmailMarketing,
         CustomerFactory $customerFactory,
-        CustomerCollectionFactory $customerCollectionFactory,
-        Attribute $customerAttribute
+        CustomerCollectionFactory $customerCollectionFactory
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
         $this->customerFactory           = $customerFactory;
         $this->customerCollectionFactory = $customerCollectionFactory;
-        $this->customerAttribute         = $customerAttribute;
         parent::__construct($context);
     }
 
@@ -95,11 +85,7 @@ class Customer extends Action
     {
         $result = [];
         try {
-            $attribute = 'mp_smtp_is_synced';
-            $attribute = $this->customerAttribute->loadByCode('customer', $attribute);
-            if (!$attribute->getId()) {
-                throw new LocalizedException(__('%1 not found.', $attribute));
-            }
+            $attribute = $this->helperEmailMarketing->getSyncedAttribute();
 
             $customerCollection = $this->customerCollectionFactory->create();
             $ids = $this->getRequest()->getParam('ids');
