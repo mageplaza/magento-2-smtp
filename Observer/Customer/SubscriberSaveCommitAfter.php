@@ -28,6 +28,7 @@ use Magento\Framework\Event\ObserverInterface;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 use Magento\Customer\Model\Customer;
 use Psr\Log\LoggerInterface;
+use Magento\Newsletter\Model\Subscriber;
 
 /**
  * Class SubscriberSaveCommitAfter
@@ -73,10 +74,10 @@ class SubscriberSaveCommitAfter implements ObserverInterface
     public function execute(Observer $observer)
     {
         $subscriber = $observer->getEvent()->getDataObject();
-        if ($this->helperEmailMarketing->isEnableAbandonedCart() &&
+        if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID() &&
-            $subscriber->getIsNewRecord()
+            !$this->helperEmailMarketing->isSyncedCustomer()
         ) {
             try {
 
@@ -87,7 +88,7 @@ class SubscriberSaveCommitAfter implements ObserverInterface
                     'phoneNumber'  => '',
                     'description'  => '',
                     'source' => 'Magento',
-                    'isSubscriber' => !!$subscriber->getSubscriberStatus()
+                    'isSubscriber' => $subscriber->getSubscriberStatus() === Subscriber::STATUS_SUBSCRIBED
                 ];
 
                 /**

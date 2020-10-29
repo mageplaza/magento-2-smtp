@@ -27,10 +27,12 @@ use Magento\Customer\Setup\CustomerSetup;
 use Magento\Customer\Setup\CustomerSetupFactory;
 use Magento\Eav\Model\Entity\Attribute\Set as AttributeSet;
 use Magento\Eav\Model\Entity\Attribute\SetFactory as AttributeSetFactory;
+use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Sales\Setup\SalesSetupFactory;
+use Magento\Config\Model\ResourceModel\Config\Data\Collection;
 
 /**
  * Class UpgradeData
@@ -54,20 +56,36 @@ class UpgradeData implements UpgradeDataInterface
     protected $customerSetupFactory;
 
     /**
-     * InstallData constructor.
+     * @var Collection
+     */
+    protected $configCollection;
+
+    /**
+     * @var TypeListInterface
+     */
+    protected $_cacheTypeList;
+
+    /**
+     * UpgradeData constructor.
      *
      * @param SalesSetupFactory $salesSetupFactory
      * @param AttributeSetFactory $attributeSetFactory
      * @param CustomerSetupFactory $customerSetupFactory
+     * @param Collection $configCollection
+     * @param TypeListInterface $cacheTypeList
      */
     public function __construct(
         SalesSetupFactory $salesSetupFactory,
         AttributeSetFactory $attributeSetFactory,
-        CustomerSetupFactory $customerSetupFactory
+        CustomerSetupFactory $customerSetupFactory,
+        Collection $configCollection,
+        TypeListInterface $cacheTypeList
     ) {
-        $this->salesSetupFactory = $salesSetupFactory;
-        $this->attributeSetFactory = $attributeSetFactory;
+        $this->salesSetupFactory    = $salesSetupFactory;
+        $this->attributeSetFactory  = $attributeSetFactory;
         $this->customerSetupFactory = $customerSetupFactory;
+        $this->configCollection     = $configCollection;
+        $this->_cacheTypeList = $cacheTypeList;
     }
 
     /**
@@ -111,6 +129,28 @@ class UpgradeData implements UpgradeDataInterface
                     'used_in_forms' => ['adminhtml_customer']
                 ])
                 ->save();
+        }
+
+        if (version_compare($context->getVersion(), '1.2.3', '<')) {
+            $connection       = $setup->getConnection();
+            $configCollection = $this->configCollection->addPathFilter('smtp/abandoned_cart');
+            if ($configCollection->getSize() > 0) {
+                $table = $this->configCollection->getMainTable();
+                $paths = [
+                    'smtp/abandoned_cart/enabled'    => 'email_marketing/general/enabled',
+                    'smtp/abandoned_cart/app_id'     => 'email_marketing/general/app_id',
+                    'smtp/abandoned_cart/secret_key' => 'email_marketing/general/secret_key'
+                ];
+
+                foreach ($paths as $oldPath => $newPath) {
+                    $connection->update(
+                        $table,
+                        ['path' => $newPath],
+                        ['path = ?' => $oldPath]
+                    );
+                }
+                $this->_cacheTypeList->cleanType('config');
+            }
         }
     }
 }

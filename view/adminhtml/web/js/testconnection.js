@@ -28,9 +28,9 @@ define([
     $.widget('mageplaza.testconnection', {
         options: {
             ajaxUrl: '',
-            testConnection: '#smtp_abandoned_cart_test_connection',
-            appID: '#smtp_abandoned_cart_app_id',
-            secretKey: '#smtp_abandoned_cart_secret_key',
+            testConnection: '#email_marketing_general_test_connection',
+            appID: '#email_marketing_general_app_id',
+            secretKey: '#email_marketing_general_secret_key',
         },
         _create: function () {
             var self = this;

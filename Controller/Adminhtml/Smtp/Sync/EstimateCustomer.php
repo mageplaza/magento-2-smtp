@@ -24,6 +24,7 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync;
 use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\Exception\LocalizedException;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
 
@@ -46,16 +47,24 @@ class EstimateCustomer extends Action
     protected $customerCollectionFactory;
 
     /**
+     * @var EmailMarketing
+     */
+    protected $emailMarketing;
+
+    /**
      * EstimateCustomer constructor.
      *
      * @param Context $context
      * @param CustomerCollectionFactory $customerCollectionFactory
+     * @param EmailMarketing $emailMarketing
      */
     public function __construct(
         Context $context,
-        CustomerCollectionFactory $customerCollectionFactory
+        CustomerCollectionFactory $customerCollectionFactory,
+        EmailMarketing $emailMarketing
     ) {
         $this->customerCollectionFactory = $customerCollectionFactory;
+        $this->emailMarketing            = $emailMarketing;
 
         parent::__construct($context);
     }
@@ -66,6 +75,11 @@ class EstimateCustomer extends Action
     public function execute()
     {
         try {
+
+            if (!$this->emailMarketing->getAppID() || !$this->emailMarketing->getSecretKey()) {
+                throw new LocalizedException(__('App ID or Secret Key is empty'));
+            }
+
             $attribute          = 'mp_smtp_is_synced';
             $customerCollection = $this->customerCollectionFactory->create();
             $storeId = $this->getRequest()->getParam('storeId');

@@ -27,6 +27,7 @@ use Magento\Framework\Event\ObserverInterface;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 use Magento\Customer\Model\Customer;
 use Psr\Log\LoggerInterface;
+use Magento\Customer\Model\ResourceModel\Customer as ResourceCustomer;
 
 /**
  * Class CustomerSaveCommitAfter
@@ -40,6 +41,11 @@ class CustomerSaveCommitAfter implements ObserverInterface
     protected $helperEmailMarketing;
 
     /**
+     * @var ResourceCustomer
+     */
+    protected $resourceCustomer;
+
+    /**
      * @var LoggerInterface
      */
     protected $logger;
@@ -49,13 +55,16 @@ class CustomerSaveCommitAfter implements ObserverInterface
      *
      * @param EmailMarketing $helperEmailMarketing
      * @param LoggerInterface $logger
+     * @param ResourceCustomer $resourceCustomer
      */
     public function __construct(
         EmailMarketing $helperEmailMarketing,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ResourceCustomer $resourceCustomer
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
         $this->logger               = $logger;
+        $this->resourceCustomer     = $resourceCustomer;
     }
 
     /**
@@ -67,7 +76,7 @@ class CustomerSaveCommitAfter implements ObserverInterface
          * @var Customer $customer
          */
         $customer = $observer->getEvent()->getDataObject();
-        if ($this->helperEmailMarketing->isEnableAbandonedCart() &&
+        if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID() &&
             $customer->getIsNewRecord()
@@ -75,7 +84,19 @@ class CustomerSaveCommitAfter implements ObserverInterface
             try {
                 $data = $this->helperEmailMarketing->getCustomerData($customer);
 
-                $this->helperEmailMarketing->syncCustomer($data);
+                $result = $this->helperEmailMarketing->syncCustomer($data);
+                if (!empty($result['success'])) {
+                    $this->helperEmailMarketing->setIsSyncedCustomer(true);
+                    $table      = $this->resourceCustomer->getTable('customer_entity_int');
+                    $connection = $this->resourceCustomer->getConnection();
+                    $attribute  = $this->helperEmailMarketing->getSyncedAttribute();
+                    $data       = [
+                        'attribute_id' => $attribute->getId(),
+                        'entity_id'    => $customer->getId(),
+                        'value'        => 1
+                    ];
+                    $connection->insert($table, $data);
+                }
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
             }
