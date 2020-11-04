@@ -1,8 +1,8 @@
 # Magento 2 SMTP - AVADA Email Marketing Integration
 
-Every day you send and receive so many even more hundreds of emails, however, you actually do not know whether they come to your targeted customers or not. Therefore, **Magento 2 SMTP Extension** is come out as the solution for this problem.
+Every day you send and receive hundreds or more emails, however, you actually do not know whether they will get your targeted customers inbox. So, we offer **Magento 2 SMTP Extension** as a solution for this problem.
 
-**SMTP Extension for Magento 2** helps the owner of store simply install **SMTP (Simple Mail Transfer Protocol)** server which transmits the messages into codes or numbers. Through it, messages will be delivered directly and automatically to the chosen customers. Moreover, it is also flexible configurations with 21 different *SMTP servers* such as `Gmail, Hotmail, O2 Mail, Office365, Mail.com, Send In Blue, AOL Mail Orange, GMX, Outlook, Yahoo, Comcast, or Custom SMTP` - own SMTP server, etc. 
+**SMTP Extension for Magento 2** allows the owner of a Magento 2 store to us a custom **SMTP (Simple Mail Transfer Protocol)** server which transmits email messages. Through the SMTP server, messages will be delivered directly and automatically to the chosen customers. It offers flexible configurations with 21 different *SMTP servers* such as `Gmail, Hotmail, O2 Mail, Office365, Mail.com, Send In Blue, AOL Mail Orange, GMX, Outlook, Yahoo, Comcast, or Custom SMTP` - for your own SMTP server, etc. 
 
 [![Latest Stable Version](https://poser.pugx.org/mageplaza/module-smtp/v/stable)](https://packagist.org/packages/mageplaza/module-smtp)
 [![Total Downloads](https://poser.pugx.org/mageplaza/module-smtp/downloads)](https://packagist.org/packages/mageplaza/module-smtp)
@@ -23,7 +23,7 @@ Every day you send and receive so many even more hundreds of emails, however, yo
 
 
 
-## 2. How to install SMTP Extension
+## 2. How to install the SMTP Extension
 
 ### Install via composer (recommend)
 
@@ -40,16 +40,17 @@ php bin/magento setup:static-content:deploy
 
 ### Flexible Configurations
 
-It is easy for the store owner to reset the data or the information of any attributes with many options. Depending on your purposes, Mails will be configured simply and much faster.
+The **SMTP Extension** is easy and flexible to configure. It's easy for the owner to set or reset any option. It can easily be configured in many different ways to suit your purposes.
 
 ### SMTP Debug mode
 
-Before the emails are sent, they will be tested by running the test email from this extension to be sure that emails exact content is sent to desired customers. If there is any mistake, the emails will be logged them to correct the errors but we are not necessary to recheck all the settings.
-Moreover, by this **Debug mode**, owners can manage, preview or review the time the email created. You are also able to delete the logging or it can be done automatically after a period of time.
+The extension offers a a useful debugging mode. This allows store owners to test their emails by logging an exact copy of emails sent to customers, including the content. This allows store owners to see and correct any errors in sent emails.
+
+The **Debug mode** allows owners to manage, preview or review the time the email was created. The logs can be deleted either automatically through a cron job or manually.
 
 ### Email logging
 
-All the emails sent out from your store will be kept in this log on **Magento 2 SMTP extension**. The Admin totally can recheck the content of the email and it was sent to whom. Furthermore, you also check the time sent and the current status whether it is pending, in process or failed in the list. Especially, you can clear the log of the mail like the debug mode, manually or let it be after a certain time.
+All the emails sent out from your store will be kept in the **Magento 2 SMTP extension** log. The Admin can review the content of the email and to whom it was sent. Furthermore, you also check the time sent and the current, status whether it is pending, in process or failed in the list. 
 
 ### Test email
 
@@ -74,23 +75,20 @@ This feature allows admin test the [SMTP](https://github.com/magento-2/smtp) Set
 ## 4. User Guide
 
 
-In Magento 2, default email server of inherent hosting will be used to send unregistered emails, which means the reputation for this email is pretty low and they will be rated as untrustworthy content, as a matter of fact your precious emails will be delivered to spamming box without knocking up any notification to receiver. Imagine how enormous detriment your business is having when you couldn’t properly send such Order Confirmation, Invoice, Shipment Information,... to their inbox, but classified as spam trash and this is not a professional management.
+In Magento 2, the default email server is the server installed on the webserver, which means the sender reputation for emails may be low. Low sender reputation may cause emails to be treated as untrustworthy and may be delivered to spam folders. This is undesirable for obvious reasons. Imagine your customers' reaction when important email communication like password resets, transactional emails, shipping notifications and and others are not delivered. 
 
-**Mageplaza SMTP** will assist you to resolve this issue. By available popular email server providers, our extension absolutely would like to help you in sending email with a huge amount of quantity, faster along with high secure authentication. Hence, Mageplaza SMTP will also provide you a log diary which archive all the detail sent emails, makes it easier to keep track and checking problems. Be ready to say goodbye to Spam box issue.
+**Mageplaza SMTP** will help you resolve this issue. We make several popular email providers available to configure directly in your magento admin panel. We also provide you with an easy to review log of emails that were sent, including useful details for debugging. Say goodbye to your customers' spam box forever. 
 
-
-Here we go how to know detail in instructions and configuration in extension’s backend.
-
-### How to config SMTP
+### How to configure SMTP
 
 #### 1. Email logs
 
-This can be accessed by the following  `Mageplaza > SMTP > Email Logs`. From here you can look back all the sent email from the server to customers.
+This can be accessed at `Mageplaza > SMTP > Email Logs`. From here you can see the emails sent from the server to customers.
 
 ![How to config SMTP Email logs](https://i.imgur.com/k5KfDLL.png)
 
-By clicking View in each mail, you can have a general looking at the display which how your email will reach customer’s eyes.
-Hit the Clear red button to clear all the archived emails after checking carefully.
+By clicking View in each email, you can have an understanding of what the customer will see when they receive the email in their client.
+You can hit the Clear red button to clear all the archived emails to clean up your archive when you are done. 
 
 ![ How to config SMTP order](https://i.imgur.com/5eos9R7.png)
 
@@ -98,20 +96,21 @@ Hit the Clear red button to clear all the archived emails after checking careful
 
 ##### 2.2.1 General Configuration
 
-Be sure you’re at Admin Panel, for general configuration `Mageplaza > SMTP > Configuration > General Configuration`
+Log into the Magento administration panel, go to `Mageplaza > SMTP > Configuration > General Configuration`
 
-Choose Yes to enable Mageplaza SMTP on.
+Choose Yes to enable Mageplaza SMTP.
 
 ![ How to config SMTPSMTP on](http://i.imgur.com/4jN9BIx.png)
 
 ##### 2.2.2 SMTP Configuration Options
-Still from the same structure with General Configuration, scroll down to see  SMTP Configuration Options
+
+In the general general configuration area, scroll down to the SMTP Configuration Options
 
 ![magento 2 smtp configuration](https://i.imgur.com/VnCM6SB.png)
 
-- In SMTP Provider field, at the moment we support provider nearly 30 SMTP email service providers so feel free to choose your appropriate provider. Click Auto Fill button to fill Host, Port, Authentication and  Protocol automatically, which are compatible with the SMTP provider you had chosen. 
+- In SMTP Provider field, choose your provider from one of nearly 30 SMTP email service providers. Click Auto Fill button to fill Host, Port, Authentication and  Protocol automatically, which are compatible with the SMTP provider you had chosen. Alternatively, you can select a custom provider, and fill this information in yourself.
 
-- At Host field, type your Support Host name and ID Address. You can also custom STMP Provider’s Host name at here. If you had clicked Auto fill button at the above field, you can give this step a free pass.
+- At Host field, type your Support Host name and ID Address. You can also customize the STMP Provider’s Host name here. If you clicked Auto fill button, you can skip this step.
 
 - Port is a specific gate where emails will be sent through. You can also pass this step if you had choose Auto fill from the first place. In general, there will be 3 kinds of Default Port
 
