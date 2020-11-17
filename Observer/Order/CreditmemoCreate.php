@@ -68,15 +68,24 @@ class CreditmemoCreate implements ObserverInterface
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()
         ) {
-            try {
-                /* @var Creditmemo $creditmemo */
-                $creditmemo = $observer->getEvent()->getDataObject();
-                if ($creditmemo->getId() && $creditmemo->getCreatedAt() == $creditmemo->getUpdatedAt()) {
-                    $this->helperEmailMarketing->sendOrderRequest($creditmemo, 'refunds/create');
-                }
-            } catch (Exception $e) {
-                $this->logger->critical($e->getMessage());
+            /* @var Creditmemo $creditmemo */
+            $creditmemo = $observer->getEvent()->getDataObject();
+            $this->syncCreditmemo($creditmemo);
+            $this->helperEmailMarketing->updateCustomer($creditmemo->getOrder()->getCustomerId());
+        }
+    }
+
+    /**
+     * @param Creditmemo $creditmemo
+     */
+    public function syncCreditmemo($creditmemo)
+    {
+        try {
+            if ($creditmemo->getId() && $creditmemo->getCreatedAt() == $creditmemo->getUpdatedAt()) {
+                $this->helperEmailMarketing->sendOrderRequest($creditmemo, 'refunds/create');
             }
+        } catch (Exception $e) {
+            $this->logger->critical($e->getMessage());
         }
     }
 }

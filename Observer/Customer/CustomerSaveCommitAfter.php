@@ -78,25 +78,36 @@ class CustomerSaveCommitAfter implements ObserverInterface
         $customer = $observer->getEvent()->getDataObject();
         if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
-            $this->helperEmailMarketing->getAppID() &&
-            $customer->getIsNewRecord()
+            $this->helperEmailMarketing->getAppID()
         ) {
             try {
-                $data = $this->helperEmailMarketing->getCustomerData($customer);
+                $isLoadSubscriber = !$customer->getIsNewRecord();
+                $data             = $this->helperEmailMarketing->getCustomerData($customer, $isLoadSubscriber);
 
-                $result = $this->helperEmailMarketing->syncCustomer($data);
-                if (!empty($result['success'])) {
-                    $this->helperEmailMarketing->setIsSyncedCustomer(true);
-                    $table      = $this->resourceCustomer->getTable('customer_entity_int');
-                    $connection = $this->resourceCustomer->getConnection();
-                    $attribute  = $this->helperEmailMarketing->getSyncedAttribute();
-                    $data       = [
-                        'attribute_id' => $attribute->getId(),
-                        'entity_id'    => $customer->getId(),
-                        'value'        => 1
-                    ];
-                    $connection->insert($table, $data);
+                if ($customer->getIsNewRecord()) {
+                    $result = $this->helperEmailMarketing->syncCustomer($data);
+                    if (!empty($result['success'])) {
+                        $this->helperEmailMarketing->setIsSyncedCustomer(true);
+                        $table      = $this->resourceCustomer->getTable('customer_entity_int');
+                        $connection = $this->resourceCustomer->getConnection();
+                        $attribute  = $this->helperEmailMarketing->getSyncedAttribute();
+                        $data       = [
+                            'attribute_id' => $attribute->getId(),
+                            'entity_id'    => $customer->getId(),
+                            'value'        => 1
+                        ];
+                        $connection->insert($table, $data);
+                    }
+                } else {
+                    $origData = $this->helperEmailMarketing->getCustomerData(
+                        $customer->getCustomOrigObject(),
+                        $isLoadSubscriber
+                    );
+                    if ($origData !== $data) {
+                        $this->helperEmailMarketing->syncCustomer($data, false);
+                    }
                 }
+
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
             }
