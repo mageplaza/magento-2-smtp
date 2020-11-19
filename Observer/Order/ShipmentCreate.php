@@ -55,7 +55,7 @@ class ShipmentCreate implements ObserverInterface
         LoggerInterface $logger
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->logger              = $logger;
+        $this->logger = $logger;
     }
 
     /**

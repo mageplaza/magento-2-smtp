@@ -22,6 +22,7 @@
 namespace Mageplaza\Smtp\Setup;
 
 use Exception;
+use Magento\Config\Model\ResourceModel\Config\Data\Collection;
 use Magento\Customer\Model\Customer;
 use Magento\Customer\Setup\CustomerSetup;
 use Magento\Customer\Setup\CustomerSetupFactory;
@@ -32,7 +33,6 @@ use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Sales\Setup\SalesSetupFactory;
-use Magento\Config\Model\ResourceModel\Config\Data\Collection;
 
 /**
  * Class UpgradeData
@@ -81,10 +81,10 @@ class UpgradeData implements UpgradeDataInterface
         Collection $configCollection,
         TypeListInterface $cacheTypeList
     ) {
-        $this->salesSetupFactory    = $salesSetupFactory;
-        $this->attributeSetFactory  = $attributeSetFactory;
+        $this->salesSetupFactory = $salesSetupFactory;
+        $this->attributeSetFactory = $attributeSetFactory;
         $this->customerSetupFactory = $customerSetupFactory;
-        $this->configCollection     = $configCollection;
+        $this->configCollection = $configCollection;
         $this->_cacheTypeList = $cacheTypeList;
     }
 
@@ -132,13 +132,13 @@ class UpgradeData implements UpgradeDataInterface
         }
 
         if (version_compare($context->getVersion(), '1.2.3', '<')) {
-            $connection       = $setup->getConnection();
+            $connection = $setup->getConnection();
             $configCollection = $this->configCollection->addPathFilter('smtp/abandoned_cart');
             if ($configCollection->getSize() > 0) {
                 $table = $this->configCollection->getMainTable();
                 $paths = [
-                    'smtp/abandoned_cart/enabled'    => 'email_marketing/general/enabled',
-                    'smtp/abandoned_cart/app_id'     => 'email_marketing/general/app_id',
+                    'smtp/abandoned_cart/enabled' => 'email_marketing/general/enabled',
+                    'smtp/abandoned_cart/app_id' => 'email_marketing/general/app_id',
                     'smtp/abandoned_cart/secret_key' => 'email_marketing/general/secret_key'
                 ];
 

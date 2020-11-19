@@ -24,9 +24,9 @@ namespace Mageplaza\Smtp\Setup;
 use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
+use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
-use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Zend_Db_Exception;
 
 /**

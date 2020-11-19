@@ -24,9 +24,11 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync;
 use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Mageplaza\Smtp\Helper\EmailMarketing;
-use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
 
 /**
  * Class EstimateCustomer
@@ -64,13 +66,13 @@ class EstimateCustomer extends Action
         EmailMarketing $emailMarketing
     ) {
         $this->customerCollectionFactory = $customerCollectionFactory;
-        $this->emailMarketing            = $emailMarketing;
+        $this->emailMarketing = $emailMarketing;
 
         parent::__construct($context);
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
+     * @return ResponseInterface|ResultInterface
      */
     public function execute()
     {
@@ -80,7 +82,7 @@ class EstimateCustomer extends Action
                 throw new LocalizedException(__('App ID or Secret Key is empty'));
             }
 
-            $attribute          = 'mp_smtp_is_synced';
+            $attribute = 'mp_smtp_is_synced';
             $customerCollection = $this->customerCollectionFactory->create();
             $storeId = $this->getRequest()->getParam('storeId');
             $websiteId = $this->getRequest()->getParam('websiteId');
@@ -95,7 +97,7 @@ class EstimateCustomer extends Action
             $ids = $customerCollection->addFieldToFilter($attribute, ['null' => 1])
                 ->getAllIds();
 
-            $result['ids']   = $ids;
+            $result['ids'] = $ids;
             $result['total'] = count($ids);
 
             if ($result['total'] === 0) {
@@ -106,7 +108,7 @@ class EstimateCustomer extends Action
 
         } catch (Exception $e) {
             $result = [
-                'status'  => false,
+                'status' => false,
                 'message' => $e->getMessage()
             ];
         }
