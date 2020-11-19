@@ -25,5 +25,10 @@
         <add id="Mageplaza_Smtp::log" title="Email Logs" module="Mageplaza_Smtp" sortOrder="10" parent="Mageplaza_Smtp::smtp" action="adminhtml/smtp/log" resource="Mageplaza_Smtp::log"/>
         <add id="Mageplaza_Smtp::configuration" title="Configuration" module="Mageplaza_Smtp" sortOrder="100" action="adminhtml/system_config/edit/section/smtp" resource="Mageplaza_Smtp::configuration" parent="Mageplaza_Smtp::smtp"/>
         <add id="Mageplaza_Smtp::abandoned_cart" title="Abandoned Carts" module="Mageplaza_Smtp" sortOrder="80" parent="Magento_Sales::sales_operation" action="adminhtml/smtp/abandonedcart" resource="Mageplaza_Smtp::abandoned_cart"/>
+
+        <add id="Mageplaza_Smtp::email_marketing" title="Email Marketing" module="Mageplaza_Smtp" sortOrder="101" parent="Magento_Backend::marketing" resource="Mageplaza_Smtp::email_marketing_menu"/>
+        <add id="Mageplaza_Smtp::email_marketing_forms" title="Forms" module="Mageplaza_Smtp" sortOrder="10" action="adminhtml/smtp/marketing/type/forms" resource="Mageplaza_Smtp::email_marketing_menu" parent="Mageplaza_Smtp::email_marketing" />
+        <add id="Mageplaza_Smtp::email_marketing_newsletters" title="Newsletters" module="Mageplaza_Smtp" sortOrder="20" action="adminhtml/smtp/marketing/type/newsletters" resource="Mageplaza_Smtp::email_marketing_menu" parent="Mageplaza_Smtp::email_marketing" />
+        <add id="Mageplaza_Smtp::email_marketing_automation" title="Automation" module="Mageplaza_Smtp" sortOrder="30" action="adminhtml/smtp/marketing/type/automation" resource="Mageplaza_Smtp::email_marketing_menu" parent="Mageplaza_Smtp::email_marketing" />
     </menu>
 </config>
