@@ -29,6 +29,9 @@
                         <resource id="Mageplaza_Smtp::abandoned_cart" title="Abandoned Cart" translate="title" sortOrder="20"/>
                     </resource>
                 </resource>
+                <resource id="Magento_Backend::marketing">
+                    <resource id="Mageplaza_Smtp::email_marketing_menu" title="Email Marketing" sortOrder="20"/>
+                </resource>
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">

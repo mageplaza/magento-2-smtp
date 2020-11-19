@@ -1,0 +1,29 @@
+html {
+    margin-bottom: 1px;
+}
+body,
+.page-wrapper,
+.page-content {
+    height: 100%;
+}
+body,
+.page-content {
+    background-color: #fff;
+}
+.page-content {
+    padding: 0 0 0;
+    position: relative;
+}
+header.page-header,
+footer.page-footer,
+.notices-wrapper {
+    display: none;
+}
+#mp-smtp-iframe {
+    border: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+}
