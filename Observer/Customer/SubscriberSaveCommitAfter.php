@@ -23,12 +23,13 @@ namespace Mageplaza\Smtp\Observer\Customer;
 
 use Exception;
 use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Customer\Model\Customer;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Mageplaza\Smtp\Helper\EmailMarketing;
-use Magento\Customer\Model\Customer;
-use Psr\Log\LoggerInterface;
 use Magento\Newsletter\Model\Subscriber;
+use Mageplaza\Smtp\Helper\EmailMarketing;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class SubscriberSaveCommitAfter
@@ -64,8 +65,8 @@ class SubscriberSaveCommitAfter implements ObserverInterface
         LoggerInterface $logger
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->logger               = $logger;
-        $this->customerRepository   = $customerRepository;
+        $this->logger = $logger;
+        $this->customerRepository = $customerRepository;
     }
 
     /**
@@ -82,11 +83,11 @@ class SubscriberSaveCommitAfter implements ObserverInterface
             try {
 
                 $data = [
-                    'email'        => $subscriber->getSubscriberEmail(),
-                    'firstName'    => '',
-                    'lastName'     => '',
-                    'phoneNumber'  => '',
-                    'description'  => '',
+                    'email' => $subscriber->getSubscriberEmail(),
+                    'firstName' => '',
+                    'lastName' => '',
+                    'phoneNumber' => '',
+                    'description' => '',
                     'source' => 'Magento',
                     'isSubscriber' => $subscriber->getSubscriberStatus() === Subscriber::STATUS_SUBSCRIBED
                 ];
@@ -97,7 +98,7 @@ class SubscriberSaveCommitAfter implements ObserverInterface
                 $customer = $this->getCustomerByEmail($subscriber->getSubscriberEmail());
                 if ($customer && $customer->getId()) {
                     $data['firstName'] = $customer->getFirstname();
-                    $data['lastName']  = $customer->getLastname();
+                    $data['lastName'] = $customer->getLastname();
                 }
 
                 $this->helperEmailMarketing->syncCustomer($data);
@@ -109,7 +110,7 @@ class SubscriberSaveCommitAfter implements ObserverInterface
 
     /**
      * @param string $email
-     * @return \Magento\Customer\Api\Data\CustomerInterface|string
+     * @return CustomerInterface|string
      */
     public function getCustomerByEmail($email)
     {

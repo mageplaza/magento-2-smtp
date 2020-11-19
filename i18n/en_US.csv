@@ -63,10 +63,10 @@ Success,Success
 "Email re-sent successfully!","Email re-sent successfully!"
 "We can't process your request right now.","We can't process your request right now."
 "Email Log","Email Log"
+"Email Marketing","Email Marketing"
 "A total of %1 record(s) have been deleted.","A total of %1 record(s) have been deleted."
 "We can't process your request for email log #%1","We can't process your request for email log #%1"
 "A total of %1 record(s) have been sent.","A total of %1 record(s) have been sent."
-"%1 not found.","%1 not found."
 "App ID or Secret Key is empty","App ID or Secret Key is empty"
 "No customers to synchronize.","No customers to synchronize."
 "Sent successfully! Please check your email box.","Sent successfully! Please check your email box."
@@ -74,6 +74,7 @@ Success,Success
 "Email marketing connection is working properly.","Email marketing connection is working properly."
 "Can't connect to the email marketing app. Please check the app id and secret key.","Can't connect to the email marketing app. Please check the app id and secret key."
 "Error : %1","Error : %1"
+"%1 not found.","%1 not found."
 "A host is necessary for smtp transport, but none was given","A host is necessary for smtp transport, but none was given"
 NONE,NONE
 PLAIN,PLAIN

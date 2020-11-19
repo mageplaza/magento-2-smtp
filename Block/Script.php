@@ -58,7 +58,7 @@ class Script extends Template
         array $data = []
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->checkoutSession      = $checkoutSession;
+        $this->checkoutSession = $checkoutSession;
         parent::__construct($context, $data);
     }
 
@@ -76,7 +76,7 @@ class Script extends Template
     public function isSuccessPage()
     {
         $fullActionName = $this->getRequest()->getFullActionName();
-        $pages          = ['checkout_onepage_success','mpthankyoupage_index_index'];
+        $pages = ['checkout_onepage_success', 'mpthankyoupage_index_index'];
 
         return in_array($fullActionName, $pages);
     }

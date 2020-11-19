@@ -85,10 +85,10 @@ class AbandonedCart extends Template
         EmailMarketing $helperEmailMarketing,
         array $data = []
     ) {
-        $this->_productRepository   = $productRepository;
-        $this->priceCurrency        = $priceCurrency;
-        $this->taxHelper            = $context->getTaxData();
-        $this->quoteFactory         = $quoteFactory;
+        $this->_productRepository = $productRepository;
+        $this->priceCurrency = $priceCurrency;
+        $this->taxHelper = $context->getTaxData();
+        $this->quoteFactory = $quoteFactory;
         $this->helperEmailMarketing = $helperEmailMarketing;
         parent::__construct($context, $data);
     }

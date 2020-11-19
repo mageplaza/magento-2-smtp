@@ -21,10 +21,10 @@
 
 namespace Mageplaza\Smtp\Observer\Customer;
 
-use Magento\Framework\Event\Observer;
-use Magento\Framework\Event\ObserverInterface;
 use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\CustomerFactory;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
 
 /**
  * Class ModelSaveBefore
