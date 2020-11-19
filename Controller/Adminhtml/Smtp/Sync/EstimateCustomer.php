@@ -24,9 +24,11 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync;
 use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Mageplaza\Smtp\Helper\EmailMarketing;
-use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
 
 /**
  * Class EstimateCustomer
@@ -70,20 +72,19 @@ class EstimateCustomer extends Action
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
+     * @return ResponseInterface|ResultInterface
      */
     public function execute()
     {
         try {
-
             if (!$this->emailMarketing->getAppID() || !$this->emailMarketing->getSecretKey()) {
                 throw new LocalizedException(__('App ID or Secret Key is empty'));
             }
 
             $attribute          = 'mp_smtp_is_synced';
             $customerCollection = $this->customerCollectionFactory->create();
-            $storeId = $this->getRequest()->getParam('storeId');
-            $websiteId = $this->getRequest()->getParam('websiteId');
+            $storeId            = $this->getRequest()->getParam('storeId');
+            $websiteId          = $this->getRequest()->getParam('websiteId');
             if ($storeId) {
                 $customerCollection->addFieldToFilter('store_id', $storeId);
             }
@@ -103,7 +104,6 @@ class EstimateCustomer extends Action
             }
 
             $result['status'] = true;
-
         } catch (Exception $e) {
             $result = [
                 'status'  => false,

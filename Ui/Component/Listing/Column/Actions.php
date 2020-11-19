@@ -79,14 +79,14 @@ class Actions extends Column
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
                 $item[$this->getData('name')] = [
-                    'view' => [
+                    'view'   => [
                         'label' => __('View')
                     ],
                     'resend' => [
-                        'href' => $this->urlBuilder->getUrl('adminhtml/smtp/email', ['id' => $item['id']]),
-                        'label' => __('Resend'),
+                        'href'    => $this->urlBuilder->getUrl('adminhtml/smtp/email', ['id' => $item['id']]),
+                        'label'   => __('Resend'),
                         'confirm' => [
-                            'title' => __('Resend Email'),
+                            'title'   => __('Resend Email'),
                             'message' => __(
                                 'Are you sure you want to resend the email <strong>"%1"</strong>?',
                                 $item['subject']
@@ -94,10 +94,10 @@ class Actions extends Column
                         ]
                     ],
                     'delete' => [
-                        'href' => $this->urlBuilder->getUrl('adminhtml/smtp/delete', ['id' => $item['id']]),
-                        'label' => __('Delete'),
+                        'href'    => $this->urlBuilder->getUrl('adminhtml/smtp/delete', ['id' => $item['id']]),
+                        'label'   => __('Delete'),
                         'confirm' => [
-                            'title' => __('Delete Log'),
+                            'title'   => __('Delete Log'),
                             'message' => __('Are you sure you want to delete this log?')
                         ]
                     ],

@@ -31,7 +31,7 @@ class Edit extends Container
 {
     protected function _construct()
     {
-        $this->_objectId = 'id';
+        $this->_objectId   = 'id';
         $this->_blockGroup = 'Mageplaza_Smtp';
         $this->_controller = 'adminhtml_AbandonedCart';
         parent::_construct();

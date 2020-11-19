@@ -25,7 +25,9 @@ use Exception;
 use Magento\Bundle\Helper\Catalog\Product\Configuration as BundleConfiguration;
 use Magento\Catalog\Helper\Data as CatalogHelper;
 use Magento\Catalog\Helper\Product\Configuration as CatalogConfiguration;
+use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ProductRepository;
+use Magento\Customer\Model\Attribute;
 use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Directory\Model\PriceCurrency;
@@ -34,23 +36,23 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Escaper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Newsletter\Model\Subscriber;
 use Magento\Newsletter\Model\SubscriberFactory;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\Quote\Item;
+use Magento\Quote\Model\ResourceModel\Quote as ResourceQuote;
+use Magento\Reports\Model\ResourceModel\Order\CollectionFactory as ReportOrderCollectionFactory;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\Shipment;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\Quote\Model\ResourceModel\Quote as ResourceQuote;
-use Magento\Shipping\Helper\Data as ShippingHelper;
-use Magento\Framework\HTTP\Client\Curl;
-use Magento\Customer\Model\Attribute;
 use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
-use Magento\Reports\Model\ResourceModel\Order\CollectionFactory as ReportOrderCollectionFactory;
+use Magento\Shipping\Helper\Data as ShippingHelper;
+use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -281,7 +283,7 @@ class EmailMarketing extends Data
     public function getFormatedOptionValue(array $optionValue)
     {
         $params = [
-            'max_length' => 55,
+            'max_length'   => 55,
             'cut_replacer' => ' <a href="#" class="dots tooltip toggle" onclick="return false">...</a>'
         ];
 
@@ -446,7 +448,6 @@ class EmailMarketing extends Data
 
         if ($isShipment || $isCreditmemo) {
             $data['line_items'] = $this->getShipmentOrCreditmemoItems($object);
-
         } else {
             $data['line_items'] = $this->getCartItems($object);
         }
@@ -468,7 +469,7 @@ class EmailMarketing extends Data
      */
     public function sendOrderRequest($object, $type = 'orders/create')
     {
-        $data = $this->getOrderData($object);
+        $data          = $this->getOrderData($object);
         $this->storeId = $object->getStoreId();
         $this->_curl->addHeader('X-EmailMarketing-Topic', $type);
         $this->sendRequest($data, self::ORDER_URL);
@@ -499,7 +500,7 @@ class EmailMarketing extends Data
     {
         $isActive         = (bool) $quote->getIsActive();
         $quoteCompletedAt = null;
-        $updatedAt = $this->getQuoteUpdatedAt($quote->getId());
+        $updatedAt        = $this->getQuoteUpdatedAt($quote->getId());
 
         //first time created is the same updated
         $createdAt = $quote->getCreatedAt() ?: $updatedAt;
@@ -542,9 +543,8 @@ class EmailMarketing extends Data
         $address = [];
 
         if (!$quote->isVirtual() && $quote->getShippingAddress()) {
-
             /**
-             * @var \Magento\Quote\Model\Quote\Address $shippingAddress
+             * @var Address $shippingAddress
              */
             $shippingAddress = $quote->getShippingAddress();
             $address         = [
@@ -635,8 +635,8 @@ class EmailMarketing extends Data
      */
     public function getCartItems($object)
     {
-        $items        = [];
-        $isQuote      = $object instanceof Quote;
+        $items   = [];
+        $isQuote = $object instanceof Quote;
 
         foreach ($object->getAllItems() as $item) {
             if ($item->getParentItemId()) {
@@ -644,9 +644,9 @@ class EmailMarketing extends Data
             }
 
             /**
-             * @var \Magento\Catalog\Model\Product $product
+             * @var Product $product
              */
-            $product = $item->getProduct();
+            $product     = $item->getProduct();
             $productType = $item->getData('product_type');
 
             $bundleItems = [];
@@ -693,7 +693,7 @@ class EmailMarketing extends Data
             }
 
             $itemRequest['bundle_items'] = $bundleItems;
-            $items[] = $itemRequest;
+            $items[]                     = $itemRequest;
         }
 
         return $items;
@@ -716,9 +716,10 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param \Magento\Catalog\Model\Product $product
+     * @param Product $product
+     *
      * @return mixed
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
     public function getProductImage($product)
     {
@@ -743,6 +744,7 @@ class EmailMarketing extends Data
      * @param string $url
      * @param string $secretKey
      * @param bool $isTest
+     *
      * @return mixed
      * @throws LocalizedException
      */
@@ -863,7 +865,6 @@ class EmailMarketing extends Data
      */
     public function getCustomerData(Customer $customer, $isLoadSubscriber = false, $isUpdateOrder = false)
     {
-
         if ($isLoadSubscriber) {
             $subscriber   = $this->_subscriberFactory->create()->loadByEmail($customer->getEmail());
             $isSubscriber = $this->isSubscriber($subscriber->getSubscriberStatus());
@@ -873,13 +874,13 @@ class EmailMarketing extends Data
         }
 
         $data = [
-            'email'         => $customer->getEmail(),
-            'firstName'     => $customer->getFirstname(),
-            'lastName'      => $customer->getLastname(),
-            'phoneNumber'   => '',
-            'description'   => '',
-            'isSubscriber'  => $isSubscriber,
-            'source'        => 'Magento',
+            'email'        => $customer->getEmail(),
+            'firstName'    => $customer->getFirstname(),
+            'lastName'     => $customer->getLastname(),
+            'phoneNumber'  => '',
+            'description'  => '',
+            'isSubscriber' => $isSubscriber,
+            'source'       => 'Magento',
         ];
 
         if ($isUpdateOrder) {
@@ -932,7 +933,7 @@ class EmailMarketing extends Data
      * @param null|int $websiteId
      *
      * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function formatCurrency($price, $websiteId = null)
     {
@@ -953,6 +954,7 @@ class EmailMarketing extends Data
     /**
      * @param string $appID
      * @param string $secretKey
+     *
      * @return mixed
      * @throws LocalizedException
      */
@@ -981,6 +983,7 @@ class EmailMarketing extends Data
 
     /**
      * @param array $data
+     *
      * @return mixed
      * @throws LocalizedException
      */

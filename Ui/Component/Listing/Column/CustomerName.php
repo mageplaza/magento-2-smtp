@@ -24,8 +24,8 @@ namespace Mageplaza\Smtp\Ui\Component\Listing\Column;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
-use Magento\Ui\Component\Listing\Columns\Column;
 use Magento\Quote\Model\QuoteFactory;
+use Magento\Ui\Component\Listing\Columns\Column;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 
 /**
@@ -89,7 +89,7 @@ class CustomerName extends Column
                 $quote        = $this->quoteFactory->create()->load($quoteId);
                 $customerName = $this->helperEmailMarketing->getCustomerName($quote);
                 if ($quote->getCustomerId()) {
-                    $url = $this->urlBuilder->getUrl('customer/index/edit', ['id' => $item['customer_id']]);
+                    $url          = $this->urlBuilder->getUrl('customer/index/edit', ['id' => $item['customer_id']]);
                     $customerName = '<a href="' . $url . '" target="_blank">' . $customerName . '</a>';
                 }
 

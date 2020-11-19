@@ -72,8 +72,8 @@ class Preview extends Action
         QuoteFactory $quoteFactory
     ) {
         $this->templateFactory = $templateFactory;
-        $this->senderResolver = $senderResolver;
-        $this->quoteFactory = $quoteFactory;
+        $this->senderResolver  = $senderResolver;
+        $this->quoteFactory    = $quoteFactory;
         parent::__construct($context);
     }
 
@@ -82,10 +82,10 @@ class Preview extends Action
      */
     public function execute()
     {
-        $from = $this->getRequest()->getParam('from');
-        $templateId = $this->getRequest()->getParam('template_id');
-        $quoteId = $this->getRequest()->getParam('quote_id');
-        $customerName = $this->getRequest()->getParam('customer_name');
+        $from              = $this->getRequest()->getParam('from');
+        $templateId        = $this->getRequest()->getParam('template_id');
+        $quoteId           = $this->getRequest()->getParam('quote_id');
+        $customerName      = $this->getRequest()->getParam('customer_name');
         $additionalMessage = $this->getRequest()->getParam('additional_message');
 
         $result = ['status' => false];
@@ -96,26 +96,26 @@ class Preview extends Action
                 throw NoSuchEntityException::singleField('quote_id', $quoteId);
             }
 
-            $storeId = $quote->getStoreId();
-            $from = $this->senderResolver->resolve($from, $storeId);
+            $storeId  = $quote->getStoreId();
+            $from     = $this->senderResolver->resolve($from, $storeId);
             $template = $this->templateFactory->get($templateId, null)
                 ->setVars(
                     [
-                        'quote_id' => $quoteId,
-                        'customer_name' => ucfirst(trim($customerName)),
+                        'quote_id'           => $quoteId,
+                        'customer_name'      => ucfirst(trim($customerName)),
                         'additional_message' => trim(strip_tags($additionalMessage)),
                         'cart_recovery_link' => '#'
                     ]
                 )
                 ->setOptions(['area' => Area::AREA_FRONTEND, 'store' => $storeId]);
-            $content = $template->processTemplate();
-            $subject = html_entity_decode((string)$template->getSubject(), ENT_QUOTES);
+            $content  = $template->processTemplate();
+            $subject  = html_entity_decode((string) $template->getSubject(), ENT_QUOTES);
 
             $result = [
-                'status' => true,
+                'status'  => true,
                 'subject' => $subject,
                 'content' => $content,
-                'from' => $from
+                'from'    => $from
             ];
         } catch (Exception $e) {
             $result['message'] = $e->getMessage();

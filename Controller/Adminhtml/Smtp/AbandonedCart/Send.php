@@ -28,12 +28,14 @@ use Magento\Email\Model\Template;
 use Magento\Email\Model\Template\SenderResolver;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Registry;
-use Magento\Quote\Model\QuoteRepository;
 use Magento\Framework\View\Result\Page;
-use Psr\Log\LoggerInterface;
+use Magento\Quote\Model\QuoteRepository;
 use Mageplaza\Smtp\Helper\EmailMarketing;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Send
@@ -118,7 +120,7 @@ class Send extends Action
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|Page
+     * @return ResponseInterface|ResultInterface|Page
      */
     public function execute()
     {
@@ -155,7 +157,6 @@ class Send extends Action
             $this->registry->register('smtp_abandoned_cart', $quote);
             $transport->sendMessage();
             $this->messageManager->addSuccessMessage(__('Cart recovery email was sent to the customer successfully!'));
-
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage(__('Cart recovery email cannot sent to the customer.'));
             $this->logger->error($e->getMessage());

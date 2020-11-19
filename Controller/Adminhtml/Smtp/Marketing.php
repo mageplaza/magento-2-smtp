@@ -21,11 +21,13 @@
 
 namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 
+use Magento\Backend\App\AbstractAction;
+
 /**
  * Class Forms
  * @package Mageplaza\Smtp\Controller\Adminhtml\Smtp\Marketing
  */
-class Marketing extends \Magento\Backend\App\AbstractAction
+class Marketing extends AbstractAction
 {
     /**
      * Authorization level of a basic admin session

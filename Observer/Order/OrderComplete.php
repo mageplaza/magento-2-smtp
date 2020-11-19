@@ -63,8 +63,8 @@ class OrderComplete implements ObserverInterface
         ResourceOrder $resourceOrder
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->logger              = $logger;
-        $this->resourceOrder       = $resourceOrder;
+        $this->logger               = $logger;
+        $this->resourceOrder        = $resourceOrder;
     }
 
     /**
@@ -72,7 +72,6 @@ class OrderComplete implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-
         if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()

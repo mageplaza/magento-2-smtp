@@ -22,6 +22,7 @@
 namespace Mageplaza\Smtp\Setup;
 
 use Exception;
+use Magento\Config\Model\ResourceModel\Config\Data\Collection;
 use Magento\Customer\Model\Customer;
 use Magento\Customer\Setup\CustomerSetup;
 use Magento\Customer\Setup\CustomerSetupFactory;
@@ -32,7 +33,6 @@ use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Sales\Setup\SalesSetupFactory;
-use Magento\Config\Model\ResourceModel\Config\Data\Collection;
 
 /**
  * Class UpgradeData
@@ -85,7 +85,7 @@ class UpgradeData implements UpgradeDataInterface
         $this->attributeSetFactory  = $attributeSetFactory;
         $this->customerSetupFactory = $customerSetupFactory;
         $this->configCollection     = $configCollection;
-        $this->_cacheTypeList = $cacheTypeList;
+        $this->_cacheTypeList       = $cacheTypeList;
     }
 
     /**
@@ -106,27 +106,27 @@ class UpgradeData implements UpgradeDataInterface
             $attributeSetId = $customerEntity->getDefaultAttributeSetId();
 
             /** @var $attributeSet AttributeSet */
-            $attributeSet = $this->attributeSetFactory->create();
+            $attributeSet     = $this->attributeSetFactory->create();
             $attributeGroupId = $attributeSet->getDefaultGroupId($attributeSetId);
 
             $customerSetup->addAttribute(Customer::ENTITY, 'mp_smtp_is_synced', [
-                'type' => 'int',
-                'label' => 'Mp SMTP is synced',
-                'input' => 'hidden',
-                'required' => false,
-                'visible' => false,
-                'user_defined' => false,
-                'sort_order' => 90,
-                'position' => 90,
-                'system' => 0,
+                'type'            => 'int',
+                'label'           => 'Mp SMTP is synced',
+                'input'           => 'hidden',
+                'required'        => false,
+                'visible'         => false,
+                'user_defined'    => false,
+                'sort_order'      => 90,
+                'position'        => 90,
+                'system'          => 0,
                 'is_used_in_grid' => false,
             ]);
 
             $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'mp_smtp_is_synced')
                 ->addData([
-                    'attribute_set_id' => $attributeSetId,
+                    'attribute_set_id'   => $attributeSetId,
                     'attribute_group_id' => $attributeGroupId,
-                    'used_in_forms' => ['adminhtml_customer']
+                    'used_in_forms'      => ['adminhtml_customer']
                 ])
                 ->save();
         }
