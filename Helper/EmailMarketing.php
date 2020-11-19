@@ -27,6 +27,7 @@ use Magento\Catalog\Helper\Data as CatalogHelper;
 use Magento\Catalog\Helper\Product\Configuration as CatalogConfiguration;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Customer\Model\Customer;
+use Magento\Customer\Model\CustomerFactory;
 use Magento\Directory\Model\PriceCurrency;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -37,6 +38,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Newsletter\Model\Subscriber;
+use Magento\Newsletter\Model\SubscriberFactory;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Sales\Model\Order;
@@ -47,6 +49,9 @@ use Magento\Quote\Model\ResourceModel\Quote as ResourceQuote;
 use Magento\Shipping\Helper\Data as ShippingHelper;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Customer\Model\Attribute;
+use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
+use Magento\Reports\Model\ResourceModel\Order\CollectionFactory as ReportOrderCollectionFactory;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class EmailMarketing
@@ -56,11 +61,12 @@ class EmailMarketing extends Data
 {
     const IS_SYNCED_ATTRIBUTE = 'mp_smtp_is_synced';
 
-    const APP_URL           = 'https://app.avada.io/webhook/checkout/create';
-    const CUSTOMER_URL      = 'https://app.avada.io/webhook/customer/create';
-    const ORDER_URL         = 'https://app.avada.io/webhook/order/processing';
-    const DELETE_URL        = 'https://app.avada.io/webhook/checkout?id=';
-    const SYNC_CUSTOMER_URL = 'https://app.avada.io/sync/customer';
+    const APP_URL             = 'https://app.avada.io/webhook/checkout/create';
+    const CUSTOMER_URL        = 'https://app.avada.io/webhook/customer/create';
+    const CUSTOMER_UPDATE_URL = 'https://app.avada.io/webhook/customer/update';
+    const ORDER_URL           = 'https://app.avada.io/webhook/order/processing';
+    const DELETE_URL          = 'https://app.avada.io/webhook/checkout?id=';
+    const SYNC_CUSTOMER_URL   = 'https://app.avada.io/sync/customer';
 
     /**
      * @var UrlInterface
@@ -142,6 +148,33 @@ class EmailMarketing extends Data
     protected $isSyncCustomer = false;
 
     /**
+     * @var OrderCollection
+     */
+    protected $orderCollection;
+
+    /**
+     * @var ReportOrderCollectionFactory
+     */
+    protected $reportCollectionFactory;
+
+    /**
+     * @var CustomerFactory
+     */
+    protected $customerFactory;
+
+    /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
+     * Subscriber factory
+     *
+     * @var SubscriberFactory
+     */
+    protected $_subscriberFactory;
+
+    /**
      * EmailMarketing constructor.
      *
      * @param Context $context
@@ -159,6 +192,11 @@ class EmailMarketing extends Data
      * @param ResourceQuote $resourceQuote
      * @param ShippingHelper $shippingHelper
      * @param Attribute $customerAttribute
+     * @param OrderCollection $orderCollection
+     * @param ReportOrderCollectionFactory $reportCollectionFactory
+     * @param CustomerFactory $customerFactory
+     * @param SubscriberFactory $subscriberFactory
+     * @param LoggerInterface $logger
      */
     public function __construct(
         Context $context,
@@ -175,7 +213,12 @@ class EmailMarketing extends Data
         ProductRepository $productRepository,
         ResourceQuote $resourceQuote,
         ShippingHelper $shippingHelper,
-        Attribute $customerAttribute
+        Attribute $customerAttribute,
+        OrderCollection $orderCollection,
+        ReportOrderCollectionFactory $reportCollectionFactory,
+        CustomerFactory $customerFactory,
+        SubscriberFactory $subscriberFactory,
+        LoggerInterface $logger
     ) {
         parent::__construct($context, $objectManager, $storeManager);
 
@@ -191,6 +234,11 @@ class EmailMarketing extends Data
         $this->productRepository          = $productRepository;
         $this->shippingHelper             = $shippingHelper;
         $this->customerAttribute          = $customerAttribute;
+        $this->orderCollection            = $orderCollection;
+        $this->reportCollectionFactory    = $reportCollectionFactory;
+        $this->customerFactory            = $customerFactory;
+        $this->logger                     = $logger;
+        $this->_subscriberFactory         = $subscriberFactory;
     }
 
     /**
@@ -796,24 +844,110 @@ class EmailMarketing extends Data
     }
 
     /**
+     * @param int | string $subscriberStatus
+     *
+     * @return bool
+     */
+    public function isSubscriber($subscriberStatus)
+    {
+        return (int) $subscriberStatus === Subscriber::STATUS_SUBSCRIBED;
+    }
+
+    /**
      * @param Customer $customer
+     * @param bool $isLoadSubscriber
+     * @param bool $isUpdateOrder
      *
      * @return array
+     * @throws LocalizedException
      */
-    public function getCustomerData(Customer $customer)
+    public function getCustomerData(Customer $customer, $isLoadSubscriber = false, $isUpdateOrder = false)
     {
-        $subscriberStatus = (int) $customer->getData('subscriber_status');
-        $isSubscriber = $subscriberStatus === Subscriber::STATUS_SUBSCRIBED ?
-            true : !!$customer->getIsSubscribed();
-        return [
-            'email'        => $customer->getEmail(),
-            'firstName'    => $customer->getFirstname(),
-            'lastName'     => $customer->getLastname(),
-            'phoneNumber'  => '',
-            'description'  => '',
-            'isSubscriber' => $isSubscriber,
-            'source'       => 'Magento',
+
+        if ($isLoadSubscriber) {
+            $subscriber   = $this->_subscriberFactory->create()->loadByEmail($customer->getEmail());
+            $isSubscriber = $this->isSubscriber($subscriber->getSubscriberStatus());
+        } else {
+            $subscriberStatus = $customer->getData('subscriber_status');
+            $isSubscriber     = $this->isSubscriber($subscriberStatus) ?: !!$customer->getIsSubscribed();
+        }
+
+        $data = [
+            'email'         => $customer->getEmail(),
+            'firstName'     => $customer->getFirstname(),
+            'lastName'      => $customer->getLastname(),
+            'phoneNumber'   => '',
+            'description'   => '',
+            'isSubscriber'  => $isSubscriber,
+            'source'        => 'Magento',
         ];
+
+        if ($isUpdateOrder) {
+            $orderCollectionByCustomer = $this->orderCollection->addFieldToFilter('customer_id', $customer->getId());
+            $size                      = $orderCollectionByCustomer->getSize();
+            $lastOrderId               = $orderCollectionByCustomer->addOrder('entity_id')->getFirstItem()->getId();
+            $collection                = $this->reportCollectionFactory->create()->calculateSales();
+            $collection->addFieldToFilter('customer_id', $customer->getId())->load();
+            $totalSpent = $this->formatCurrency($collection->getFirstItem()->getLifetime(), $customer->getWebsiteId());
+
+            $data['orders_count']  = $size;
+            $data['last_order_id'] = $lastOrderId;
+            $data['total_spent']   = $totalSpent;
+            $data['currency']      = $this->getBaseCurrencyByWebsiteId($customer->getWebsiteId())->getCurrencyCode();
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param int $id
+     *
+     * @return Customer
+     */
+    public function getCustomerById($id)
+    {
+        return $this->customerFactory->create()->load($id);
+    }
+
+    /**
+     * @param int $customerId
+     */
+    public function updateCustomer($customerId)
+    {
+        if ($customerId) {
+            try {
+                $customer     = $this->getCustomerById($customerId);
+                $customerData = $this->getCustomerData($customer, true, true);
+                $this->syncCustomer($customerData, false);
+            } catch (Exception $e) {
+                $this->logger->critical($e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Format price by specified website
+     *
+     * @param float $price
+     * @param null|int $websiteId
+     *
+     * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function formatCurrency($price, $websiteId = null)
+    {
+        return $this->getBaseCurrencyByWebsiteId($websiteId)->format($price, [], false);
+    }
+
+    /**
+     * @param null|int $websiteId
+     *
+     * @return mixed
+     * @throws LocalizedException
+     */
+    public function getBaseCurrencyByWebsiteId($websiteId)
+    {
+        return $this->storeManager->getWebsite($websiteId)->getBaseCurrency();
     }
 
     /**
@@ -833,12 +967,16 @@ class EmailMarketing extends Data
 
     /**
      * @param array $data
+     * @param bool $isCreate
+     *
      * @return mixed
      * @throws LocalizedException
      */
-    public function syncCustomer($data)
+    public function syncCustomer($data, $isCreate = true)
     {
-        return $this->sendRequest($data, self::CUSTOMER_URL);
+        $url = $isCreate ? self::CUSTOMER_URL : self::CUSTOMER_UPDATE_URL;
+
+        return $this->sendRequest($data, $url);
     }
 
     /**
