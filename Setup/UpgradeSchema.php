@@ -24,6 +24,8 @@ namespace Mageplaza\Smtp\Setup;
 use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
+use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
+use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Zend_Db_Exception;
 
@@ -33,6 +35,27 @@ use Zend_Db_Exception;
  */
 class UpgradeSchema implements UpgradeSchemaInterface
 {
+    /**
+     * @var QuoteResource
+     */
+    protected $quoteResource;
+
+    /**
+     * @var OrderResource
+     */
+    protected $orderResource;
+
+    /**
+     * UpgradeSchemaPlugin constructor.
+     * @param QuoteResource $quoteResource
+     * @param OrderResource $orderResource
+     */
+    public function __construct(QuoteResource $quoteResource, OrderResource $orderResource)
+    {
+        $this->quoteResource = $quoteResource;
+        $this->orderResource = $orderResource;
+    }
+
     /**
      * @param SchemaSetupInterface $setup
      * @param ModuleContextInterface $context
@@ -135,27 +158,27 @@ class UpgradeSchema implements UpgradeSchemaInterface
         }
 
         if (version_compare($context->getVersion(), '1.2.1', '<')) {
-
-            $connection->addColumn($setup->getTable('quote'), 'mp_smtp_ace_token', [
+            $quoteConnection = $this->quoteResource->getConnection();
+            $quoteConnection->addColumn($setup->getTable('quote'), 'mp_smtp_ace_token', [
                 'type' => Table::TYPE_TEXT,
                 'nullable' => true,
                 'length' => 255,
                 'comment' => 'ACE Token'
             ]);
-            $connection->addColumn($setup->getTable('quote'), 'mp_smtp_ace_sent', [
+            $quoteConnection->addColumn($setup->getTable('quote'), 'mp_smtp_ace_sent', [
                 'type' => Table::TYPE_SMALLINT,
                 'nullable' => true,
                 'length' => null,
                 'default' => 0,
                 'comment' => 'ACE Sent'
             ]);
-            $connection->addColumn($setup->getTable('quote'), 'mp_smtp_ace_log_ids', [
+            $quoteConnection->addColumn($setup->getTable('quote'), 'mp_smtp_ace_log_ids', [
                 'type' => Table::TYPE_TEXT,
                 'nullable' => true,
                 'length' => '64k',
                 'comment' => 'ACE Log Ids'
             ]);
-            $connection->addColumn($setup->getTable('quote'), 'mp_smtp_ace_log_data', [
+            $quoteConnection->addColumn($setup->getTable('quote'), 'mp_smtp_ace_log_data', [
                 'type' => Table::TYPE_TEXT,
                 'nullable' => true,
                 'length' => '64k',
@@ -164,7 +187,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
         }
 
         if (version_compare($context->getVersion(), '1.2.2', '<')) {
-            $connection->addColumn($setup->getTable('sales_order'), 'mp_smtp_email_marketing_synced', [
+            $salesOrderConnection = $this->orderResource->getConnection();
+            $salesOrderConnection->addColumn($setup->getTable('sales_order'), 'mp_smtp_email_marketing_synced', [
                 'type' => Table::TYPE_SMALLINT,
                 'nullable' => true,
                 'length' => null,

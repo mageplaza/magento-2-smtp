@@ -21,18 +21,16 @@
 
 namespace Mageplaza\Smtp\Observer\Order;
 
-use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Invoice;
 use Mageplaza\Smtp\Helper\EmailMarketing;
-use Psr\Log\LoggerInterface;
 
 /**
- * Class OrderCreate
+ * Class UpdateCustomer
  * @package Mageplaza\Smtp\Observer\Order
  */
-class OrderCreate implements ObserverInterface
+class UpdateCustomer implements ObserverInterface
 {
     /**
      * @var EmailMarketing
@@ -40,22 +38,14 @@ class OrderCreate implements ObserverInterface
     protected $helperEmailMarketing;
 
     /**
-     * @var LoggerInterface
-     */
-    protected $logger;
-
-    /**
-     * OrderCreate constructor.
+     * UpdateCustomer constructor.
      *
      * @param EmailMarketing $helperEmailMarketing
-     * @param LoggerInterface $logger
      */
     public function __construct(
-        EmailMarketing $helperEmailMarketing,
-        LoggerInterface $logger
+        EmailMarketing $helperEmailMarketing
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->logger              = $logger;
     }
 
     /**
@@ -68,22 +58,9 @@ class OrderCreate implements ObserverInterface
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()
         ) {
-            /* @var Order $order */
-            $order = $observer->getEvent()->getOrder();
-            $this->syncOrder($order);
-            $this->helperEmailMarketing->updateCustomer($order->getCustomerId());
-        }
-    }
-
-    /**
-     * @param Order $order
-     */
-    public function syncOrder($order)
-    {
-        try {
-            $this->helperEmailMarketing->sendOrderRequest($order);
-        } catch (Exception $e) {
-            $this->logger->critical($e->getMessage());
+            /* @var Invoice $order */
+            $invoice = $observer->getEvent()->getDataObject();
+            $this->helperEmailMarketing->updateCustomer($invoice->getOrder()->getCustomerId());
         }
     }
 }

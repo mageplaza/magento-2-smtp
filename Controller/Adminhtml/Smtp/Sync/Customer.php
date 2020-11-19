@@ -103,7 +103,7 @@ class Customer extends Action
             $data = [];
             $attributeData = [];
             foreach ($customers as $customer) {
-                $data[] = $this->helperEmailMarketing->getCustomerData($customer);
+                $data[] = $this->helperEmailMarketing->getCustomerData($customer, false, true);
                 $attributeData[] = [
                     'attribute_id' => $attribute->getId(),
                     'entity_id'    => $customer->getId(),
