@@ -63,17 +63,16 @@ class SyncQuote implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-
         if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()
         ) {
             try {
                 /* @var Quote $quote */
-                $quote = $observer->getEvent()->getQuote();
+                $quote      = $observer->getEvent()->getQuote();
                 $aceLogData = $quote->getData('mp_smtp_ace_log_data');
-                $itemCount = (int) $quote->getItemsCount();
-                $isValid = ($itemCount > 0 || ($aceLogData && $itemCount < 1));
+                $itemCount  = (int) $quote->getItemsCount();
+                $isValid    = ($itemCount > 0 || ($aceLogData && $itemCount < 1));
                 if ($isValid) {
                     $ACEData    = $this->helperEmailMarketing->getACEData($quote);
                     $oldACEData = $aceLogData ? EmailMarketing::jsonDecode($aceLogData) : [];

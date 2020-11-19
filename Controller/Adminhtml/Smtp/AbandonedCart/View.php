@@ -74,9 +74,9 @@ class View extends Action
         Random $random
     ) {
         $this->resultPageFactory = $resultPageFactory;
-        $this->registry = $registry;
-        $this->quoteRepository = $quoteRepository;
-        $this->random = $random;
+        $this->registry          = $registry;
+        $this->quoteRepository   = $quoteRepository;
+        $this->random            = $random;
 
         parent::__construct($context);
     }
@@ -87,9 +87,9 @@ class View extends Action
     public function execute()
     {
         $resultPage = $this->resultPageFactory->create();
-        $id = $this->getRequest()->getParam('id', 0);
-        $quote = $this->quoteRepository->get($id);
-        $isActive = (bool)$quote->getIsActive();
+        $id         = $this->getRequest()->getParam('id', 0);
+        $quote      = $this->quoteRepository->get($id);
+        $isActive   = (bool) $quote->getIsActive();
         if (!$isActive) {
             return $this->_redirect('adminhtml/smtp/abandonedcart');
         }
@@ -102,7 +102,7 @@ class View extends Action
             $this->messageManager->addNoticeMessage(__('Cart recovery email is not sent to the customer yet.'));
         }
 
-        $params = $this->getRequest()->getParams();
+        $params                    = $this->getRequest()->getParams();
         $params['quote_is_active'] = $quote->getIsActive();
         $this->getRequest()->setParams($params);
 

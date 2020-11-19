@@ -140,7 +140,7 @@ class AbandonedCart extends Template
     {
         $subtotal = 0;
         if ($quote = $this->getQuote()) {
-            $address = $quote->isVirtual() ? $quote->getBillingAddress() : $quote->getShippingAddress();
+            $address  = $quote->isVirtual() ? $quote->getBillingAddress() : $quote->getShippingAddress();
             $subtotal = $inclTax ? $address->getSubtotalInclTax() : $address->getSubtotal();
         }
 
@@ -175,7 +175,7 @@ class AbandonedCart extends Template
             /** @var Product $product */
             $product = $this->_productRepository->getById($productId);
             /** @var Store $store */
-            $store = $this->_storeManager->getStore();
+            $store    = $this->_storeManager->getStore();
             $imageUrl = $store->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
 
             return str_replace('\\', '/', $imageUrl);

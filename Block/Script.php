@@ -76,7 +76,7 @@ class Script extends Template
     public function isSuccessPage()
     {
         $fullActionName = $this->getRequest()->getFullActionName();
-        $pages          = ['checkout_onepage_success','mpthankyoupage_index_index'];
+        $pages          = ['checkout_onepage_success', 'mpthankyoupage_index_index'];
 
         return in_array($fullActionName, $pages);
     }

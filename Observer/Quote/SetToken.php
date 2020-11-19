@@ -41,6 +41,7 @@ class SetToken implements ObserverInterface
 
     /**
      * BuildACEData constructor.
+     *
      * @param Random $random
      */
     public function __construct(

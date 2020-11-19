@@ -34,7 +34,7 @@ $itemCollection = $block->getProductCollection();
     </tr>
     </thead>
     <tbody>
-    <?php foreach ($itemCollection as $item) : ?>
+    <?php foreach ($itemCollection as $item): ?>
         <tr>
             <td class="item-info">
                 <span class="product-image">
@@ -52,15 +52,15 @@ $itemCollection = $block->getProductCollection();
                     <span><?= $block->escapeHtml(__('SKU'))?>:</span>
                     <?= /* @noEscape */ implode('<br />', $block->getHelperEmailMarketing()->splitSku($block->escapeHtml($item->getSku()))) ?>
                 </p>
-                <?php if ($options = $block->getHelperEmailMarketing()->getProductOptions($item)) : ?>
+                <?php if ($options = $block->getHelperEmailMarketing()->getProductOptions($item)): ?>
                     <dl class="item-options">
-                        <?php foreach ($options as $_option) :?>
+                        <?php foreach ($options as $_option):?>
                             <?php $optionValue = $block->getHelperEmailMarketing()->getFormatedOptionValue($_option) ?>
                             <dt><?= $block->escapeHtml($_option['label']) ?>: </dt>
                             <dd>
-                                <?php if (isset($_formatedOptionValue['full_view'])) : ?>
+                                <?php if (isset($_formatedOptionValue['full_view'])): ?>
                                     <?= $block->escapeHtml($optionValue['full_view']) ?>
-                                <?php else : ?>
+                                <?php else: ?>
                                     <?= $block->escapeHtml($optionValue['value'], ['span']) ?>
                                 <?php endif; ?>
                             </dd>
@@ -72,14 +72,14 @@ $itemCollection = $block->getProductCollection();
                 <span class="product-qty"><?= (int) $item->getQty() ?></span>
             </td>
             <td class="item-price">
-                <?php if ($block->getTaxConfig()->displayCartPricesInclTax()) : ?>
+                <?php if ($block->getTaxConfig()->displayCartPricesInclTax()): ?>
                     <span class="price"><?= /* @noEscape */ $block->formatPrice($_item->getPriceInclTax(), $item->getStoreId()) ?></span>
                 <?php endif; ?>
 
-                <?php if ($block->getTaxConfig()->displayCartPricesExclTax()) : ?>
+                <?php if ($block->getTaxConfig()->displayCartPricesExclTax()): ?>
                     <span class="price"><?= /* @noEscape */ $block->formatPrice($item->getCalculationPrice(), $item->getStoreId()) ?></span>
                 <?php endif; ?>
-                <?php if ($block->getTaxConfig()->displayCartPricesBoth()) : ?>
+                <?php if ($block->getTaxConfig()->displayCartPricesBoth()): ?>
                     <span class="label"><?= /* @noEscape */ __('Excl. Tax:') ?></span>
                     <span class="price"><?= /* @noEscape */ $block->formatPrice($item->getPriceInclTax(), $item->getStoreId()) ?></span>
                     <br>
@@ -91,19 +91,19 @@ $itemCollection = $block->getProductCollection();
     <?php endforeach; ?>
     </tbody>
     <tfoot class="order-totals">
-    <?php if ($block->getTaxConfig()->displayCartSubtotalExclTax()) : ?>
+    <?php if ($block->getTaxConfig()->displayCartSubtotalExclTax()): ?>
         <tr class="last-item">
             <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal') ?></th>
             <td><?= /* @noEscape */  $block->getSubtotal() ?></td>
         </tr>
     <?php endif; ?>
-    <?php if ($block->getTaxConfig()->displayCartSubtotalInclTax()) : ?>
+    <?php if ($block->getTaxConfig()->displayCartSubtotalInclTax()): ?>
         <tr class="last-item">
             <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal') ?></th>
             <td><?= /* @noEscape */ $block->getSubtotal(true) ?></td>
         </tr>
     <?php endif; ?>
-    <?php if ($block->getTaxConfig()->displayCartSubtotalBoth()) : ?>
+    <?php if ($block->getTaxConfig()->displayCartSubtotalBoth()): ?>
         <tr>
             <th colspan="3" scope="row"><?= /* @noEscape */ __('Subtotal (Excl.Tax)') ?></th>
             <td><?= /* @noEscape */  $block->getSubtotal() ?></td>

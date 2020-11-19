@@ -22,12 +22,12 @@
 namespace Mageplaza\Smtp\Observer\Customer;
 
 use Exception;
+use Magento\Customer\Model\Customer;
+use Magento\Customer\Model\ResourceModel\Customer as ResourceCustomer;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Mageplaza\Smtp\Helper\EmailMarketing;
-use Magento\Customer\Model\Customer;
 use Psr\Log\LoggerInterface;
-use Magento\Customer\Model\ResourceModel\Customer as ResourceCustomer;
 
 /**
  * Class CustomerSaveCommitAfter
@@ -107,7 +107,6 @@ class CustomerSaveCommitAfter implements ObserverInterface
                         $this->helperEmailMarketing->syncCustomer($data, false);
                     }
                 }
-
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
             }

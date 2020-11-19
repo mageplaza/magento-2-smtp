@@ -24,6 +24,8 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp;
 use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 
 /**
@@ -59,12 +61,11 @@ class TestConnection extends Action
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
+     * @return ResponseInterface|ResultInterface
      */
     public function execute()
     {
         try {
-
             $result    = [
                 'status'  => true,
                 'content' => __('Email marketing connection is working properly.')
@@ -72,7 +73,6 @@ class TestConnection extends Action
             $appID     = trim($this->getRequest()->getParam('appID'));
             $secretKey = $this->getRequest()->getParam('secretKey');
             $this->helperEmailMarketing->testConnection($appID, $secretKey);
-
         } catch (Exception $e) {
             $result = [
                 'status'  => false,

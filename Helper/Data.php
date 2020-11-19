@@ -75,7 +75,7 @@ class Data extends AbstractData
             $password = $this->getSmtpConfig('password', $storeId);
         } elseif ($websiteCode = $this->_request->getParam('website')) {
             $passwordPath = self::CONFIG_MODULE_PATH . '/' . self::CONFIG_GROUP_SMTP . '/password';
-            $password = $this->getConfigValue($passwordPath, $websiteCode, ScopeInterface::SCOPE_WEBSITE);
+            $password     = $this->getConfigValue($passwordPath, $websiteCode, ScopeInterface::SCOPE_WEBSITE);
         } else {
             $password = $this->getSmtpConfig('password');
         }

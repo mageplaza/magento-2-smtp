@@ -24,10 +24,12 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync;
 use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\DB\Adapter\AdapterInterface;
-use Mageplaza\Smtp\Helper\EmailMarketing;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\DB\Adapter\AdapterInterface;
+use Mageplaza\Smtp\Helper\EmailMarketing;
 use Zend_Db_Expr;
 
 /**
@@ -72,14 +74,14 @@ class Customer extends Action
         CustomerFactory $customerFactory,
         CustomerCollectionFactory $customerCollectionFactory
     ) {
-        $this->helperEmailMarketing = $helperEmailMarketing;
+        $this->helperEmailMarketing      = $helperEmailMarketing;
         $this->customerFactory           = $customerFactory;
         $this->customerCollectionFactory = $customerCollectionFactory;
         parent::__construct($context);
     }
 
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface
+     * @return ResponseInterface|ResultInterface
      */
     public function execute()
     {
@@ -88,8 +90,8 @@ class Customer extends Action
             $attribute = $this->helperEmailMarketing->getSyncedAttribute();
 
             $customerCollection = $this->customerCollectionFactory->create();
-            $ids = $this->getRequest()->getParam('ids');
-            $subscriberTable = $customerCollection->getTable('newsletter_subscriber');
+            $ids                = $this->getRequest()->getParam('ids');
+            $subscriberTable    = $customerCollection->getTable('newsletter_subscriber');
             $customerCollection->getSelect()->columns(
                 [
                     'subscriber_status' => new Zend_Db_Expr(
@@ -100,10 +102,10 @@ class Customer extends Action
 
             $customers = $customerCollection->addFieldToFilter('entity_id', ['in' => $ids]);
 
-            $data = [];
+            $data          = [];
             $attributeData = [];
             foreach ($customers as $customer) {
-                $data[] = $this->helperEmailMarketing->getCustomerData($customer, false, true);
+                $data[]          = $this->helperEmailMarketing->getCustomerData($customer, false, true);
                 $attributeData[] = [
                     'attribute_id' => $attribute->getId(),
                     'entity_id'    => $customer->getId(),
@@ -113,12 +115,11 @@ class Customer extends Action
 
             $result['status'] = true;
             $result['total']  = count($ids);
-            $response = $this->helperEmailMarketing->syncCustomers($data);
+            $response         = $this->helperEmailMarketing->syncCustomers($data);
             if (isset($response['success'])) {
                 $table = $customerCollection->getTable('customer_entity_int');
                 $this->insertData($customerCollection->getConnection(), $attributeData, $table);
             }
-
         } catch (Exception $e) {
             $result['status']  = false;
             $result['message'] = $e->getMessage();

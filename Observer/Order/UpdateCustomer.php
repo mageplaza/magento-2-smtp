@@ -53,7 +53,6 @@ class UpdateCustomer implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-
         if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()
