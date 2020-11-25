@@ -22,6 +22,7 @@
 namespace Mageplaza\Smtp\Helper;
 
 use Exception;
+use IntlDateFormatter;
 use Magento\Bundle\Helper\Catalog\Product\Configuration as BundleConfiguration;
 use Magento\Catalog\Helper\Data as CatalogHelper;
 use Magento\Catalog\Helper\Product\Configuration as CatalogConfiguration;
@@ -39,6 +40,8 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
+use Magento\Framework\Stdlib\DateTime;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Newsletter\Model\Subscriber;
 use Magento\Newsletter\Model\SubscriberFactory;
@@ -177,6 +180,11 @@ class EmailMarketing extends Data
     protected $_subscriberFactory;
 
     /**
+     * @var TimezoneInterface
+     */
+    protected $_localeDate;
+
+    /**
      * EmailMarketing constructor.
      *
      * @param Context $context
@@ -220,27 +228,29 @@ class EmailMarketing extends Data
         ReportOrderCollectionFactory $reportCollectionFactory,
         CustomerFactory $customerFactory,
         SubscriberFactory $subscriberFactory,
+        TimezoneInterface $localeDate,
         LoggerInterface $logger
     ) {
         parent::__construct($context, $objectManager, $storeManager);
 
-        $this->frontendUrl = $frontendUrl;
-        $this->escaper = $escaper;
-        $this->productConfig = $catalogConfiguration;
+        $this->frontendUrl                = $frontendUrl;
+        $this->escaper                    = $escaper;
+        $this->productConfig              = $catalogConfiguration;
         $this->bundleProductConfiguration = $bundleProductConfiguration;
-        $this->priceCurrency = $priceCurrency;
-        $this->catalogHelper = $catalogHelper;
-        $this->encryptor = $encryptor;
-        $this->_curl = $curl;
-        $this->resourceQuote = $resourceQuote;
-        $this->productRepository = $productRepository;
-        $this->shippingHelper = $shippingHelper;
-        $this->customerAttribute = $customerAttribute;
-        $this->orderCollection = $orderCollection;
-        $this->reportCollectionFactory = $reportCollectionFactory;
-        $this->customerFactory = $customerFactory;
-        $this->logger = $logger;
-        $this->_subscriberFactory = $subscriberFactory;
+        $this->priceCurrency              = $priceCurrency;
+        $this->catalogHelper              = $catalogHelper;
+        $this->encryptor                  = $encryptor;
+        $this->_curl                      = $curl;
+        $this->resourceQuote              = $resourceQuote;
+        $this->productRepository          = $productRepository;
+        $this->shippingHelper             = $shippingHelper;
+        $this->customerAttribute          = $customerAttribute;
+        $this->orderCollection            = $orderCollection;
+        $this->reportCollectionFactory    = $reportCollectionFactory;
+        $this->customerFactory            = $customerFactory;
+        $this->logger                     = $logger;
+        $this->_subscriberFactory         = $subscriberFactory;
+        $this->_localeDate                = $localeDate;
     }
 
     /**
@@ -370,6 +380,24 @@ class EmailMarketing extends Data
     }
 
     /**
+     * @param string $date
+     *
+     * @return string
+     * @throws Exception
+     */
+    public function formatDate($date)
+    {
+        return $this->_localeDate->formatDateTime(
+            $date,
+            IntlDateFormatter::MEDIUM,
+            IntlDateFormatter::MEDIUM,
+            null,
+            null,
+            DateTime::DATETIME_INTERNAL_FORMAT
+        );
+    }
+
+    /**
      * @param Shipment|Creditmemo|Order $object
      *
      * @return array
@@ -380,8 +408,8 @@ class EmailMarketing extends Data
         $data = [
             'id' => $object->getId(),
             'currency' => $object->getOrderCurrencyCode(),
-            'created_at' => $object->getCreatedAt(),
-            'updated_at' => $object->getUpdatedAt()
+            'created_at' => $this->formatDate($object->getCreatedAt()),
+            'updated_at' => $this->formatDate($object->getUpdatedAt())
         ];
 
         $path = null;
@@ -505,6 +533,8 @@ class EmailMarketing extends Data
 
         //first time created is the same updated
         $createdAt = $quote->getCreatedAt() ?: $updatedAt;
+        $createdAt = $this->formatDate($createdAt);
+        $updatedAt = $this->formatDate($updatedAt);
         if (!$isActive) {
             $quoteCompletedAt = $updatedAt;
         }
