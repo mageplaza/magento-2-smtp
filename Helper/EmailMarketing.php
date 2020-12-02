@@ -66,12 +66,13 @@ class EmailMarketing extends Data
 {
     const IS_SYNCED_ATTRIBUTE = 'mp_smtp_is_synced';
 
-    const APP_URL = 'https://app.avada.io/webhook/checkout/create';
-    const CUSTOMER_URL = 'https://app.avada.io/webhook/customer/create';
+    const APP_URL             = 'https://app.avada.io/webhook/checkout/create';
+    const CUSTOMER_URL        = 'https://app.avada.io/webhook/customer/create';
     const CUSTOMER_UPDATE_URL = 'https://app.avada.io/webhook/customer/update';
-    const ORDER_URL = 'https://app.avada.io/webhook/order/processing';
-    const DELETE_URL = 'https://app.avada.io/webhook/checkout?id=';
-    const SYNC_CUSTOMER_URL = 'https://app.avada.io/sync/customer';
+    const ORDER_URL           = 'https://app.avada.io/webhook/order/processing';
+    const DELETE_URL          = 'https://app.avada.io/webhook/checkout?id=';
+    const SYNC_CUSTOMER_URL   = 'https://app.avada.io/sync/customer';
+    const SYNC_ORDER_URL      = 'https://app.avada.io/webhook/api/v1/orders/bulk';
 
     /**
      * @var UrlInterface
@@ -482,8 +483,13 @@ class EmailMarketing extends Data
         }
 
         if ($object instanceof Order) {
-            $data['total_price'] = $object->getGrandTotal();
-            $data['subtotal_price'] = $object->getSubtotal();
+            $data['status']          = $object->getStatus();
+            $data['state']           = $object->getState();
+            $data['total_price']     = $object->getGrandTotal();
+            $data['subtotal_price']  = $object->getSubtotal();
+            $data['total_tax']       = $object->getTaxAmount();
+            $data['total_weight']    = $object->getTotalWeight() ?: '0';
+            $data['total_discounts'] = $object->getDiscountAmount();
         }
 
         return $data;
@@ -688,6 +694,7 @@ class EmailMarketing extends Data
             $itemRequest = [
                 'type' => $productType,
                 'title' => $item->getName(),
+                'name' => $item->getName(),
                 'price' => (float)$item->getPrice(),
                 'quantity' => (int)($isQuote ? $item->getQty() : $item->getQtyOrdered()),
                 'sku' => $item->getSku(),
@@ -714,6 +721,7 @@ class EmailMarketing extends Data
                     if ($isBundle) {
                         $bundleItems[] = [
                             'title' => $child->getName(),
+                            'name' => $child->getName(),
                             'image' => $this->getProductImage($product),
                             'product_id' => $child->getProductId(),
                             'sku' => $child->getSku(),
@@ -1019,6 +1027,16 @@ class EmailMarketing extends Data
     public function syncCustomers($data)
     {
         return $this->sendRequest($data, self::SYNC_CUSTOMER_URL);
+    }
+
+    /**
+     * @param array $data
+     * @return mixed
+     * @throws LocalizedException
+     */
+    public function syncOrders($data)
+    {
+        return $this->sendRequest($data, self::SYNC_ORDER_URL);
     }
 
     /**

@@ -166,6 +166,15 @@
                     <depends>
                         <field id="email_marketing/general/enabled">1</field>
                     </depends>
+                    <field id="sync_order" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label></label>
+                        <button_label>Synchronize Orders</button_label>
+                        <button_url>adminhtml/smtp_sync/order</button_url>
+                        <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncOrder</frontend_model>
+                    </field>
+                    <depends>
+                        <field id="email_marketing/general/enabled">1</field>
+                    </depends>
                 </group>
             </group>
         </section>

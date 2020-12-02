@@ -25,18 +25,17 @@ use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Customer\Model\CustomerFactory;
-use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Mageplaza\Smtp\Helper\EmailMarketing;
-use Zend_Db_Expr;
 
 /**
- * Class Customer
+ * Class Order
  * @package Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync
  */
-class Customer extends Action
+class Order extends Action
 {
     /**
      * Authorization level of a basic admin session
@@ -56,27 +55,27 @@ class Customer extends Action
     protected $customerFactory;
 
     /**
-     * @var CustomerCollectionFactory
+     * @var OrderCollectionFactory
      */
-    protected $customerCollectionFactory;
+    protected $orderCollectionFactory;
 
     /**
-     * Customer constructor.
+     * Order constructor.
      *
      * @param Context $context
      * @param EmailMarketing $helperEmailMarketing
      * @param CustomerFactory $customerFactory
-     * @param CustomerCollectionFactory $customerCollectionFactory
+     * @param OrderCollectionFactory $orderCollectionFactory
      */
     public function __construct(
         Context $context,
         EmailMarketing $helperEmailMarketing,
         CustomerFactory $customerFactory,
-        CustomerCollectionFactory $customerCollectionFactory
+        OrderCollectionFactory $orderCollectionFactory
     ) {
-        $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->customerFactory = $customerFactory;
-        $this->customerCollectionFactory = $customerCollectionFactory;
+        $this->helperEmailMarketing   = $helperEmailMarketing;
+        $this->customerFactory        = $customerFactory;
+        $this->orderCollectionFactory = $orderCollectionFactory;
         parent::__construct($context);
     }
 
@@ -87,38 +86,27 @@ class Customer extends Action
     {
         $result = [];
         try {
-            $attribute = $this->helperEmailMarketing->getSyncedAttribute();
-
-            $customerCollection = $this->customerCollectionFactory->create();
+            $orderCollection = $this->orderCollectionFactory->create();
             $ids = $this->getRequest()->getParam('ids');
-            $subscriberTable = $customerCollection->getTable('newsletter_subscriber');
-            $customerCollection->getSelect()->columns(
-                [
-                    'subscriber_status' => new Zend_Db_Expr(
-                        '(SELECT `s`.`subscriber_status` FROM `' . $subscriberTable . '` as `s` WHERE `s`.`customer_id` = `e`.`entity_id` LIMIT 1)'
-                    )
-                ]
-            );
 
-            $customers = $customerCollection->addFieldToFilter('entity_id', ['in' => $ids]);
+            $orders = $orderCollection->addFieldToFilter('entity_id', ['in' => $ids]);
 
             $data = [];
-            $attributeData = [];
-            foreach ($customers as $customer) {
-                $data[] = $this->helperEmailMarketing->getCustomerData($customer, false, true);
-                $attributeData[] = [
-                    'attribute_id' => $attribute->getId(),
-                    'entity_id' => $customer->getId(),
-                    'value' => 1
-                ];
+            $idUpdate = [];
+            foreach ($orders as $order) {
+                $data[] = $this->helperEmailMarketing->getOrderData($order);
+                $idUpdate[]  = $order->getId();
             }
 
             $result['status'] = true;
             $result['total'] = count($ids);
-            $response = $this->helperEmailMarketing->syncCustomers($data);
+            $response = $this->helperEmailMarketing->syncOrders($data);
             if (isset($response['success'])) {
-                $table = $customerCollection->getTable('customer_entity_int');
-                $this->insertData($customerCollection->getConnection(), $attributeData, $table);
+                $this->updateData(
+                    $orders->getConnection(),
+                    $idUpdate,
+                    $orders->getMainTable()
+                );
             }
 
         } catch (Exception $e) {
@@ -131,16 +119,21 @@ class Customer extends Action
 
     /**
      * @param AdapterInterface $connection
-     * @param array $data
+     * @param array $ids
      * @param string $table
      *
      * @throws Exception
      */
-    public function insertData($connection, $data, $table)
+    public function updateData($connection, $ids, $table)
     {
         $connection->beginTransaction();
         try {
-            $connection->insertMultiple($table, $data);
+            $where      = ['entity_id IN (?)' => $ids];
+            $connection->update(
+                $table,
+                ['mp_smtp_email_marketing_synced' => 1],
+                $where
+            );
             $connection->commit();
         } catch (Exception $e) {
             $connection->rollBack();

@@ -21,7 +21,7 @@
 
 /** @var \Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncCustomer $block */
 ?>
-<div class="actions actions-test-email" id="mp-sync-customer">
+<div class="actions actions-test-email" id="<?= /* @noEscape */ $block->getElementId() ?>">
     <div id="mp-sync">
         <div id="progress-content" style="display: none">
             <p class="text-right">
@@ -40,15 +40,14 @@
             <br>
         </div>
     </div>
-    <button class="actions-sync-customer" type="button" id="<?= $block->getHtmlId() ?>">
+    <button class="actions-sync-order" type="button" id="<?= $block->getHtmlId() ?>">
         <span><?= $block->escapeHtml($block->getButtonLabel()) ?></span>
     </button>
-
 </div>
 <script type="text/x-magento-init">
     {
-        "#mp-sync-customer": {
-            "Mageplaza_Smtp/js/sync/customer": {
+        "#<?= /* @noEscape */ $block->getElementId() ?>": {
+            "<?= /* @noEscape */ $block->getComponent() ?>": {
                 "ajaxUrl": "<?= $block->escapeHtml($block->getButtonUrl())?>",
                 "estimateUrl": "<?= $block->escapeHtml($block->getEstimateUrl())?>",
                  "websiteId": "<?= $block->escapeHtml($block->getWebsiteId())?>",
@@ -58,6 +57,8 @@
         }
     }
 </script>
+
+<?php if ($block->isRenderCss()): ?>
 <style>
     .text-right {text-align: right;}
 
@@ -78,5 +79,5 @@
         width: 0;
         transition: width .6s ease;
     }
-
 </style>
+<?php endif; ?>
