@@ -72,7 +72,7 @@ class EmailMarketing extends Data
     const ORDER_URL           = 'https://app.avada.io/webhook/order/processing';
     const DELETE_URL          = 'https://app.avada.io/webhook/checkout?id=';
     const SYNC_CUSTOMER_URL   = 'https://app.avada.io/sync/customer';
-    const SYNC_ORDER_URL      = 'https://app.avada.io/webhook/api/v1/orders/bulk';
+    const SYNC_ORDER_URL      = 'https://app.avada.io/app/api/v1/orders/bulk';
 
     /**
      * @var UrlInterface
