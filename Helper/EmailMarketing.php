@@ -66,11 +66,11 @@ class EmailMarketing extends Data
 {
     const IS_SYNCED_ATTRIBUTE = 'mp_smtp_is_synced';
 
-    const APP_URL             = 'https://app.avada.io/webhook/checkout/create';
-    const CUSTOMER_URL        = 'https://app.avada.io/webhook/customer/create';
-    const CUSTOMER_UPDATE_URL = 'https://app.avada.io/webhook/customer/update';
+    const APP_URL             = 'https://app.avada.io/app/api/v1/checkouts';
+    const CUSTOMER_URL        = 'https://app.avada.io/app/api/v1/customers';
+    const CUSTOMER_UPDATE_URL = 'https://app.avada.io/app/api/v1/customers';
     const ORDER_URL           = 'https://app.avada.io/webhook/order/processing';
-    const DELETE_URL          = 'https://app.avada.io/webhook/checkout?id=';
+    const DELETE_URL          = 'https://app.avada.io/webhook/api/v1/checkouts?id=';
     const SYNC_CUSTOMER_URL   = 'https://app.avada.io/sync/customer';
     const SYNC_ORDER_URL      = 'https://app.avada.io/app/api/v1/orders/bulk';
 
@@ -1014,9 +1014,13 @@ class EmailMarketing extends Data
      */
     public function syncCustomer($data, $isCreate = true)
     {
+        if (!$isCreate) {
+            $this->_curl->setOption(CURLOPT_POST, null);
+            $this->_curl->setOption(CURLOPT_CUSTOMREQUEST, 'PUT');
+        }
         $url = $isCreate ? self::CUSTOMER_URL : self::CUSTOMER_UPDATE_URL;
 
-        return $this->sendRequest($data, $url);
+        return $this->sendRequest($data, self::CUSTOMER_URL);
     }
 
     /**
