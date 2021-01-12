@@ -19,33 +19,32 @@
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
-namespace Mageplaza\Smtp\Observer\Order;
+namespace Mageplaza\Smtp\Observer\Customer;
 
 use Exception;
+use Magento\Customer\Model\Customer;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Sales\Model\Order\Creditmemo;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 use Psr\Log\LoggerInterface;
 
 /**
- * Class CreditmemoCreate
- * @package Mageplaza\Smtp\Observer\Order
+ * Class SaveAddress
+ * @package Mageplaza\Smtp\Observer\Customer
  */
-class CreditmemoCreate implements ObserverInterface
+class SaveAddress implements ObserverInterface
 {
     /**
      * @var EmailMarketing
      */
     protected $helperEmailMarketing;
-
     /**
      * @var LoggerInterface
      */
     protected $logger;
 
     /**
-     * CreditmemoCreate constructor.
+     * SaveAddress constructor.
      *
      * @param EmailMarketing $helperEmailMarketing
      * @param LoggerInterface $logger
@@ -63,29 +62,24 @@ class CreditmemoCreate implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-
-        if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
+        /**
+         * @var Customer $customer
+         */
+        $address = $observer->getEvent()->getDataObject();
+        $customer = $address->getCustomer();
+        if ($address->getIsDefaultBilling() &&
+            $customer->getMpSmtpIsSynced() &&
+            $this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()
         ) {
-            /* @var Creditmemo $creditmemo */
-            $creditmemo = $observer->getEvent()->getDataObject();
-            $this->syncCreditmemo($creditmemo);
-            $this->helperEmailMarketing->updateCustomer($creditmemo->getOrder()->getCustomerId());
-        }
-    }
+            try {
+                $data = $this->helperEmailMarketing->getCustomerData($customer, true);
+                $this->helperEmailMarketing->syncCustomer($data, false);
 
-    /**
-     * @param Creditmemo $creditmemo
-     */
-    public function syncCreditmemo($creditmemo)
-    {
-        try {
-            if ($creditmemo->getId() && $creditmemo->getCreatedAt() == $creditmemo->getUpdatedAt()) {
-                $this->helperEmailMarketing->sendOrderRequest($creditmemo, EmailMarketing::CREDITMEMO_URL);
+            } catch (Exception $e) {
+                $this->logger->critical($e->getMessage());
             }
-        } catch (Exception $e) {
-            $this->logger->critical($e->getMessage());
         }
     }
 }

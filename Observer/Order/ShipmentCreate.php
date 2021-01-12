@@ -72,7 +72,7 @@ class ShipmentCreate implements ObserverInterface
                 /* @var Shipment $shipment */
                 $shipment = $observer->getEvent()->getDataObject();
                 if ($shipment->getId() && $shipment->getCreatedAt() == $shipment->getUpdatedAt()) {
-                    $this->helperEmailMarketing->sendOrderRequest($shipment, 'fulfillments/create');
+                    $this->helperEmailMarketing->sendOrderRequest($shipment, EmailMarketing::SHIPMENT_URL);
                 }
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
