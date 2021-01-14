@@ -58,8 +58,7 @@ class EstimateCustomer extends AbstractEstimate
      */
     public function prepareCollection()
     {
-        return $this->customerCollectionFactory->create()
-            ->addFieldToFilter('mp_smtp_is_synced', ['null' => 1]);
+        return $this->customerCollectionFactory->create();
     }
 
     /**

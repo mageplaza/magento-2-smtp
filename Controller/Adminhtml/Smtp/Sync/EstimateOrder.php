@@ -59,8 +59,7 @@ class EstimateOrder extends AbstractEstimate
      */
     public function prepareCollection()
     {
-        return $this->orderCollectionFactory->create()
-            ->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
+        return $this->orderCollectionFactory->create();
     }
 
     /**
