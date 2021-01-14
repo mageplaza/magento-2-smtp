@@ -34,7 +34,6 @@ use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\GroupFactory;
 use Magento\Customer\Model\Metadata\ElementFactory;
-use Magento\Directory\Model\PriceCurrency;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DataObject;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -44,7 +43,6 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\HTTP\Client\CurlFactory;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\ObjectManagerInterface;
-use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\Stdlib\DateTime;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Framework\UrlInterface;
@@ -107,11 +105,6 @@ class EmailMarketing extends Data
      * @var BundleConfiguration
      */
     protected $bundleProductConfiguration;
-
-    /***
-     * @var PriceCurrencyInterface
-     */
-    protected $priceCurrency;
 
     /**
      * @var CatalogHelper
@@ -229,7 +222,6 @@ class EmailMarketing extends Data
      * @param Escaper $escaper
      * @param CatalogConfiguration $catalogConfiguration
      * @param BundleConfiguration $bundleProductConfiguration
-     * @param PriceCurrencyInterface $priceCurrency
      * @param CatalogHelper $catalogHelper
      * @param EncryptorInterface $encryptor
      * @param CurlFactory $curlFactory
@@ -251,7 +243,6 @@ class EmailMarketing extends Data
         Escaper $escaper,
         CatalogConfiguration $catalogConfiguration,
         BundleConfiguration $bundleProductConfiguration,
-        PriceCurrencyInterface $priceCurrency,
         CatalogHelper $catalogHelper,
         EncryptorInterface $encryptor,
         CurlFactory $curlFactory,
@@ -275,7 +266,6 @@ class EmailMarketing extends Data
         $this->escaper                    = $escaper;
         $this->productConfig              = $catalogConfiguration;
         $this->bundleProductConfiguration = $bundleProductConfiguration;
-        $this->priceCurrency              = $priceCurrency;
         $this->catalogHelper              = $catalogHelper;
         $this->encryptor                  = $encryptor;
         $this->curlFactory                = $curlFactory;
@@ -459,20 +449,21 @@ class EmailMarketing extends Data
     public function getOrderData($object)
     {
         $data = [
-            'id' => $object->getId(),
-            'currency' => $object->getOrderCurrencyCode(),
-            'created_at' => $this->formatDate($object->getCreatedAt()),
-            'updated_at' => $this->formatDate($object->getUpdatedAt())
+            'id'             => $object->getId(),
+            'currency'       => $object->getBaseCurrencyCode(),
+            'order_currency' => $object->getOrderCurrencyCode(),
+            'created_at'     => $this->formatDate($object->getCreatedAt()),
+            'updated_at'     => $this->formatDate($object->getUpdatedAt())
         ];
 
-        $path = null;
-        $customerEmail = $object->getCustomerEmail();
-        $customerId = $object->getCustomerId();
+        $path              = null;
+        $customerEmail     = $object->getCustomerEmail();
+        $customerId        = $object->getCustomerId();
         $customerFirstname = $object->getCustomerFirstname();
-        $customerLastname = $object->getCustomerLastname();
-        $isShipment = $object instanceof Shipment;
-        $isCreditmemo = $object instanceof Creditmemo;
-        $isInvoice = $object instanceof Invoice;
+        $customerLastname  = $object->getCustomerLastname();
+        $isShipment        = $object instanceof Shipment;
+        $isCreditmemo      = $object instanceof Creditmemo;
+        $isInvoice         = $object instanceof Invoice;
         if ($isCreditmemo || $isShipment || $isInvoice) {
             $order             = $object->getOrder();
             $customerEmail     = $order->getCustomerEmail();
@@ -540,11 +531,11 @@ class EmailMarketing extends Data
         if ($object instanceof Order) {
             $data['status']          = $object->getStatus();
             $data['state']           = $object->getState();
-            $data['total_price']     = $object->getGrandTotal();
-            $data['subtotal_price']  = $object->getSubtotal();
-            $data['total_tax']       = $object->getTaxAmount();
+            $data['total_price']     = $object->getBaseGrandTotal();
+            $data['subtotal_price']  = $object->getBaseSubtotal();
+            $data['total_tax']       = $object->getBaseTaxAmount();
             $data['total_weight']    = $object->getTotalWeight() ?: '0';
-            $data['total_discounts'] = $object->getDiscountAmount();
+            $data['total_discounts'] = $object->getBaseDiscountAmount();
         }
 
         return $data;
@@ -634,9 +625,9 @@ class EmailMarketing extends Data
             'created_at'             => $createdAt,
             'updated_at'             => $updatedAt,
             'abandoned_checkout_url' => $this->getRecoveryUrl($quote),
-            'subtotal_price'         => $quote->getSubtotal(),
-            'total_price'            => $quote->getGrandTotal(),
-            'total_tax'              => !$quote->isVirtual() ? $quote->getShippingAddress()->getTaxAmount() : 0,
+            'subtotal_price'         => $quote->getBaseSubtotal(),
+            'total_price'            => $quote->getBaseGrandTotal(),
+            'total_tax'              => !$quote->isVirtual() ? $quote->getShippingAddress()->getBaseTaxAmount() : 0,
             'customer_locale'        => null,
             'shipping_address'       => $this->getShippingAddress($quote)
         ];
@@ -695,7 +686,7 @@ class EmailMarketing extends Data
                     'product_id' => $orderItem->getProductId(),
                     'sku'        => $orderItem->getSku(),
                     'quantity'   => $item->getQty(),
-                    'price'      => (float) $item->getPrice()
+                    'price'      => (float) $item->getBasePrice()
                 ];
 
                 continue;
@@ -705,7 +696,7 @@ class EmailMarketing extends Data
                 $items[$orderItem->getParentItemId()]['variant_title'] = $item->getName();
                 $items[$orderItem->getParentItemId()]['variant_image'] = $this->getProductImage($product);
                 $items[$orderItem->getParentItemId()]['variant_id']    = $orderItem->getProductId();
-                $items[$orderItem->getParentItemId()]['variant_price'] = (float) $item->getPrice();
+                $items[$orderItem->getParentItemId()]['variant_price'] = (float) $item->getBasePrice();
 
                 continue;
             }
@@ -713,9 +704,10 @@ class EmailMarketing extends Data
             $productType = $orderItem->getData('product_type');
             $items[$orderItem->getId()] = [
                 'type'          => $productType,
-                'name'          => $productType === 'configurable' ? $this->getItemOptions($orderItem) : $item->getName(),
+                'name'          => $productType === 'configurable' ?
+                    $this->getItemOptions($orderItem) : $item->getName(),
                 'title'         => $item->getName(),
-                'price'         => (float) $item->getPrice(),
+                'price'         => (float) $item->getBasePrice(),
                 'quantity'      => $item->getQty(),
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
@@ -829,7 +821,7 @@ class EmailMarketing extends Data
                 'type'          => $productType,
                 'title'         => $item->getName(),
                 'name'          => $name,
-                'price'         => (float) $item->getPrice(),
+                'price'         => (float) $item->getBasePrice(),
                 'quantity'      => (int) ($isQuote ? $item->getQty() : $item->getQtyOrdered()),
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
@@ -838,7 +830,7 @@ class EmailMarketing extends Data
             ];
 
             if ($isQuote) {
-                $itemRequest['line_price'] = $item->getRowTotal();
+                $itemRequest['line_price'] = $item->getBaseRowTotal();
             }
 
             if ($item->getHasChildren()) {
@@ -849,7 +841,7 @@ class EmailMarketing extends Data
                         $itemRequest['variant_title'] = $child->getName();
                         $itemRequest['variant_image'] = $this->getProductImage($product);
                         $itemRequest['variant_id'] = $child->getProductId();
-                        $itemRequest['variant_price'] = (float)$child->getPrice();
+                        $itemRequest['variant_price'] = (float)$child->getBasePrice();
                     }
 
                     if ($isBundle) {
@@ -860,7 +852,7 @@ class EmailMarketing extends Data
                             'product_id' => $child->getProductId(),
                             'sku'        => $child->getSku(),
                             'quantity'   => (int) ($isQuote ? $child->getQty() : $child->getQtyOrdered()),
-                            'price'      => (float) $child->getPrice()
+                            'price'      => (float) $child->getBasePrice()
                         ];
                     }
                 }
@@ -871,22 +863,6 @@ class EmailMarketing extends Data
         }
 
         return $items;
-    }
-
-    /**
-     * @param int|float $value
-     * @param int $storeId
-     *
-     * @return float|string
-     */
-    public function formatPrice($value, $storeId)
-    {
-        return $this->priceCurrency->format(
-            $value,
-            false,
-            PriceCurrency::DEFAULT_PRECISION,
-            $storeId
-        );
     }
 
     /**
@@ -1093,11 +1069,10 @@ class EmailMarketing extends Data
             $orderCollectionByCustomer = $this->orderCollection->addFieldToFilter('customer_id', $customer->getId());
             $size = $orderCollectionByCustomer->getSize();
             $lastOrderId = $orderCollectionByCustomer->addOrder('entity_id')->getFirstItem()->getId();
-            $totalSpent = $this->formatCurrency($this->getLifetimeSales($customer->getId()), $customer->getWebsiteId());
 
             $data['orders_count']  = $size;
             $data['last_order_id'] = $lastOrderId;
-            $data['total_spent']   = $totalSpent;
+            $data['total_spent']   = $this->getLifetimeSales($customer->getId());
             $data['currency']      = $this->getBaseCurrencyByWebsiteId($customer->getWebsiteId())->getCurrencyCode();
         }
 
@@ -1188,20 +1163,6 @@ class EmailMarketing extends Data
                 $this->logger->critical($e->getMessage());
             }
         }
-    }
-
-    /**
-     * Format price by specified website
-     *
-     * @param float $price
-     * @param null|int $websiteId
-     *
-     * @return string
-     * @throws LocalizedException
-     */
-    public function formatCurrency($price, $websiteId = null)
-    {
-        return $this->getBaseCurrencyByWebsiteId($websiteId)->format($price, [], false);
     }
 
     /**
