@@ -404,6 +404,8 @@ class Form extends Generic
     }
 
     /**
+     * @param string|int $customerGroupId
+     *
      * @return string
      */
     public function getCustomerGroupName($customerGroupId)
