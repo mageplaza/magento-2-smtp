@@ -75,7 +75,8 @@ class SubscriberSaveCommitAfter implements ObserverInterface
     public function execute(Observer $observer)
     {
         $subscriber = $observer->getEvent()->getDataObject();
-        if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
+        if ($subscriber->isStatusChanged() &&
+            $this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID() &&
             !$this->helperEmailMarketing->isSyncedCustomer()

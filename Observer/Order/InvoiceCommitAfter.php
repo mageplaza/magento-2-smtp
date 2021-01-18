@@ -27,10 +27,10 @@ use Magento\Sales\Model\Order\Invoice;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 
 /**
- * Class UpdateCustomer
+ * Class InvoiceCommitAfter
  * @package Mageplaza\Smtp\Observer\Order
  */
-class UpdateCustomer implements ObserverInterface
+class InvoiceCommitAfter implements ObserverInterface
 {
     /**
      * @var EmailMarketing
@@ -38,7 +38,7 @@ class UpdateCustomer implements ObserverInterface
     protected $helperEmailMarketing;
 
     /**
-     * UpdateCustomer constructor.
+     * InvoiceCommitAfter constructor.
      *
      * @param EmailMarketing $helperEmailMarketing
      */
@@ -53,14 +53,17 @@ class UpdateCustomer implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-
         if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()
         ) {
             /* @var Invoice $order */
             $invoice = $observer->getEvent()->getDataObject();
-            $this->helperEmailMarketing->updateCustomer($invoice->getOrder()->getCustomerId());
+
+            if ($invoice->getId() && $invoice->getCreatedAt() == $invoice->getUpdatedAt()) {
+                $this->helperEmailMarketing->sendOrderRequest($invoice, EmailMarketing::INVOICE_URL);
+            }
+             $this->helperEmailMarketing->updateCustomer($invoice->getOrder()->getCustomerId());
         }
     }
 }

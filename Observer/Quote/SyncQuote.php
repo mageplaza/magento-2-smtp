@@ -85,7 +85,7 @@ class SyncQuote implements ObserverInterface
                             ['entity_id = ?' => $quote->getId()]
                         );
 
-                        $this->helperEmailMarketing->sendRequest($ACEData);
+                        $this->helperEmailMarketing->sendRequestWithoutWaitResponse($ACEData);
                     }
                 }
             } catch (Exception $e) {
