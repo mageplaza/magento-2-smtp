@@ -22,7 +22,10 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
 <!--    ================================================ CUSTOMER ============================================-->
-    <event name="customer_save_before">
+    <event name="customer_address_save_commit_after">
+        <observer name="mp_smtp_customer_address_save_commit_after" instance="Mageplaza\Smtp\Observer\Customer\SaveAddress"/>
+    </event>
+    <event name="customer_address_save_before">
         <observer name="mp_smtp_customer_model_save_before" instance="Mageplaza\Smtp\Observer\Customer\ModelSaveBefore"/>
     </event>
     <event name="newsletter_subscriber_save_commit_after">
@@ -47,7 +50,7 @@
         <observer name="mp_smtp_sales_order_complete" instance="Mageplaza\Smtp\Observer\Order\OrderComplete"/>
     </event>
     <event name="sales_order_invoice_save_commit_after">
-        <observer name="mp_smtp_sales_creditmemo_create" instance="Mageplaza\Smtp\Observer\Order\UpdateCustomer"/>
+        <observer name="mp_smtp_sales_creditmemo_create" instance="Mageplaza\Smtp\Observer\Order\InvoiceCommitAfter"/>
     </event>
     <event name="sales_order_creditmemo_save_commit_after">
         <observer name="mp_smtp_sales_creditmemo_create" instance="Mageplaza\Smtp\Observer\Order\CreditmemoCreate"/>

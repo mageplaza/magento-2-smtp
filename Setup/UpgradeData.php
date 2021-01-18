@@ -81,11 +81,11 @@ class UpgradeData implements UpgradeDataInterface
         Collection $configCollection,
         TypeListInterface $cacheTypeList
     ) {
-        $this->salesSetupFactory    = $salesSetupFactory;
-        $this->attributeSetFactory  = $attributeSetFactory;
+        $this->salesSetupFactory = $salesSetupFactory;
+        $this->attributeSetFactory = $attributeSetFactory;
         $this->customerSetupFactory = $customerSetupFactory;
-        $this->configCollection     = $configCollection;
-        $this->_cacheTypeList       = $cacheTypeList;
+        $this->configCollection = $configCollection;
+        $this->_cacheTypeList = $cacheTypeList;
     }
 
     /**
@@ -106,39 +106,39 @@ class UpgradeData implements UpgradeDataInterface
             $attributeSetId = $customerEntity->getDefaultAttributeSetId();
 
             /** @var $attributeSet AttributeSet */
-            $attributeSet     = $this->attributeSetFactory->create();
+            $attributeSet = $this->attributeSetFactory->create();
             $attributeGroupId = $attributeSet->getDefaultGroupId($attributeSetId);
 
             $customerSetup->addAttribute(Customer::ENTITY, 'mp_smtp_is_synced', [
-                'type'            => 'int',
-                'label'           => 'Mp SMTP is synced',
-                'input'           => 'hidden',
-                'required'        => false,
-                'visible'         => false,
-                'user_defined'    => false,
-                'sort_order'      => 90,
-                'position'        => 90,
-                'system'          => 0,
+                'type' => 'int',
+                'label' => 'Mp SMTP is synced',
+                'input' => 'hidden',
+                'required' => false,
+                'visible' => false,
+                'user_defined' => false,
+                'sort_order' => 90,
+                'position' => 90,
+                'system' => 0,
                 'is_used_in_grid' => false,
             ]);
 
             $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'mp_smtp_is_synced')
                 ->addData([
-                    'attribute_set_id'   => $attributeSetId,
+                    'attribute_set_id' => $attributeSetId,
                     'attribute_group_id' => $attributeGroupId,
-                    'used_in_forms'      => ['adminhtml_customer']
+                    'used_in_forms' => ['adminhtml_customer']
                 ])
                 ->save();
         }
 
         if (version_compare($context->getVersion(), '1.2.3', '<')) {
-            $connection       = $setup->getConnection();
+            $connection = $setup->getConnection();
             $configCollection = $this->configCollection->addPathFilter('smtp/abandoned_cart');
             if ($configCollection->getSize() > 0) {
                 $table = $this->configCollection->getMainTable();
                 $paths = [
-                    'smtp/abandoned_cart/enabled'    => 'email_marketing/general/enabled',
-                    'smtp/abandoned_cart/app_id'     => 'email_marketing/general/app_id',
+                    'smtp/abandoned_cart/enabled' => 'email_marketing/general/enabled',
+                    'smtp/abandoned_cart/app_id' => 'email_marketing/general/app_id',
                     'smtp/abandoned_cart/secret_key' => 'email_marketing/general/secret_key'
                 ];
 

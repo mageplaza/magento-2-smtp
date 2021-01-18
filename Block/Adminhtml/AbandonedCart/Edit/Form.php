@@ -18,6 +18,7 @@
  * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
+
 namespace Mageplaza\Smtp\Block\Adminhtml\AbandonedCart\Edit;
 
 use Exception;
@@ -130,14 +131,14 @@ class Form extends Generic
         GroupRepositoryInterface $groupRepository,
         array $data = []
     ) {
-        $this->addressConfig        = $addressConfig;
-        $this->priceCurrency        = $priceCurrency;
-        $this->emailIdentity        = $emailIdentity;
-        $this->emailTemplate        = $emailTemplate;
-        $this->taxConfig            = $taxConfig;
+        $this->addressConfig = $addressConfig;
+        $this->priceCurrency = $priceCurrency;
+        $this->emailIdentity = $emailIdentity;
+        $this->emailTemplate = $emailTemplate;
+        $this->taxConfig = $taxConfig;
         $this->logCollectionFactory = $logCollectionFactory;
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->groupRepository      = $groupRepository;
+        $this->groupRepository = $groupRepository;
 
         parent::__construct($context, $registry, $formFactory, $data);
     }
@@ -188,7 +189,7 @@ class Form extends Generic
      */
     public function getSubtotal(Quote $quote, $inclTax = false)
     {
-        $address  = $quote->isVirtual() ? $quote->getBillingAddress() : $quote->getShippingAddress();
+        $address = $quote->isVirtual() ? $quote->getBillingAddress() : $quote->getShippingAddress();
         $subtotal = $inclTax ? $address->getSubtotalInclTax() : $address->getSubtotal();
 
         return $this->formatPrice($subtotal, $quote->getId());
@@ -361,8 +362,8 @@ class Form extends Generic
     public function getStoreName(Quote $quote)
     {
         $storeId = $quote->getStoreId();
-        $store   = $this->_storeManager->getStore($storeId);
-        $name    = [$store->getWebsite()->getName(), $store->getGroup()->getName(), $store->getName()];
+        $store = $this->_storeManager->getStore($storeId);
+        $name = [$store->getWebsite()->getName(), $store->getGroup()->getName(), $store->getName()];
 
         return implode('<br/>', $name);
     }
@@ -403,6 +404,8 @@ class Form extends Generic
     }
 
     /**
+     * @param string|int $customerGroupId
+     *
      * @return string
      */
     public function getCustomerGroupName($customerGroupId)

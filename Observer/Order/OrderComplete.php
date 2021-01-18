@@ -63,8 +63,8 @@ class OrderComplete implements ObserverInterface
         ResourceOrder $resourceOrder
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->logger               = $logger;
-        $this->resourceOrder        = $resourceOrder;
+        $this->logger = $logger;
+        $this->resourceOrder = $resourceOrder;
     }
 
     /**
@@ -72,6 +72,7 @@ class OrderComplete implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
+
         if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()
@@ -79,9 +80,20 @@ class OrderComplete implements ObserverInterface
             try {
                 /* @var Order $order */
                 $order = $observer->getEvent()->getOrder();
+                $isSynced = $order->getData('mp_smtp_email_marketing_synced');
+                if (!in_array($order->getState(), [Order::STATE_NEW, Order::STATE_COMPLETE], true)) {
+                    $data = [
+                        'id'     => $order->getId(),
+                        'status' => $order->getStatus(),
+                        'state'  => $order->getState(),
+                        'email'  => $order->getCustomerEmail()
+                    ];
+                    $this->helperEmailMarketing->updateOrderStatusRequest($data);
+                }
+
                 if ($order->getState() === Order::STATE_COMPLETE &&
-                    !$order->getData('mp_smtp_email_marketing_synced')) {
-                    $this->helperEmailMarketing->sendOrderRequest($order, 'orders/complete');
+                    !$isSynced) {
+                    $this->helperEmailMarketing->sendOrderRequest($order, EmailMarketing::ORDER_COMPLETE_URL);
                     $resource = $this->resourceOrder;
                     $resource->getConnection()->update(
                         $resource->getMainTable(),

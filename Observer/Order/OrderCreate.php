@@ -55,7 +55,7 @@ class OrderCreate implements ObserverInterface
         LoggerInterface $logger
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->logger               = $logger;
+        $this->logger = $logger;
     }
 
     /**
@@ -63,6 +63,7 @@ class OrderCreate implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
+
         if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()

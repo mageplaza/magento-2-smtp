@@ -23,15 +23,16 @@ define([
 ], function ($, Sync) {
     'use strict';
 
-    $.widget('mageplaza.synccustomer', {
+    $.widget('mageplaza.syncorder', {
         options: {
             ajaxUrl: '',
             websiteId: '',
             storeId: '',
             estimateUrl: '',
-            buttonElement: '#email_marketing_general_synchronization_sync_customer',
-            prefix: '#mp-sync-customer'
+            buttonElement: '#email_marketing_general_synchronization_sync_order',
+            prefix: '#mp-sync-order'
         },
+
         _create: function () {
             var self = this;
 
@@ -42,5 +43,5 @@ define([
         },
     });
 
-    return $.mageplaza.synccustomer;
+    return $.mageplaza.syncorder;
 });

@@ -71,8 +71,8 @@ class CustomerName extends Column
     ) {
         parent::__construct($context, $uiComponentFactory, $components, $data);
 
-        $this->urlBuilder           = $urlBuilder;
-        $this->quoteFactory         = $quoteFactory;
+        $this->urlBuilder = $urlBuilder;
+        $this->quoteFactory = $quoteFactory;
         $this->helperEmailMarketing = $helperEmailMarketing;
     }
 
@@ -85,8 +85,8 @@ class CustomerName extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as &$item) {
-                $quoteId      = $item['entity_id'];
-                $quote        = $this->quoteFactory->create()->load($quoteId);
+                $quoteId = $item['entity_id'];
+                $quote = $this->quoteFactory->create()->load($quoteId);
                 $customerName = $this->helperEmailMarketing->getCustomerName($quote);
                 if ($quote->getCustomerId()) {
                     $url          = $this->urlBuilder->getUrl('customer/index/edit', ['id' => $item['customer_id']]);

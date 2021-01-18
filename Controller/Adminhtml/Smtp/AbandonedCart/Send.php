@@ -107,13 +107,13 @@ class Send extends Action
         Registry $registry,
         EmailMarketing $helperEmailMarketing
     ) {
-        $this->quoteRepository      = $quoteRepository;
-        $this->logger               = $logger;
-        $this->emailTemplate        = $emailTemplate;
-        $this->areaList             = $areaList;
-        $this->senderResolver       = $senderResolver;
-        $this->transportBuilder     = $transportBuilder;
-        $this->registry             = $registry;
+        $this->quoteRepository = $quoteRepository;
+        $this->logger = $logger;
+        $this->emailTemplate = $emailTemplate;
+        $this->areaList = $areaList;
+        $this->senderResolver = $senderResolver;
+        $this->transportBuilder = $transportBuilder;
+        $this->registry = $registry;
         $this->helperEmailMarketing = $helperEmailMarketing;
 
         parent::__construct($context);
@@ -127,19 +127,19 @@ class Send extends Action
         $id = $this->getRequest()->getParam('id', 0);
 
         try {
-            $quote         = $this->quoteRepository->get($id);
+            $quote = $this->quoteRepository->get($id);
             $customerEmail = $quote->getCustomerEmail();
-            $customerName  = $this->helperEmailMarketing->getCustomerName($quote);
+            $customerName = $this->helperEmailMarketing->getCustomerName($quote);
 
-            $from              = $this->getRequest()->getParam('sender');
-            $templateId        = $this->getRequest()->getParam('email_template');
+            $from = $this->getRequest()->getParam('sender');
+            $templateId = $this->getRequest()->getParam('email_template');
             $additionalMessage = $this->getRequest()->getParam('additional_message');
-            $from              = $this->senderResolver->resolve($from, $quote->getStoreId());
-            $recoveryUrl       = $this->helperEmailMarketing->getRecoveryUrl($quote);
+            $from = $this->senderResolver->resolve($from, $quote->getStoreId());
+            $recoveryUrl = $this->helperEmailMarketing->getRecoveryUrl($quote);
 
             $vars = [
-                'quote_id'           => $quote->getId(),
-                'customer_name'      => ucfirst($customerName),
+                'quote_id' => $quote->getId(),
+                'customer_name' => ucfirst($customerName),
                 'additional_message' => trim(strip_tags($additionalMessage)),
                 'cart_recovery_link' => $recoveryUrl
             ];

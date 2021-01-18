@@ -22,43 +22,44 @@
 namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync;
 
 use Magento\Backend\App\Action\Context;
-use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 
 /**
- * Class EstimateCustomer
+ * Class EstimateOrder
  * @package Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync
  */
-class EstimateCustomer extends AbstractEstimate
+class EstimateOrder extends AbstractEstimate
 {
     /**
-     * @var CustomerCollectionFactory
+     * @var OrderCollectionFactory
      */
-    protected $customerCollectionFactory;
+    protected $orderCollectionFactory;
 
     /**
-     * EstimateCustomer constructor.
+     * EstimateOrder constructor.
      *
      * @param Context $context
-     * @param CustomerCollectionFactory $customerCollectionFactory
+     * @param OrderCollectionFactory $orderCollectionFactory
      * @param EmailMarketing $emailMarketing
      */
     public function __construct(
         Context $context,
-        CustomerCollectionFactory $customerCollectionFactory,
+        OrderCollectionFactory $orderCollectionFactory,
         EmailMarketing $emailMarketing
     ) {
-        $this->customerCollectionFactory = $customerCollectionFactory;
+        $this->orderCollectionFactory = $orderCollectionFactory;
+        $this->emailMarketing = $emailMarketing;
 
         parent::__construct($context, $emailMarketing);
     }
 
     /**
-     * @return \Magento\Customer\Model\ResourceModel\Customer\Collection|\Magento\Framework\Data\Collection\AbstractDb|\Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection
+     * @return \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection|\Magento\Sales\Model\ResourceModel\Order\Collection
      */
     public function prepareCollection()
     {
-        return $this->customerCollectionFactory->create();
+        return $this->orderCollectionFactory->create();
     }
 
     /**
@@ -66,6 +67,6 @@ class EstimateCustomer extends AbstractEstimate
      */
     public function getZeroMessage()
     {
-        return __('No customers to synchronize.');
+        return __('No Orders to synchronize.');
     }
 }
