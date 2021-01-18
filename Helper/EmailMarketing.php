@@ -212,6 +212,7 @@ class EmailMarketing extends Data
      * @var null
      */
     protected $_salesAmountExpression= null;
+
     /**
      * EmailMarketing constructor.
      *
@@ -233,6 +234,10 @@ class EmailMarketing extends Data
      * @param ReportOrderCollectionFactory $reportCollectionFactory
      * @param CustomerFactory $customerFactory
      * @param SubscriberFactory $subscriberFactory
+     * @param GroupFactory $groupFactory
+     * @param OrderConfig $orderConfig
+     * @param TimezoneInterface $localeDate
+     * @param Config $addressConfig
      * @param LoggerInterface $logger
      */
     public function __construct(

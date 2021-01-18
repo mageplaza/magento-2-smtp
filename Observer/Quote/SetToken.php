@@ -40,7 +40,8 @@ class SetToken implements ObserverInterface
     protected $random;
 
     /**
-     * BuildACEData constructor.
+     * SetToken constructor.
+     *
      * @param Random $random
      */
     public function __construct(
