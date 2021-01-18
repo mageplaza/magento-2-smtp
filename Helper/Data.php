@@ -33,8 +33,8 @@ use Mageplaza\Core\Helper\AbstractData;
 class Data extends AbstractData
 {
     const CONFIG_MODULE_PATH = 'smtp';
-    const EMAIL_MARKETING    = 'email_marketing';
-    const CONFIG_GROUP_SMTP  = 'configuration_option';
+    const EMAIL_MARKETING = 'email_marketing';
+    const CONFIG_GROUP_SMTP = 'configuration_option';
     const DEVELOP_GROUP_SMTP = 'developer';
 
     /**

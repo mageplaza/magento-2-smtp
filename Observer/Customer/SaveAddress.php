@@ -19,33 +19,32 @@
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
-namespace Mageplaza\Smtp\Observer\Quote;
+namespace Mageplaza\Smtp\Observer\Customer;
 
 use Exception;
+use Magento\Customer\Model\Customer;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Quote\Model\Quote;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 use Psr\Log\LoggerInterface;
 
 /**
- * Class SyncQuote
- * @package Mageplaza\Smtp\Observer\Quote
+ * Class SaveAddress
+ * @package Mageplaza\Smtp\Observer\Customer
  */
-class SyncQuote implements ObserverInterface
+class SaveAddress implements ObserverInterface
 {
     /**
      * @var EmailMarketing
      */
     protected $helperEmailMarketing;
-
     /**
      * @var LoggerInterface
      */
     protected $logger;
 
     /**
-     * SyncQuote constructor.
+     * SaveAddress constructor.
      *
      * @param EmailMarketing $helperEmailMarketing
      * @param LoggerInterface $logger
@@ -63,31 +62,21 @@ class SyncQuote implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-
-        if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
+        /**
+         * @var Customer $customer
+         */
+        $address = $observer->getEvent()->getDataObject();
+        $customer = $address->getCustomer();
+        if ($address->getIsDefaultBilling() &&
+            $customer->getMpSmtpIsSynced() &&
+            $this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()
         ) {
             try {
-                /* @var Quote $quote */
-                $quote = $observer->getEvent()->getQuote();
-                $aceLogData = $quote->getData('mp_smtp_ace_log_data');
-                $itemCount = (int)$quote->getItemsCount();
-                $isValid = ($itemCount > 0 || ($aceLogData && $itemCount < 1));
-                if ($isValid) {
-                    $ACEData = $this->helperEmailMarketing->getACEData($quote);
-                    $oldACEData = $aceLogData ? EmailMarketing::jsonDecode($aceLogData) : [];
-                    if ($oldACEData !== $ACEData && empty($oldACEData['checkoutCompleted'])) {
-                        $resource = $this->helperEmailMarketing->getResourceQuote();
-                        $resource->getConnection()->update(
-                            $resource->getMainTable(),
-                            ['mp_smtp_ace_log_data' => EmailMarketing::jsonEncode($ACEData)],
-                            ['entity_id = ?' => $quote->getId()]
-                        );
+                $data = $this->helperEmailMarketing->getCustomerData($customer, true);
+                $this->helperEmailMarketing->syncCustomer($data, false);
 
-                        $this->helperEmailMarketing->sendRequestWithoutWaitResponse($ACEData);
-                    }
-                }
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
             }

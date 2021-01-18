@@ -28,7 +28,7 @@ use Magento\Framework\Event\ObserverInterface;
 
 /**
  * Class ModelSaveBefore
- * @package Mageplaza\ZohoCRM\Observer\Customer
+ * @package Mageplaza\Smtp\Observer\Customer
  */
 class ModelSaveBefore implements ObserverInterface
 {
@@ -37,6 +37,11 @@ class ModelSaveBefore implements ObserverInterface
      */
     protected $customerFactory;
 
+    /**
+     * ModelSaveBefore constructor.
+     *
+     * @param CustomerFactory $customerFactory
+     */
     public function __construct(CustomerFactory $customerFactory)
     {
         $this->customerFactory = $customerFactory;

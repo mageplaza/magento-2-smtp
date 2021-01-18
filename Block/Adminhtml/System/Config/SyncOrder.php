@@ -22,10 +22,10 @@
 namespace Mageplaza\Smtp\Block\Adminhtml\System\Config;
 
 /**
- * Class SyncCustomer
+ * Class SyncOrder
  * @package Mageplaza\Smtp\Block\Adminhtml\System\Config
  */
-class SyncCustomer extends Button
+class SyncOrder extends Button
 {
     /**
      * @var string
@@ -37,7 +37,7 @@ class SyncCustomer extends Button
      */
     public function getEstimateUrl()
     {
-        return $this->getUrl('adminhtml/smtp_sync/estimatecustomer', ['_current' => true]);
+        return $this->getUrl('adminhtml/smtp_sync/estimateorder', ['_current' => true]);
     }
 
     /**
@@ -61,7 +61,7 @@ class SyncCustomer extends Button
      */
     public function getSyncSuccessMessage()
     {
-        return __('Customer synchronization has been completed.');
+        return __('Order synchronization has been completed.');
     }
 
     /**
@@ -69,7 +69,7 @@ class SyncCustomer extends Button
      */
     public function getElementId()
     {
-        return 'mp-sync-customer';
+        return 'mp-sync-order';
     }
 
     /**
@@ -77,7 +77,7 @@ class SyncCustomer extends Button
      */
     public function getComponent()
     {
-        return 'Mageplaza_Smtp/js/sync/customer';
+        return 'Mageplaza_Smtp/js/sync/order';
     }
 
     /**
@@ -85,6 +85,6 @@ class SyncCustomer extends Button
      */
     public function isRenderCss()
     {
-        return true;
+        return false;
     }
 }

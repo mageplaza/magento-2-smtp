@@ -65,8 +65,8 @@ class SubscriberSaveCommitAfter implements ObserverInterface
         LoggerInterface $logger
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->logger               = $logger;
-        $this->customerRepository   = $customerRepository;
+        $this->logger = $logger;
+        $this->customerRepository = $customerRepository;
     }
 
     /**
@@ -75,19 +75,21 @@ class SubscriberSaveCommitAfter implements ObserverInterface
     public function execute(Observer $observer)
     {
         $subscriber = $observer->getEvent()->getDataObject();
-        if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
+        if ($subscriber->isStatusChanged() &&
+            $this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID() &&
             !$this->helperEmailMarketing->isSyncedCustomer()
         ) {
             try {
+
                 $data = [
-                    'email'        => $subscriber->getSubscriberEmail(),
-                    'firstName'    => '',
-                    'lastName'     => '',
-                    'phoneNumber'  => '',
-                    'description'  => '',
-                    'source'       => 'Magento',
+                    'email' => $subscriber->getSubscriberEmail(),
+                    'firstName' => '',
+                    'lastName' => '',
+                    'phoneNumber' => '',
+                    'description' => '',
+                    'source' => 'Magento',
                     'isSubscriber' => $subscriber->getSubscriberStatus() === Subscriber::STATUS_SUBSCRIBED
                 ];
 
@@ -97,7 +99,7 @@ class SubscriberSaveCommitAfter implements ObserverInterface
                 $customer = $this->getCustomerByEmail($subscriber->getSubscriberEmail());
                 if ($customer && $customer->getId()) {
                     $data['firstName'] = $customer->getFirstname();
-                    $data['lastName']  = $customer->getLastname();
+                    $data['lastName'] = $customer->getLastname();
                 }
 
                 $this->helperEmailMarketing->syncCustomer($data);
@@ -109,7 +111,6 @@ class SubscriberSaveCommitAfter implements ObserverInterface
 
     /**
      * @param string $email
-     *
      * @return CustomerInterface|string
      */
     public function getCustomerByEmail($email)
