@@ -21,11 +21,14 @@
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
-<!--    ================================================ CUSTOMER ============================================-->
+    <!--    ================================================ CUSTOMER ============================================-->
     <event name="customer_address_save_commit_after">
         <observer name="mp_smtp_customer_address_save_commit_after" instance="Mageplaza\Smtp\Observer\Customer\SaveAddress"/>
     </event>
     <event name="customer_address_save_before">
+        <observer name="mp_smtp_customer_address_model_save_before" instance="Mageplaza\Smtp\Observer\Customer\ModelSaveBefore"/>
+    </event>
+    <event name="customer_save_before">
         <observer name="mp_smtp_customer_model_save_before" instance="Mageplaza\Smtp\Observer\Customer\ModelSaveBefore"/>
     </event>
     <event name="newsletter_subscriber_save_commit_after">
