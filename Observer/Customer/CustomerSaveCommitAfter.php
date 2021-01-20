@@ -107,7 +107,6 @@ class CustomerSaveCommitAfter implements ObserverInterface
                         $this->helperEmailMarketing->syncCustomer($data, false);
                     }
                 }
-
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
             }

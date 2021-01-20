@@ -60,8 +60,8 @@ class TransportBuilder
         Mail $resourceMail,
         SenderResolverInterface $SenderResolver
     ) {
-        $this->registry = $registry;
-        $this->resourceMail = $resourceMail;
+        $this->registry       = $registry;
+        $this->resourceMail   = $resourceMail;
         $this->senderResolver = $SenderResolver;
     }
 

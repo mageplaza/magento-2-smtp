@@ -90,9 +90,9 @@ class Recover extends Action
         CustomerSession $customerSession,
         CheckoutSession $checkoutSession
     ) {
-        $this->helperData = $helperData;
+        $this->helperData      = $helperData;
         $this->quoteCollection = $quoteCollection;
-        $this->storeManager = $storeManager;
+        $this->storeManager    = $storeManager;
         $this->checkoutSession = $checkoutSession;
         $this->customerSession = $customerSession;
 
@@ -104,9 +104,9 @@ class Recover extends Action
      */
     public function execute()
     {
-        $token = $this->getRequest()->getParam('token');
+        $token        = $this->getRequest()->getParam('token');
         $isEmCheckout = $this->getRequest()->getParam('isEmCheckout');
-        $emToken = $this->getRequest()->getParam('emToken');
+        $emToken      = $this->getRequest()->getParam('emToken');
 
         if (!$token) {
             return $this->_redirect('checkout/cart');
@@ -118,7 +118,6 @@ class Recover extends Action
             } else {
                 $this->messageManager->addNoticeMessage($this->noticeMessage);
             }
-
         } catch (LocalizedException $e) {
             $this->messageManager->addErrorMessage(__($e->getMessage()));
         }
@@ -143,8 +142,8 @@ class Recover extends Action
             throw new LocalizedException(__('Marketing Automation is disabled.'));
         }
 
-        $token = explode('_', $token);
-        $quoteId = isset($token[1]) ? base64_decode($token[1]) : '';
+        $token              = explode('_', $token);
+        $quoteId            = isset($token[1]) ? base64_decode($token[1]) : '';
         $abandonedCartToken = isset($token[0]) ? $token[0] : '';
 
         /**
@@ -162,7 +161,7 @@ class Recover extends Action
             throw new LocalizedException(__('An error occurred while recovering your cart.'));
         }
 
-        $customerId = (int)$quote->getCustomerId();
+        $customerId = (int) $quote->getCustomerId();
 
         if (!$customerId) {
             $this->checkoutSession->setQuoteId($quoteId);
@@ -178,7 +177,7 @@ class Recover extends Action
             }
 
             $this->customerSession->regenerateId();
-        } elseif ((int)$this->customerSession->getId() !== $customerId) {
+        } elseif ((int) $this->customerSession->getId() !== $customerId) {
             $this->noticeMessage = __('Please login with %1', $quote->getCustomerEmail());
 
             return false;

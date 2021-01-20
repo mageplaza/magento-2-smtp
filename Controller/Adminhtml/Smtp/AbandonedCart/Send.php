@@ -157,7 +157,6 @@ class Send extends Action
             $this->registry->register('smtp_abandoned_cart', $quote);
             $transport->sendMessage();
             $this->messageManager->addSuccessMessage(__('Cart recovery email was sent to the customer successfully!'));
-
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage(__('Cart recovery email cannot sent to the customer.'));
             $this->logger->error($e->getMessage());
