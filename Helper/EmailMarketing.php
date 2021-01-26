@@ -469,6 +469,7 @@ class EmailMarketing extends Data
      *
      * @return array
      * @throws NoSuchEntityException
+     * @throws LocalizedException
      */
     public function getOrderData($object)
     {
@@ -508,7 +509,7 @@ class EmailMarketing extends Data
             'email'      => $customerEmail,
             'first_name' => $customerFirstname ?: '',
             'last_name'  => $customerLastname ?: '',
-            'telephone'  => $object->getBillingAddress()->getTelephone() ?: '',
+            'telephone'  => $object->getBillingAddress() ? $object->getBillingAddress()->getTelephone() : '',
             'tags'       => $this->getTags($this->customerFactory->create()->load($customerId))
         ];
         if (!$isInvoice) {
@@ -1103,8 +1104,6 @@ class EmailMarketing extends Data
             $data['total_spent']   = $this->getLifetimeSales($customer->getId());
             $data['currency']      = $this->getBaseCurrencyByWebsiteId($customer->getWebsiteId())->getCurrencyCode();
         }
-        \Zend_Debug::dump($data);
-        die();
 
         return $data;
     }
