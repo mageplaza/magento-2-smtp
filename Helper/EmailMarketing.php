@@ -1218,11 +1218,11 @@ class EmailMarketing extends Data
             $secretKey = $this->getSecretKey();
         }
 
-        return $this->sendRequest([['data' => $this->getStoreInformation()]], '', $appID, $secretKey, true);
+        return $this->sendRequest($this->getStoreInformation(), '', $appID, $secretKey, true);
     }
 
     /**
-     * @return DataObject
+     * @return array
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
@@ -1231,7 +1231,7 @@ class EmailMarketing extends Data
         $storeObj = $this->storeFactory->create()->load($this->storeManager->getStore()->getId());
         $store    = $this->storeInfo->getStoreInformationObject($storeObj);
 
-        return new DataObject([
+        return [
             'name'        => $store->getName(),
             'phone'       => $store->getPhone(),
             'countryName' => $store->getCountry(),
@@ -1243,7 +1243,7 @@ class EmailMarketing extends Data
             'address1'    => $store->getData('street_line1'),
             'address2'    => $store->getData('street_line2'),
             'email'       => $this->getConfigData('trans_email/ident_sales/email'),
-        ]);
+        ];
     }
 
     /**
