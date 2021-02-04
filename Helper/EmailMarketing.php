@@ -650,6 +650,10 @@ class EmailMarketing extends Data
             'id'                     => (int) $quote->getId(),
             'email'                  => $quote->getCustomerEmail(),
             'completed_at'           => $quoteCompletedAt,
+            'timezone'               => $this->_localeDate->getConfigTimezone(
+                ScopeInterface::SCOPE_STORE,
+                $quote->getStoreId()
+            ),
             'customer'               => [
                 'id'         => (int) $quote->getCustomerId(),
                 'email'      => $quote->getCustomerEmail(),
@@ -1254,7 +1258,7 @@ class EmailMarketing extends Data
             'phone'         => $this->getConfigData(Information::XML_PATH_STORE_INFO_PHONE, $scope, $scopeCode),
             'countryCode'   => $this->getConfigData(Information::XML_PATH_STORE_INFO_COUNTRY_CODE, $scope, $scopeCode),
             'city'          => $this->getConfigData(Information::XML_PATH_STORE_INFO_CITY, $scope, $scopeCode),
-            'timezone'      => $this->_localeDate->getConfigTimezone(),
+            'timezone'      => $this->_localeDate->getConfigTimezone($scope, $scopeCode),
             'zip'           => $this->getConfigData(Information::XML_PATH_STORE_INFO_POSTCODE, $scope, $scopeCode),
             'currency'      => $this->getConfigData(Currency::XML_PATH_CURRENCY_DEFAULT),
             'base_currency' => $this->getConfigData(Currency::XML_PATH_CURRENCY_BASE),
