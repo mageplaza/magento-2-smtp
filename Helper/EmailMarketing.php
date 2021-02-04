@@ -971,9 +971,7 @@ class EmailMarketing extends Data
 
         $this->url = $url;
 
-        $body = self::jsonEncode(['data' => $data]);
-        \Zend_Debug::dump($data);
-        die;
+        $body          = self::jsonEncode(['data' => $data]);
         $storeId       = $this->storeId ?: $this->getStoreId();
         $secretKey     = $secretKey ?: $this->getSecretKey($storeId);
         $generatedHash = base64_encode(hash_hmac('sha256', $body, $secretKey, true));
@@ -1241,6 +1239,7 @@ class EmailMarketing extends Data
     {
         $storeId   = $this->_request->getParam('store');
         $websiteId = $this->_request->getParam('website');
+        $scopeCode = $storeId ?: $websiteId ?: null;
 
         if ($storeId) {
             $scope = ScopeInterface::SCOPE_STORES;
@@ -1251,16 +1250,16 @@ class EmailMarketing extends Data
         }
 
         $info = [
-            'name'          => $this->getConfigData(Information::XML_PATH_STORE_INFO_NAME, $scope),
-            'phone'         => $this->getConfigData(Information::XML_PATH_STORE_INFO_PHONE, $scope),
-            'countryCode'   => $this->getConfigData(Information::XML_PATH_STORE_INFO_COUNTRY_CODE, $scope),
-            'city'          => $this->getConfigData(Information::XML_PATH_STORE_INFO_CITY, $scope),
+            'name'          => $this->getConfigData(Information::XML_PATH_STORE_INFO_NAME, $scope, $scopeCode),
+            'phone'         => $this->getConfigData(Information::XML_PATH_STORE_INFO_PHONE, $scope, $scopeCode),
+            'countryCode'   => $this->getConfigData(Information::XML_PATH_STORE_INFO_COUNTRY_CODE, $scope, $scopeCode),
+            'city'          => $this->getConfigData(Information::XML_PATH_STORE_INFO_CITY, $scope, $scopeCode),
             'timezone'      => $this->_localeDate->getConfigTimezone(),
-            'zip'           => $this->getConfigData(Information::XML_PATH_STORE_INFO_POSTCODE, $scope),
+            'zip'           => $this->getConfigData(Information::XML_PATH_STORE_INFO_POSTCODE, $scope, $scopeCode),
             'currency'      => $this->getConfigData(Currency::XML_PATH_CURRENCY_DEFAULT),
             'base_currency' => $this->getConfigData(Currency::XML_PATH_CURRENCY_BASE),
-            'address1'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE1, $scope),
-            'address2'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE2, $scope),
+            'address1'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE1, $scope, $scopeCode),
+            'address2'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE2, $scope, $scopeCode),
             'email'         => $this->getConfigData('trans_email/ident_general/email')
         ];
 
@@ -1274,12 +1273,13 @@ class EmailMarketing extends Data
     /**
      * @param string $path
      * @param string $scope
+     * @param null $scopeCode
      *
      * @return mixed
      */
-    public function getConfigData(string $path, $scope = ScopeInterface::SCOPE_STORES)
+    public function getConfigData(string $path, $scope = ScopeInterface::SCOPE_STORES, $scopeCode = null)
     {
-        return $this->scopeConfig->getValue($path, $scope);
+        return $this->scopeConfig->getValue($path, $scope, $scopeCode);
     }
 
     /**
