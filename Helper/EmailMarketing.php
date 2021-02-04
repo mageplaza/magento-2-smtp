@@ -34,6 +34,8 @@ use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\GroupFactory;
 use Magento\Customer\Model\Metadata\ElementFactory;
+use Magento\Directory\Model\Currency;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DataObject;
 use Magento\Framework\Encryption\EncryptorInterface;
@@ -65,6 +67,7 @@ use Psr\Log\LoggerInterface;
 use Magento\Sales\Model\Order\Config as OrderConfig;
 use Magento\Store\Model\Information;
 use Magento\Store\Model\StoreFactory;
+use Magento\Directory\Model\CountryFactory;
 
 /**
  * Class EmailMarketing
@@ -227,6 +230,11 @@ class EmailMarketing extends Data
     protected $storeFactory;
 
     /**
+     * @var CountryFactory
+     */
+    protected $countryFactory;
+
+    /**
      * EmailMarketing constructor.
      *
      * @param Context $context
@@ -254,6 +262,7 @@ class EmailMarketing extends Data
      * @param LoggerInterface $logger
      * @param Information $storeInfo
      * @param StoreFactory $storeFactory
+     * @param CountryFactory $countryFactory
      */
     public function __construct(
         Context $context,
@@ -280,7 +289,8 @@ class EmailMarketing extends Data
         Config $addressConfig,
         LoggerInterface $logger,
         Information $storeInfo,
-        StoreFactory $storeFactory
+        StoreFactory $storeFactory,
+        CountryFactory $countryFactory
     ) {
         parent::__construct($context, $objectManager, $storeManager);
 
@@ -306,10 +316,11 @@ class EmailMarketing extends Data
         $this->_addressConfig             = $addressConfig;
         $this->storeInfo                  = $storeInfo;
         $this->storeFactory               = $storeFactory;
+        $this->countryFactory             = $countryFactory;
     }
 
     /**
-     * @return \Magento\Framework\HTTP\Client\Curl
+     * @return Curl
      */
     public function initCurl()
     {
@@ -623,7 +634,7 @@ class EmailMarketing extends Data
      */
     public function getACEData($quote)
     {
-        $isActive         = (bool)$quote->getIsActive();
+        $isActive         = (bool) $quote->getIsActive();
         $quoteCompletedAt = null;
         $updatedAt        = $this->getQuoteUpdatedAt($quote->getId());
 
@@ -636,11 +647,11 @@ class EmailMarketing extends Data
         }
 
         return [
-            'id'                     => (int)$quote->getId(),
+            'id'                     => (int) $quote->getId(),
             'email'                  => $quote->getCustomerEmail(),
             'completed_at'           => $quoteCompletedAt,
             'customer'               => [
-                'id'         => (int)$quote->getCustomerId(),
+                'id'         => (int) $quote->getCustomerId(),
                 'email'      => $quote->getCustomerEmail(),
                 'name'       => $this->getCustomerName($quote),
                 'first_name' => $quote->getCustomerFirstname(),
@@ -713,7 +724,7 @@ class EmailMarketing extends Data
                     'product_id' => $orderItem->getProductId(),
                     'sku'        => $orderItem->getSku(),
                     'quantity'   => $item->getQty(),
-                    'price'      => (float)$item->getBasePrice()
+                    'price'      => (float) $item->getBasePrice()
                 ];
 
                 continue;
@@ -723,7 +734,7 @@ class EmailMarketing extends Data
                 $items[$orderItem->getParentItemId()]['variant_title'] = $item->getName();
                 $items[$orderItem->getParentItemId()]['variant_image'] = $this->getProductImage($product);
                 $items[$orderItem->getParentItemId()]['variant_id']    = $orderItem->getProductId();
-                $items[$orderItem->getParentItemId()]['variant_price'] = (float)$item->getBasePrice();
+                $items[$orderItem->getParentItemId()]['variant_price'] = (float) $item->getBasePrice();
 
                 continue;
             }
@@ -734,7 +745,7 @@ class EmailMarketing extends Data
                 'name'          => $productType === 'configurable' ?
                     $this->getItemOptions($orderItem) : $item->getName(),
                 'title'         => $item->getName(),
-                'price'         => (float)$item->getBasePrice(),
+                'price'         => (float) $item->getBasePrice(),
                 'quantity'      => $item->getQty(),
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
@@ -848,8 +859,8 @@ class EmailMarketing extends Data
                 'type'          => $productType,
                 'title'         => $item->getName(),
                 'name'          => $name,
-                'price'         => (float)$item->getBasePrice(),
-                'quantity'      => (int)($isQuote ? $item->getQty() : $item->getQtyOrdered()),
+                'price'         => (float) $item->getBasePrice(),
+                'quantity'      => (int) ($isQuote ? $item->getQty() : $item->getQtyOrdered()),
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
                 'image'         => $this->getProductImage($product),
@@ -868,7 +879,7 @@ class EmailMarketing extends Data
                         $itemRequest['variant_title'] = $child->getName();
                         $itemRequest['variant_image'] = $this->getProductImage($product);
                         $itemRequest['variant_id']    = $child->getProductId();
-                        $itemRequest['variant_price'] = (float)$child->getBasePrice();
+                        $itemRequest['variant_price'] = (float) $child->getBasePrice();
                     }
 
                     if ($isBundle) {
@@ -878,8 +889,8 @@ class EmailMarketing extends Data
                             'image'      => $this->getProductImage($product),
                             'product_id' => $child->getProductId(),
                             'sku'        => $child->getSku(),
-                            'quantity'   => (int)($isQuote ? $child->getQty() : $child->getQtyOrdered()),
-                            'price'      => (float)$child->getBasePrice()
+                            'quantity'   => (int) ($isQuote ? $child->getQty() : $child->getQtyOrdered()),
+                            'price'      => (float) $child->getBasePrice()
                         ];
                     }
                 }
@@ -960,7 +971,9 @@ class EmailMarketing extends Data
 
         $this->url = $url;
 
-        $body          = self::jsonEncode(['data' => $data]);
+        $body = self::jsonEncode(['data' => $data]);
+        \Zend_Debug::dump($data);
+        die;
         $storeId       = $this->storeId ?: $this->getStoreId();
         $secretKey     = $secretKey ?: $this->getSecretKey($storeId);
         $generatedHash = base64_encode(hash_hmac('sha256', $body, $secretKey, true));
@@ -1035,7 +1048,7 @@ class EmailMarketing extends Data
      */
     public function isSubscriber($subscriberStatus)
     {
-        return (int)$subscriberStatus === Subscriber::STATUS_SUBSCRIBED;
+        return (int) $subscriberStatus === Subscriber::STATUS_SUBSCRIBED;
     }
 
     /**
@@ -1223,37 +1236,50 @@ class EmailMarketing extends Data
 
     /**
      * @return array
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
      */
     public function getStoreInformation()
     {
-        $storeObj = $this->storeFactory->create()->load($this->storeManager->getStore()->getId());
-        $store    = $this->storeInfo->getStoreInformationObject($storeObj);
+        $storeId   = $this->_request->getParam('store');
+        $websiteId = $this->_request->getParam('website');
 
-        return [
-            'name'        => $store->getName(),
-            'phone'       => $store->getPhone(),
-            'countryName' => $store->getCountry(),
-            'countryCode' => $store->getCountryId(),
-            'city'        => $store->getCity(),
-            'timezone'    => $this->getConfigData('general/locale/timezone'),
-            'zip'         => $store->getPostcode(),
-            'currency'    => $this->getConfigData('currency/options/default'),
-            'address1'    => $store->getData('street_line1'),
-            'address2'    => $store->getData('street_line2'),
-            'email'       => $this->getConfigData('trans_email/ident_sales/email'),
+        if ($storeId) {
+            $scope = ScopeInterface::SCOPE_STORES;
+        } elseif ($websiteId) {
+            $scope = ScopeInterface::SCOPE_WEBSITES;
+        } else {
+            $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
+        }
+
+        $info = [
+            'name'          => $this->getConfigData(Information::XML_PATH_STORE_INFO_NAME, $scope),
+            'phone'         => $this->getConfigData(Information::XML_PATH_STORE_INFO_PHONE, $scope),
+            'countryCode'   => $this->getConfigData(Information::XML_PATH_STORE_INFO_COUNTRY_CODE, $scope),
+            'city'          => $this->getConfigData(Information::XML_PATH_STORE_INFO_CITY, $scope),
+            'timezone'      => $this->_localeDate->getConfigTimezone(),
+            'zip'           => $this->getConfigData(Information::XML_PATH_STORE_INFO_POSTCODE, $scope),
+            'currency'      => $this->getConfigData(Currency::XML_PATH_CURRENCY_DEFAULT),
+            'base_currency' => $this->getConfigData(Currency::XML_PATH_CURRENCY_BASE),
+            'address1'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE1, $scope),
+            'address2'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE2, $scope),
+            'email'         => $this->getConfigData('trans_email/ident_general/email')
         ];
+
+        if ($info['countryCode']) {
+            $info['countryName'] = $this->countryFactory->create()->loadByCode($info['countryCode'])->getName();
+        }
+
+        return $info;
     }
 
     /**
      * @param string $path
+     * @param string $scope
      *
      * @return mixed
      */
-    public function getConfigData(string $path)
+    public function getConfigData(string $path, $scope = ScopeInterface::SCOPE_STORES)
     {
-        return $this->scopeConfig->getValue($path, ScopeInterface::SCOPE_STORES);
+        return $this->scopeConfig->getValue($path, $scope);
     }
 
     /**
