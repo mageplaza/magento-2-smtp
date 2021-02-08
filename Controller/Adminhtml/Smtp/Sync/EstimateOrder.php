@@ -59,7 +59,17 @@ class EstimateOrder extends AbstractEstimate
      */
     public function prepareCollection()
     {
-        return $this->orderCollectionFactory->create();
+        $orderCollection = $this->orderCollectionFactory->create();
+        $storeTable = $orderCollection->getTable('store');
+        $orderCollection->getSelect()->join(
+            ['store_table' => $storeTable],
+            'main_table.entity_id = store_table.store_id',
+            [
+                'store_table.website_id'
+            ]
+        );
+
+        return $orderCollection;
     }
 
     /**
