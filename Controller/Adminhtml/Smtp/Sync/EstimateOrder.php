@@ -61,11 +61,13 @@ class EstimateOrder extends AbstractEstimate
     {
         $orderCollection = $this->orderCollectionFactory->create();
         $storeTable = $orderCollection->getTable('store');
+        $this->websiteIdField = 'store_table.website_id';
+        $this->storeIdField = 'main_table.store_id';
         $orderCollection->getSelect()->join(
             ['store_table' => $storeTable],
-            'main_table.entity_id = store_table.store_id',
+            'main_table.store_id = store_table.store_id',
             [
-                'store_table.website_id'
+                $this->websiteIdField
             ]
         );
 

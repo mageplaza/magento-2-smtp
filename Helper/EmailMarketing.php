@@ -844,7 +844,7 @@ class EmailMarketing extends Data
             /**
              * @var Product $product
              */
-            $product     = $item->getProduct();
+            $product = $item->getProduct() ?: new DataObject([]);
             $productType = $item->getData('product_type');
 
             $bundleItems = [];
@@ -868,7 +868,7 @@ class EmailMarketing extends Data
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
                 'image'         => $this->getProductImage($product),
-                'frontend_link' => $product->getProductUrl()
+                'frontend_link' => $product->getProductUrl() ?: '#'
             ];
 
             if ($isQuote) {
