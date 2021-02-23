@@ -844,7 +844,7 @@ class EmailMarketing extends Data
             /**
              * @var Product $product
              */
-            $product = $item->getProduct() ?: new DataObject([]);
+            $product     = $item->getProduct() ?: new DataObject([]);
             $productType = $item->getData('product_type');
 
             $bundleItems = [];
@@ -1110,15 +1110,18 @@ class EmailMarketing extends Data
         }
 
         if ($isUpdateOrder) {
-            $orderCollectionByCustomer = $this->orderCollection->addFieldToFilter('customer_id', $customer->getId());
-            $size                      = $orderCollectionByCustomer->getSize();
-            $lastOrderId               = $orderCollectionByCustomer->addOrder('entity_id')->getFirstItem()->getId();
+            $orderCollectionByCustomer  = clone $this->orderCollection;
+            $_orderCollectionByCustomer = $orderCollectionByCustomer->addFieldToFilter(
+                'customer_id',
+                $customer->getId()
+            );
+            $size                       = $_orderCollectionByCustomer->getSize();
+            $lastOrderId                = $_orderCollectionByCustomer->addOrder('entity_id')->getFirstItem()->getId();
 
             $data['orders_count']  = $size;
             $data['last_order_id'] = $lastOrderId;
             $data['total_spent']   = $this->getLifetimeSales($customer->getId());
             $data['currency']      = $this->getBaseCurrencyByWebsiteId($customer->getWebsiteId())->getCurrencyCode();
-            $this->orderCollection->getSelect()->reset(\Zend_Db_Select::WHERE);
         }
 
         return $data;
