@@ -77,7 +77,7 @@ class EmailMarketing extends Data
 {
     const IS_SYNCED_ATTRIBUTE = 'mp_smtp_is_synced';
 
-    const APP_URL            = 'https://app.avada.io/app/api/v1/checkouts';
+    const APP_URL            = 'https://app.avada.io/app/api/v1/connects';
     const CUSTOMER_URL       = 'https://app.avada.io/app/api/v1/customers';
     const ORDER_URL          = 'https://app.avada.io/app/api/v1/orders';
     const ORDER_COMPLETE_URL = 'https://app.avada.io/app/api/v1/orders/complete';
@@ -1118,6 +1118,7 @@ class EmailMarketing extends Data
             $data['last_order_id'] = $lastOrderId;
             $data['total_spent']   = $this->getLifetimeSales($customer->getId());
             $data['currency']      = $this->getBaseCurrencyByWebsiteId($customer->getWebsiteId())->getCurrencyCode();
+            $this->orderCollection->getSelect()->reset(\Zend_Db_Select::WHERE);
         }
 
         return $data;
@@ -1233,7 +1234,7 @@ class EmailMarketing extends Data
             $secretKey = $this->getSecretKey();
         }
 
-        return $this->sendRequest($this->getStoreInformation(), '', $appID, $secretKey, true);
+        return $this->sendRequest($this->getStoreInformation(), '', $appID, $secretKey);
     }
 
     /**
@@ -1354,5 +1355,15 @@ class EmailMarketing extends Data
     public function isSyncedCustomer()
     {
         return $this->isSyncCustomer;
+    }
+
+    /**
+     * @param null $storeId
+     *
+     * @return mixed
+     */
+    public function getSubscriberConfig($storeId = null)
+    {
+        return $this->getEmailMarketingConfig('newsletter_subscriber', $storeId);
     }
 }

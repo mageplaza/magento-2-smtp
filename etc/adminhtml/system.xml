@@ -127,10 +127,17 @@
             <resource>Mageplaza_Smtp::email_marketing</resource>
             <group id="general" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>General Configuration</label>
-                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[By enabling Marketing Automation, you agree to the <a href="https://avada.io/tos.html" target="_blank">Terms & Conditions</a> and <a href="https://avada.io/dpa.html" target="_blank">Data processing agreement</a>.]]></comment>
+                </field>
+                <field id="newsletter_subscriber" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Sync Newsletter Subscribers</label>
+                    <source_model>Mageplaza\Smtp\Model\Config\Source\Newsletter</source_model>
+                    <depends>
+                        <field id="email_marketing/general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="app_id" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>App ID</label>
@@ -163,14 +170,17 @@
                         <button_url>adminhtml/smtp_sync/customer</button_url>
                         <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncCustomer</frontend_model>
                     </field>
-                    <depends>
-                        <field id="email_marketing/general/enabled">1</field>
-                    </depends>
                     <field id="sync_order" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label></label>
                         <button_label>Synchronize Orders</button_label>
                         <button_url>adminhtml/smtp_sync/order</button_url>
                         <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncOrder</frontend_model>
+                    </field>
+                    <field id="sync_subscriber" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label></label>
+                        <button_label>Synchronize Subscribers</button_label>
+                        <button_url>adminhtml/smtp_sync/subscriber</button_url>
+                        <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncSubscriber</frontend_model>
                     </field>
                     <depends>
                         <field id="email_marketing/general/enabled">1</field>
