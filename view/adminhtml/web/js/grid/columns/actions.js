@@ -25,6 +25,12 @@ define([
 ], function ($, Column) {
     'use strict';
 
+    function strip(html){
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+
+        return doc.body.textContent || "";
+    }
+
     return Column.extend({
         modal: {},
 
@@ -39,11 +45,12 @@ define([
             if (typeof this.modal[action.rowIndex] === 'undefined') {
                 var row = this.rows[action.rowIndex],
                     modalHtml = '<iframe srcdoc="' + row['email_content'] + '" style="width: 100%; height: 100%"></iframe>';
+
                 this.modal[action.rowIndex] = $('<div/>')
                     .html(modalHtml)
                     .modal({
                         type: 'slide',
-                        title: row['subject'],
+                        title: strip(row['subject']),
                         modalClass: 'mpsmtp-modal-email',
                         innerScroll: true,
                         buttons: []
