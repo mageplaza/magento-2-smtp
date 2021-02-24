@@ -77,7 +77,7 @@ class EmailMarketing extends Data
 {
     const IS_SYNCED_ATTRIBUTE = 'mp_smtp_is_synced';
 
-    const APP_URL            = 'https://app.avada.io/app/api/v1/checkouts';
+    const APP_URL            = 'https://app.avada.io/app/api/v1/connects';
     const CUSTOMER_URL       = 'https://app.avada.io/app/api/v1/customers';
     const ORDER_URL          = 'https://app.avada.io/app/api/v1/orders';
     const ORDER_COMPLETE_URL = 'https://app.avada.io/app/api/v1/orders/complete';
@@ -1110,9 +1110,13 @@ class EmailMarketing extends Data
         }
 
         if ($isUpdateOrder) {
-            $orderCollectionByCustomer = $this->orderCollection->addFieldToFilter('customer_id', $customer->getId());
-            $size                      = $orderCollectionByCustomer->getSize();
-            $lastOrderId               = $orderCollectionByCustomer->addOrder('entity_id')->getFirstItem()->getId();
+            $orderCollectionByCustomer  = clone $this->orderCollection;
+            $_orderCollectionByCustomer = $orderCollectionByCustomer->addFieldToFilter(
+                'customer_id',
+                $customer->getId()
+            );
+            $size                      = $_orderCollectionByCustomer->getSize();
+            $lastOrderId               = $_orderCollectionByCustomer->addOrder('entity_id')->getFirstItem()->getId();
 
             $data['orders_count']  = $size;
             $data['last_order_id'] = $lastOrderId;
@@ -1233,7 +1237,7 @@ class EmailMarketing extends Data
             $secretKey = $this->getSecretKey();
         }
 
-        return $this->sendRequest($this->getStoreInformation(), '', $appID, $secretKey, true);
+        return $this->sendRequest($this->getStoreInformation(), '', $appID, $secretKey);
     }
 
     /**
@@ -1260,8 +1264,7 @@ class EmailMarketing extends Data
             'city'          => $this->getConfigData(Information::XML_PATH_STORE_INFO_CITY, $scope, $scopeCode),
             'timezone'      => $this->_localeDate->getConfigTimezone($scope, $scopeCode),
             'zip'           => $this->getConfigData(Information::XML_PATH_STORE_INFO_POSTCODE, $scope, $scopeCode),
-            'currency'      => $this->getConfigData(Currency::XML_PATH_CURRENCY_DEFAULT),
-            'base_currency' => $this->getConfigData(Currency::XML_PATH_CURRENCY_BASE),
+            'currency'      => $this->getConfigData(Currency::XML_PATH_CURRENCY_BASE),
             'address1'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE1, $scope, $scopeCode),
             'address2'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE2, $scope, $scopeCode),
             'email'         => $this->getConfigData('trans_email/ident_general/email')
@@ -1354,5 +1357,15 @@ class EmailMarketing extends Data
     public function isSyncedCustomer()
     {
         return $this->isSyncCustomer;
+    }
+
+    /**
+     * @param null $storeId
+     *
+     * @return mixed
+     */
+    public function getSubscriberConfig($storeId = null)
+    {
+        return $this->getEmailMarketingConfig('newsletter_subscriber', $storeId);
     }
 }

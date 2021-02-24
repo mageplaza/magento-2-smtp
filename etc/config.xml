@@ -31,5 +31,11 @@
                 <clean_email>10</clean_email>
             </general>
         </smtp>
+        <email_marketing>
+            <general>
+                <enabled>0</enabled>
+                <newsletter_subscriber>0</newsletter_subscriber>
+            </general>
+        </email_marketing>
     </default>
 </config>
