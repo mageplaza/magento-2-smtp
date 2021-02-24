@@ -1264,8 +1264,7 @@ class EmailMarketing extends Data
             'city'          => $this->getConfigData(Information::XML_PATH_STORE_INFO_CITY, $scope, $scopeCode),
             'timezone'      => $this->_localeDate->getConfigTimezone($scope, $scopeCode),
             'zip'           => $this->getConfigData(Information::XML_PATH_STORE_INFO_POSTCODE, $scope, $scopeCode),
-            'currency'      => $this->getConfigData(Currency::XML_PATH_CURRENCY_DEFAULT),
-            'base_currency' => $this->getConfigData(Currency::XML_PATH_CURRENCY_BASE),
+            'currency'      => $this->getConfigData(Currency::XML_PATH_CURRENCY_BASE),
             'address1'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE1, $scope, $scopeCode),
             'address2'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE2, $scope, $scopeCode),
             'email'         => $this->getConfigData('trans_email/ident_general/email')
