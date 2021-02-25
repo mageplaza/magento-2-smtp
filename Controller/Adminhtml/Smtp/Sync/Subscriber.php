@@ -93,6 +93,7 @@ class Subscriber extends Action
 
         try {
             $collection = $this->subscriberCollectionFactory->create();
+            $ids        = $this->getRequest()->getParam('ids');
 
             if ($this->helperEmailMarketing->getSubscriberConfig() === Newsletter::SUBSCRIBED) {
                 $collection->addFieldToFilter('subscriber_status', ['eq' => ModelSubscriber::STATUS_SUBSCRIBED]);
@@ -100,7 +101,9 @@ class Subscriber extends Action
 
             $data = [];
 
-            foreach ($collection as $subscriber) {
+            $subscribers = $collection->addFieldToFilter('entity_id', ['in' => $ids]);
+
+            foreach ($subscribers as $subscriber) {
                 switch ($subscriber->getSubscriberStatus()) {
                     case ModelSubscriber::STATUS_SUBSCRIBED:
                         $status = self::SUB;
@@ -141,7 +144,7 @@ class Subscriber extends Action
             }
 
             $result['status'] = true;
-            $result['total']  = count($collection);
+            $result['total']  = count($ids);
             $this->helperEmailMarketing->syncCustomers($data);
 
         } catch (Exception $e) {
