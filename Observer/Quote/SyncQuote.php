@@ -55,7 +55,7 @@ class SyncQuote implements ObserverInterface
         LoggerInterface $logger
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->logger = $logger;
+        $this->logger               = $logger;
     }
 
     /**
@@ -70,12 +70,12 @@ class SyncQuote implements ObserverInterface
         ) {
             try {
                 /* @var Quote $quote */
-                $quote = $observer->getEvent()->getQuote();
+                $quote      = $observer->getEvent()->getQuote();
                 $aceLogData = $quote->getData('mp_smtp_ace_log_data');
-                $itemCount = (int)$quote->getItemsCount();
-                $isValid = ($itemCount > 0 || ($aceLogData && $itemCount < 1));
+                $itemCount  = (int) $quote->getItemsCount();
+                $isValid    = ($itemCount > 0 || ($aceLogData && $itemCount < 1));
                 if ($isValid) {
-                    $ACEData = $this->helperEmailMarketing->getACEData($quote);
+                    $ACEData    = $this->helperEmailMarketing->getACEData($quote);
                     $oldACEData = $aceLogData ? EmailMarketing::jsonDecode($aceLogData) : [];
                     if ($oldACEData !== $ACEData && empty($oldACEData['checkoutCompleted'])) {
                         $resource = $this->helperEmailMarketing->getResourceQuote();
@@ -85,7 +85,10 @@ class SyncQuote implements ObserverInterface
                             ['entity_id = ?' => $quote->getId()]
                         );
 
-                        $this->helperEmailMarketing->sendRequestWithoutWaitResponse($ACEData);
+                        $this->helperEmailMarketing->sendRequestWithoutWaitResponse(
+                            $ACEData,
+                            EmailMarketing::CHECKOUT_URL
+                        );
                     }
                 }
             } catch (Exception $e) {
