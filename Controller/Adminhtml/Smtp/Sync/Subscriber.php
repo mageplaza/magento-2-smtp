@@ -65,7 +65,7 @@ class Subscriber extends Action
     protected $customerCollectionFactory;
 
     /**
-     * Customer constructor.
+     * Subscriber constructor.
      *
      * @param Context $context
      * @param EmailMarketing $helperEmailMarketing
