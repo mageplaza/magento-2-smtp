@@ -63,7 +63,6 @@ class SyncQuote implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-
         if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()
@@ -85,7 +84,10 @@ class SyncQuote implements ObserverInterface
                             ['entity_id = ?' => $quote->getId()]
                         );
 
-                        $this->helperEmailMarketing->sendRequestWithoutWaitResponse($ACEData);
+                        $this->helperEmailMarketing->sendRequestWithoutWaitResponse(
+                            $ACEData,
+                            EmailMarketing::CHECKOUT_URL
+                        );
                     }
                 }
             } catch (Exception $e) {
