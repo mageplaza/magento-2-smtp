@@ -101,7 +101,7 @@ class Subscriber extends Action
 
             $data = [];
 
-            $subscribers = $collection->addFieldToFilter('entity_id', ['in' => $ids]);
+            $subscribers = $collection->addFieldToFilter('subscriber_id', ['in' => $ids]);
 
             foreach ($subscribers as $subscriber) {
                 switch ($subscriber->getSubscriberStatus()) {
