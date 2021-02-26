@@ -31,7 +31,10 @@ switch ($type) {
         $iframeUrl = 'https://magento2.avada.io/newsletters.html';
         break;
     default:
-        return;
+        $iframeUrl = '';
 }
 ?>
+
+<?php if($iframeUrl): ?>
 <iframe id="mp-smtp-iframe" src="<?= $iframeUrl ?>" frameborder="0" width="100%" scrolling="no"></iframe>
+<?php endif; ?>
