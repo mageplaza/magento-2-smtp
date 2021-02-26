@@ -1285,7 +1285,7 @@ class EmailMarketing extends Data
      *
      * @return mixed
      */
-    public function getConfigData(string $path, $scope = ScopeInterface::SCOPE_STORES, $scopeCode = null)
+    public function getConfigData($path, $scope = ScopeInterface::SCOPE_STORES, $scopeCode = null)
     {
         return $this->scopeConfig->getValue($path, $scope, $scopeCode);
     }
