@@ -50,6 +50,16 @@ abstract class AbstractEstimate extends Action
     protected $emailMarketing;
 
     /**
+     * @var string
+     */
+    protected $websiteIdField = 'website_id';
+
+    /**
+     * @var string
+     */
+    protected $storeIdField = 'store_id';
+
+    /**
      * AbstractEstimate constructor.
      *
      * @param Context $context
@@ -79,11 +89,11 @@ abstract class AbstractEstimate extends Action
             $storeId = $this->getRequest()->getParam('storeId');
             $websiteId = $this->getRequest()->getParam('websiteId');
             if ($storeId) {
-                $collection->addFieldToFilter('store_id', $storeId);
+                $collection->addFieldToFilter($this->storeIdField, $storeId);
             }
 
             if ($websiteId) {
-                $collection->addFieldToFilter('website_id', $websiteId);
+                $collection->addFieldToFilter($this->websiteIdField, $websiteId);
             }
 
             $ids = $collection->getAllIds();

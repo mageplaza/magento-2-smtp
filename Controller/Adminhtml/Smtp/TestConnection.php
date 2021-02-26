@@ -78,7 +78,7 @@ class TestConnection extends Action
         } catch (Exception $e) {
             $result = [
                 'status' => false,
-                'content' => __('Can\'t connect to the email marketing app. Please check the app id and secret key.')
+                'content' => __('Can\'t connect to the email marketing app. %1', $e->getMessage())
             ];
         }
 
