@@ -57,6 +57,7 @@ use Magento\Quote\Model\ResourceModel\Quote as ResourceQuote;
 use Magento\Reports\Model\ResourceModel\Order\CollectionFactory as ReportOrderCollectionFactory;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
+use Magento\Sales\Model\Order\Item as OrderItem;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
@@ -720,7 +721,7 @@ class EmailMarketing extends Data
         $items = [];
         foreach ($object->getItems() as $item) {
             $orderItem = $item->getOrderItem();
-            $product   = $orderItem->getProduct();
+            $product= $this->getProductFromItem($orderItem);
             if ($orderItem->getParentItemId() && isset($items[$orderItem->getParentItemId()]['bundle_items'])) {
                 $items[$orderItem->getParentItemId()]['bundle_items'][] = [
                     'title'      => $item->getName(),
@@ -827,6 +828,16 @@ class EmailMarketing extends Data
     }
 
     /**
+     * @param Item|OrderItem $item
+     *
+     * @return DataObject|Product
+     */
+    public function getProductFromItem($item)
+    {
+        return $item->getProduct() ?: new DataObject([]);
+    }
+
+    /**
      * @param Quote|Shipment|Creditmemo|Order $object
      *
      * @return array
@@ -845,7 +856,7 @@ class EmailMarketing extends Data
             /**
              * @var Product $product
              */
-            $product     = $item->getProduct();
+            $product     = $this->getProductFromItem($item);
             $productType = $item->getData('product_type');
 
             $bundleItems = [];
@@ -879,7 +890,7 @@ class EmailMarketing extends Data
             if ($item->getHasChildren()) {
                 $children = $isQuote ? $item->getChildren() : $item->getChildrenItems();
                 foreach ($children as $child) {
-                    $product = $child->getProduct();
+                    $product     = $this->getProductFromItem($child);
                     if ($hasVariant) {
                         $itemRequest['variant_title'] = $child->getName();
                         $itemRequest['variant_image'] = $this->getProductImage($product);
