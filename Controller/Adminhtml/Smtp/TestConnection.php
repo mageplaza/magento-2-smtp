@@ -67,17 +67,17 @@ class TestConnection extends Action
     {
         try {
 
-            $result = [
-                'status' => true,
+            $result    = [
+                'status'  => true,
                 'content' => __('Email marketing connection is working properly.')
             ];
-            $appID = trim($this->getRequest()->getParam('appID'));
+            $appID     = trim($this->getRequest()->getParam('appID'));
             $secretKey = $this->getRequest()->getParam('secretKey');
             $this->helperEmailMarketing->testConnection($appID, $secretKey);
 
         } catch (Exception $e) {
             $result = [
-                'status' => false,
+                'status'  => false,
                 'content' => __('Can\'t connect to the email marketing app. %1', $e->getMessage())
             ];
         }
