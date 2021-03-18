@@ -24,9 +24,11 @@ namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync;
 use Exception;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Customer\Model\ResourceModel\Customer\Collection;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Newsletter\Model\ResourceModel\Subscriber\Collection as SubscriberCollection;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 use Magento\Framework\Phrase;
@@ -85,9 +87,12 @@ abstract class AbstractEstimate extends Action
                 throw new LocalizedException(__('App ID or Secret Key is empty'));
             }
 
+            $from       = $this->getRequest()->getParam('from');
+            $to         = $this->getRequest()->getParam('to');
             $collection = $this->prepareCollection();
-            $storeId = $this->getRequest()->getParam('storeId');
-            $websiteId = $this->getRequest()->getParam('websiteId');
+            $storeId    = $this->getRequest()->getParam('storeId');
+            $websiteId  = $this->getRequest()->getParam('websiteId');
+
             if ($storeId) {
                 $collection->addFieldToFilter($this->storeIdField, $storeId);
             }
@@ -96,9 +101,13 @@ abstract class AbstractEstimate extends Action
                 $collection->addFieldToFilter($this->websiteIdField, $websiteId);
             }
 
-            $ids = $collection->getAllIds();
+            if (!$collection instanceof SubscriberCollection && $query = $this->emailMarketing->queryExpr($from, $to,
+                $collection instanceof Collection ? 'e' : 'main_table')) {
+                $collection->getSelect()->where($query);
+            }
 
-            $result['ids'] = $ids;
+            $ids             = $collection->getAllIds();
+            $result['ids']   = $ids;
             $result['total'] = count($ids);
 
             if ($result['total'] === 0) {
@@ -109,7 +118,7 @@ abstract class AbstractEstimate extends Action
 
         } catch (Exception $e) {
             $result = [
-                'status' => false,
+                'status'  => false,
                 'message' => $e->getMessage()
             ];
         }

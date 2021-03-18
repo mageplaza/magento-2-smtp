@@ -69,6 +69,7 @@ use Magento\Sales\Model\Order\Config as OrderConfig;
 use Magento\Store\Model\Information;
 use Magento\Store\Model\StoreFactory;
 use Magento\Directory\Model\CountryFactory;
+use Zend_Db_Expr;
 
 /**
  * Class EmailMarketing
@@ -1380,5 +1381,31 @@ class EmailMarketing extends Data
     public function getSubscriberConfig($storeId = null)
     {
         return $this->getEmailMarketingConfig('newsletter_subscriber', $storeId);
+    }
+
+    /**
+     * @param string $from
+     * @param string $to
+     * @param string $pre
+     *
+     * @return string|Zend_Db_Expr
+     */
+    public function queryExpr($from = '', $to = '', $pre = 'main_table')
+    {
+        $queryExpr = '';
+
+        if ($from) {
+            $queryExpr = new Zend_Db_Expr("DATE({$pre}.created_at) >= '{$from}'");
+        }
+
+        if ($to) {
+            $queryExpr = new Zend_Db_Expr("DATE({$pre}.created_at) <= '{$to}'");
+        }
+
+        if ($from && $to) {
+            $queryExpr = new Zend_Db_Expr("DATE({$pre}.created_at) >= '{$from}' AND DATE({$pre}.created_at) <= '{$to}'");
+        }
+
+        return $queryExpr;
     }
 }

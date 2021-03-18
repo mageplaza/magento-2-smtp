@@ -166,6 +166,10 @@
                 </field>
                 <group id="synchronization" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Synchronization</label>
+                    <field id="created_from" translate="label comment" sortOrder="5" type="text" showInDefault="1" showInStore="1" >
+                        <label>Created From</label>
+                        <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\DatePicker</frontend_model>
+                    </field>
                     <field id="sync_customer" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label></label>
                         <button_label>Synchronize Customers</button_label>
