@@ -53,11 +53,11 @@ use Magento\Newsletter\Model\SubscriberFactory;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\Quote\Item;
+use Magento\Sales\Model\Order\Item as OrderItem;
 use Magento\Quote\Model\ResourceModel\Quote as ResourceQuote;
 use Magento\Reports\Model\ResourceModel\Order\CollectionFactory as ReportOrderCollectionFactory;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Creditmemo;
-use Magento\Sales\Model\Order\Item as OrderItem;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
@@ -69,6 +69,8 @@ use Magento\Sales\Model\Order\Config as OrderConfig;
 use Magento\Store\Model\Information;
 use Magento\Store\Model\StoreFactory;
 use Magento\Directory\Model\CountryFactory;
+use Zend_Db_Expr;
+use Magento\Framework\App\ResourceConnection;
 
 /**
  * Class EmailMarketing
@@ -237,6 +239,11 @@ class EmailMarketing extends Data
     protected $countryFactory;
 
     /**
+     * @var ResourceConnection
+     */
+    protected $resourceConnection;
+
+    /**
      * EmailMarketing constructor.
      *
      * @param Context $context
@@ -265,6 +272,7 @@ class EmailMarketing extends Data
      * @param Information $storeInfo
      * @param StoreFactory $storeFactory
      * @param CountryFactory $countryFactory
+     * @param ResourceConnection $resourceConnection
      */
     public function __construct(
         Context $context,
@@ -292,7 +300,8 @@ class EmailMarketing extends Data
         LoggerInterface $logger,
         Information $storeInfo,
         StoreFactory $storeFactory,
-        CountryFactory $countryFactory
+        CountryFactory $countryFactory,
+        ResourceConnection $resourceConnection
     ) {
         parent::__construct($context, $objectManager, $storeManager);
 
@@ -319,6 +328,7 @@ class EmailMarketing extends Data
         $this->storeInfo                  = $storeInfo;
         $this->storeFactory               = $storeFactory;
         $this->countryFactory             = $countryFactory;
+        $this->resourceConnection         = $resourceConnection;
     }
 
     /**
@@ -721,7 +731,7 @@ class EmailMarketing extends Data
         $items = [];
         foreach ($object->getItems() as $item) {
             $orderItem = $item->getOrderItem();
-            $product= $this->getProductFromItem($orderItem);
+            $product   = $this->getProductFromItem($orderItem);
             if ($orderItem->getParentItemId() && isset($items[$orderItem->getParentItemId()]['bundle_items'])) {
                 $items[$orderItem->getParentItemId()]['bundle_items'][] = [
                     'title'      => $item->getName(),
@@ -880,7 +890,7 @@ class EmailMarketing extends Data
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
                 'image'         => $this->getProductImage($product),
-                'frontend_link' => $product->getProductUrl()
+                'frontend_link' => $product->getProductUrl() ?: '#'
             ];
 
             if ($isQuote) {
@@ -890,7 +900,8 @@ class EmailMarketing extends Data
             if ($item->getHasChildren()) {
                 $children = $isQuote ? $item->getChildren() : $item->getChildrenItems();
                 foreach ($children as $child) {
-                    $product     = $this->getProductFromItem($child);
+
+                    $product = $this->getProductFromItem($child);
                     if ($hasVariant) {
                         $itemRequest['variant_title'] = $child->getName();
                         $itemRequest['variant_image'] = $this->getProductImage($product);
@@ -1270,16 +1281,17 @@ class EmailMarketing extends Data
         }
 
         $info = [
-            'name'        => $this->getConfigData(Information::XML_PATH_STORE_INFO_NAME, $scope, $scopeCode),
-            'phone'       => $this->getConfigData(Information::XML_PATH_STORE_INFO_PHONE, $scope, $scopeCode),
-            'countryCode' => $this->getConfigData(Information::XML_PATH_STORE_INFO_COUNTRY_CODE, $scope, $scopeCode),
-            'city'        => $this->getConfigData(Information::XML_PATH_STORE_INFO_CITY, $scope, $scopeCode),
-            'timezone'    => $this->_localeDate->getConfigTimezone($scope, $scopeCode),
-            'zip'         => $this->getConfigData(Information::XML_PATH_STORE_INFO_POSTCODE, $scope, $scopeCode),
-            'currency'    => $this->getConfigData(Currency::XML_PATH_CURRENCY_BASE),
-            'address1'    => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE1, $scope, $scopeCode),
-            'address2'    => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE2, $scope, $scopeCode),
-            'email'       => $this->getConfigData('trans_email/ident_general/email')
+            'name'          => $this->getConfigData(Information::XML_PATH_STORE_INFO_NAME, $scope, $scopeCode),
+            'phone'         => $this->getConfigData(Information::XML_PATH_STORE_INFO_PHONE, $scope, $scopeCode),
+            'countryCode'   => $this->getConfigData(Information::XML_PATH_STORE_INFO_COUNTRY_CODE, $scope, $scopeCode),
+            'city'          => $this->getConfigData(Information::XML_PATH_STORE_INFO_CITY, $scope, $scopeCode),
+            'timezone'      => $this->_localeDate->getConfigTimezone($scope, $scopeCode),
+            'zip'           => $this->getConfigData(Information::XML_PATH_STORE_INFO_POSTCODE, $scope, $scopeCode),
+            'currency'      => $this->getConfigData(Currency::XML_PATH_CURRENCY_BASE),
+            'address1'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE1, $scope, $scopeCode),
+            'address2'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE2, $scope, $scopeCode),
+            'email'         => $this->getConfigData('trans_email/ident_general/email'),
+            'contact_count' => $this->getContactCount() ?: 0
         ];
 
         if ($info['countryCode']) {
@@ -1379,5 +1391,59 @@ class EmailMarketing extends Data
     public function getSubscriberConfig($storeId = null)
     {
         return $this->getEmailMarketingConfig('newsletter_subscriber', $storeId);
+    }
+
+    /**
+     * @param string $from
+     * @param string $to
+     * @param string $pre
+     *
+     * @return string|Zend_Db_Expr
+     */
+    public function queryExpr($from = '', $to = '', $pre = 'main_table')
+    {
+        $queryExpr = '';
+
+        if ($from) {
+            $queryExpr = new Zend_Db_Expr("DATE({$pre}.created_at) >= '{$from}'");
+        }
+
+        if ($to) {
+            $queryExpr = new Zend_Db_Expr("DATE({$pre}.created_at) <= '{$to}'");
+        }
+
+        if ($from && $to) {
+            $queryExpr = new Zend_Db_Expr("DATE({$pre}.created_at) >= '{$from}' AND DATE({$pre}.created_at) <= '{$to}'");
+        }
+
+        return $queryExpr;
+    }
+
+    /**
+     * @return int|void
+     */
+    public function getContactCount()
+    {
+        $connection      = $this->resourceConnection->getConnection();
+        $subscriberTable = $this->resourceConnection->getTableName('newsletter_subscriber');
+        $customerTable   = $this->resourceConnection->getTableName('customer_entity');
+
+        $queryCustomer   = $connection->fetchAll($connection->select()->from($customerTable, 'email'));
+        $querySubscriber = $connection->fetchAll($connection->select()->from($subscriberTable, 'subscriber_email'));
+        $result          = [];
+
+        foreach ($queryCustomer as $value) {
+            $result[] = $value['email'];
+        }
+
+        foreach ($querySubscriber as $value) {
+            if (in_array($value['subscriber_email'], $result, 'true')) {
+                continue;
+            }
+
+            $result[] = $value['subscriber_email'];
+        }
+
+        return count($result);
     }
 }

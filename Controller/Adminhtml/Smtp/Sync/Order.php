@@ -84,23 +84,31 @@ class Order extends Action
      */
     public function execute()
     {
+        $from   = $this->getRequest()->getParam('from');
+        $to     = $this->getRequest()->getParam('to');
         $result = [];
+
         try {
             $orderCollection = $this->orderCollectionFactory->create();
-            $ids = $this->getRequest()->getParam('ids');
+            $ids             = $this->getRequest()->getParam('ids');
+            $orders          = $orderCollection->addFieldToFilter('entity_id', ['in' => $ids]);
 
-            $orders = $orderCollection->addFieldToFilter('entity_id', ['in' => $ids]);
+            if ($query = $this->helperEmailMarketing->queryExpr($from, $to)) {
+                $orderCollection->getSelect()->where($query);
+            }
 
-            $data = [];
+            $data     = [];
             $idUpdate = [];
+
             foreach ($orders as $order) {
-                $data[] = $this->helperEmailMarketing->getOrderData($order);
-                $idUpdate[]  = $order->getId();
+                $data[]     = $this->helperEmailMarketing->getOrderData($order);
+                $idUpdate[] = $order->getId();
             }
 
             $result['status'] = true;
-            $result['total'] = count($ids);
-            $response = $this->helperEmailMarketing->syncOrders($data);
+            $result['total']  = count($ids);
+            $response         = $this->helperEmailMarketing->syncOrders($data);
+
             if (isset($response['success'])) {
                 $this->updateData(
                     $orders->getConnection(),
@@ -110,7 +118,7 @@ class Order extends Action
             }
 
         } catch (Exception $e) {
-            $result['status'] = false;
+            $result['status']  = false;
             $result['message'] = $e->getMessage();
         }
 
@@ -128,7 +136,7 @@ class Order extends Action
     {
         $connection->beginTransaction();
         try {
-            $where      = ['entity_id IN (?)' => $ids];
+            $where = ['entity_id IN (?)' => $ids];
             $connection->update(
                 $table,
                 ['mp_smtp_email_marketing_synced' => 1],

@@ -24,7 +24,7 @@ define([
     "use strict";
 
     return {
-        options:{},
+        options: {},
         currentResult: {},
         totalSync: 0,
 
@@ -44,7 +44,7 @@ define([
          * @param value
          * @returns {*|n.fn.init|r.fn.init|jQuery.fn.init|jQuery|HTMLElement}
          */
-        getElement:function(value){
+        getElement: function (value) {
             return $(this.options.prefix + ' ' + value);
         },
 
@@ -52,10 +52,12 @@ define([
          * @param start
          */
         syncData: function (start) {
-            var end  = start + 100;
-            var ids  = this.currentResult.ids.slice(start, end);
-            var self = this;
+            var end          = start + 100;
+            var ids          = this.currentResult.ids.slice(start, end);
+            var self         = this;
             var percent, percentText;
+            var created_from = $('#datepicker-from').val(),
+                created_to   = $('#datepicker-to').val();
 
             $.ajax({
                 url: this.options.ajaxUrl,
@@ -63,13 +65,15 @@ define([
                 dataType: 'json',
                 data: {
                     ids: ids,
+                    from: created_from,
+                    to: created_to
                 },
                 success: function (result) {
-                    if(result.status){
+                    if (result.status) {
                         percent = ids.length / self.currentResult.total * 100;
 
                         self.totalSync += result.total;
-                        percent     = percent.toFixed(2);
+                        percent = percent.toFixed(2);
 
                         self.currentResult.percent += parseFloat(percent);
                         if (self.currentResult.percent > 100) {
@@ -77,7 +81,7 @@ define([
                         }
 
                         percentText = self.currentResult.percent.toFixed(2) + '%';
-                        if(percentText === '100.00%' || self.totalSync === self.currentResult.total){
+                        if (percentText === '100.00%' || self.totalSync === self.currentResult.total) {
                             percentText = '100%';
                             $(self.options.buttonElement).removeClass('disabled');
                         }
@@ -92,7 +96,7 @@ define([
                             self.getElement('#syncing').hide();
                             self.showMessage('message-success', self.options.successMessage);
                         }
-                    }else{
+                    } else {
                         self.showMessage('message-error', result.message);
                         $(self.options.buttonElement).removeClass('disabled');
                     }
@@ -104,9 +108,11 @@ define([
          * @param options
          */
         process: function (options) {
-            var self = this;
+            var self              = this;
             options.buttonElement = '#email_marketing_general_synchronization button';
-            this.options = options;
+            this.options          = options;
+            var created_from      = $('#datepicker-from').val(),
+                created_to        = $('#datepicker-to').val();
 
 
             this.currentResult = {};
@@ -114,7 +120,9 @@ define([
                 url: this.options.estimateUrl,
                 data: {
                     websiteId: this.options.websiteId,
-                    storeId:  this.options.storeId
+                    storeId: this.options.storeId,
+                    from: created_from,
+                    to: created_to
                 },
                 dataType: 'json',
                 showLoader: true,

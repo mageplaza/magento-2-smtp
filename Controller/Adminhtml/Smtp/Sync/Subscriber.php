@@ -94,13 +94,14 @@ class Subscriber extends Action
         try {
             $collection = $this->subscriberCollectionFactory->create();
             $ids        = $this->getRequest()->getParam('ids');
+            $from       = $this->getRequest()->getParam('from');
+            $to         = $this->getRequest()->getParam('to');
 
             if ($this->helperEmailMarketing->getSubscriberConfig() === Newsletter::SUBSCRIBED) {
                 $collection->addFieldToFilter('subscriber_status', ['eq' => ModelSubscriber::STATUS_SUBSCRIBED]);
             }
 
-            $data = [];
-
+            $data        = [];
             $subscribers = $collection->addFieldToFilter('subscriber_id', ['in' => $ids]);
 
             foreach ($subscribers as $subscriber) {

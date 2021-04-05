@@ -1,0 +1,62 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Smtp
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+?>
+<td class="label">
+    <span><?= /* @noEscape */ __('Created From') ?></span>
+</td>
+<td>
+    <input name="groups[general][groups][synchronization][fields][created_from][value]"
+           id="datepicker-from" value=""
+           class="admin__control-text input-text input-date mp-datepicker"
+           type="text">
+    <button type="button" class="ui-datepicker-trigger v-middle"><span><?= /* @noEscape */ __('Select Date') ?></span></button>
+    <span class="label" style="margin-left: 20px"><?= /* @noEscape */ __('To') ?></span>
+    <input name="groups[general][groups][synchronization][fields][created_to][value]"
+           id="datepicker-to" value=""
+           class="admin__control-text input-text input-date mp-datepicker"
+           type="text">
+    <button type="button" class="ui-datepicker-trigger v-middle"><span><?= /* @noEscape */ __('Select Date') ?></span></button>
+
+</td>
+<td class=""></td>
+<script> require(["jquery", "mage/calendar"], function ($) {
+        $("#datepicker-from").datepicker({
+            dateFormat: 'yy-mm-dd',
+            changeMonth: true,
+            changeYear: true,
+            showMonthAfterYear: false,
+            showButtonPanel: true
+        })
+
+        $("#datepicker-to").datepicker({
+            dateFormat: 'yy-mm-dd',
+            changeMonth: true,
+            changeYear: true,
+            showMonthAfterYear: false,
+            showButtonPanel: true
+        })
+    });
+</script>
+<style>
+    .mp-datepicker {
+        width: 35% !important;
+    }
+</style>
