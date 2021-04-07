@@ -498,11 +498,17 @@ class EmailMarketing extends Data
     public function getOrderData($object)
     {
         $data = [
-            'id'             => $object->getId(),
+            'id'             => (int) $object->getId(),
+            'name'           => '#' . $object->getIncrementId(),
+            'shipping_price' => $object->getShippingAmount(),
             'currency'       => $object->getBaseCurrencyCode(),
             'order_currency' => $object->getOrderCurrencyCode(),
             'created_at'     => $this->formatDate($object->getCreatedAt()),
-            'updated_at'     => $this->formatDate($object->getUpdatedAt())
+            'updated_at'     => $this->formatDate($object->getUpdatedAt()),
+            'timezone'       => $this->_localeDate->getConfigTimezone(
+                ScopeInterface::SCOPE_STORE,
+                $object->getStoreId()
+            )
         ];
 
         $path              = null;
@@ -1122,6 +1128,10 @@ class EmailMarketing extends Data
             'isSubscriber' => $isSubscriber,
             'tags'         => $this->getTags($customer),
             'source'       => 'Magento',
+            'timezone'     => $this->_localeDate->getConfigTimezone(
+                ScopeInterface::SCOPE_STORE,
+                $customer->getStoreId()
+            )
         ];
 
         $defaultBillingAddress = $customer->getDefaultBillingAddress();
@@ -1405,7 +1415,7 @@ class EmailMarketing extends Data
     public function queryExpr($daysRange, $from = '', $to = '', $pre = 'main_table')
     {
         if ($daysRange !== DaysRange::CUSTOM) {
-            $from = date('Y-m-d', time() - (int) $daysRange * 24 * 60 *60);
+            $from = date('Y-m-d', time() - (int) $daysRange * 24 * 60 * 60);
         }
 
         $queryExpr = '';

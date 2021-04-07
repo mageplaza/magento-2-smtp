@@ -28,9 +28,11 @@ use Magento\Newsletter\Model\ResourceModel\Subscriber\CollectionFactory as Subsc
 use Magento\Customer\Model\ResourceModel\Customer\CollectionFactory as CustomerCollectionFactory;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Store\Model\ScopeInterface;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 use Mageplaza\Smtp\Model\Config\Source\Newsletter;
 use Magento\Newsletter\Model\Subscriber as ModelSubscriber;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 
 /**
  * Class Subscriber
@@ -65,22 +67,30 @@ class Subscriber extends Action
     protected $customerCollectionFactory;
 
     /**
+     * @var TimezoneInterface
+     */
+    protected $_localeDate;
+
+    /**
      * Subscriber constructor.
      *
      * @param Context $context
      * @param EmailMarketing $helperEmailMarketing
      * @param SubscriberCollectionFactory $subscriberCollectionFactory
      * @param CustomerCollectionFactory $customerCollectionFactory
+     * @param TimezoneInterface $localeDate
      */
     public function __construct(
         Context $context,
         EmailMarketing $helperEmailMarketing,
         SubscriberCollectionFactory $subscriberCollectionFactory,
-        CustomerCollectionFactory $customerCollectionFactory
+        CustomerCollectionFactory $customerCollectionFactory,
+        TimezoneInterface $localeDate
     ) {
         $this->helperEmailMarketing        = $helperEmailMarketing;
         $this->subscriberCollectionFactory = $subscriberCollectionFactory;
         $this->customerCollectionFactory   = $customerCollectionFactory;
+        $this->_localeDate                 = $localeDate;
         parent::__construct($context);
     }
 
@@ -137,7 +147,11 @@ class Subscriber extends Action
                         'status'       => $status,
                         'source'       => 'Magento',
                         'tags'         => 'newsletter',
-                        'isSubscriber' => true
+                        'isSubscriber' => true,
+                        'timezone'     => $this->_localeDate->getConfigTimezone(
+                            ScopeInterface::SCOPE_STORE,
+                            $subscriber->getStoreId()
+                        )
                     ];
                 }
             }
