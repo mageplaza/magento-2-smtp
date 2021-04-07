@@ -84,16 +84,17 @@ class Order extends Action
      */
     public function execute()
     {
-        $from   = $this->getRequest()->getParam('from');
-        $to     = $this->getRequest()->getParam('to');
-        $result = [];
+        $daysRange = $this->getRequest()->getParam('days_range');
+        $from      = $this->getRequest()->getParam('from');
+        $to        = $this->getRequest()->getParam('to');
+        $result    = [];
 
         try {
             $orderCollection = $this->orderCollectionFactory->create();
             $ids             = $this->getRequest()->getParam('ids');
             $orders          = $orderCollection->addFieldToFilter('entity_id', ['in' => $ids]);
 
-            if ($query = $this->helperEmailMarketing->queryExpr($from, $to)) {
+            if ($query = $this->helperEmailMarketing->queryExpr($daysRange, $from, $to)) {
                 $orderCollection->getSelect()->where($query);
             }
 

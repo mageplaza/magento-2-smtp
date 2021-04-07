@@ -75,9 +75,10 @@ class Customer extends Action
      */
     public function execute()
     {
-        $from   = $this->getRequest()->getParam('from');
-        $to     = $this->getRequest()->getParam('to');
-        $result = [];
+        $daysRange = $this->getRequest()->getParam('days_range');
+        $from      = $this->getRequest()->getParam('from');
+        $to        = $this->getRequest()->getParam('to');
+        $result    = [];
 
         try {
             $attribute          = $this->helperEmailMarketing->getSyncedAttribute();
@@ -94,7 +95,7 @@ class Customer extends Action
 
             $customers = $customerCollection->addFieldToFilter('entity_id', ['in' => $ids]);
 
-            if ($query = $this->helperEmailMarketing->queryExpr($from, $to, 'e')) {
+            if ($query = $this->helperEmailMarketing->queryExpr($daysRange, $from, $to, 'e')) {
                 $customerCollection->getSelect()->where($query);
             }
 

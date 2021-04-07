@@ -94,8 +94,6 @@ class Subscriber extends Action
         try {
             $collection = $this->subscriberCollectionFactory->create();
             $ids        = $this->getRequest()->getParam('ids');
-            $from       = $this->getRequest()->getParam('from');
-            $to         = $this->getRequest()->getParam('to');
 
             if ($this->helperEmailMarketing->getSubscriberConfig() === Newsletter::SUBSCRIBED) {
                 $collection->addFieldToFilter('subscriber_status', ['eq' => ModelSubscriber::STATUS_SUBSCRIBED]);

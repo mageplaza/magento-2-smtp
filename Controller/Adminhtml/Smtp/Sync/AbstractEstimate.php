@@ -87,6 +87,7 @@ abstract class AbstractEstimate extends Action
                 throw new LocalizedException(__('App ID or Secret Key is empty'));
             }
 
+            $daysRange  = $this->getRequest()->getParam('days_range');
             $from       = $this->getRequest()->getParam('from');
             $to         = $this->getRequest()->getParam('to');
             $collection = $this->prepareCollection();
@@ -101,8 +102,13 @@ abstract class AbstractEstimate extends Action
                 $collection->addFieldToFilter($this->websiteIdField, $websiteId);
             }
 
-            if (!$collection instanceof SubscriberCollection && $query = $this->emailMarketing->queryExpr($from, $to,
-                $collection instanceof Collection ? 'e' : 'main_table')) {
+            if (!$collection instanceof SubscriberCollection && $query = $this->emailMarketing->queryExpr(
+                    $daysRange,
+                    $from,
+                    $to,
+                    $collection instanceof Collection ? 'e' : 'main_table'
+                )
+            ) {
                 $collection->getSelect()->where($query);
             }
 

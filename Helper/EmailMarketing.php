@@ -71,6 +71,7 @@ use Magento\Store\Model\StoreFactory;
 use Magento\Directory\Model\CountryFactory;
 use Zend_Db_Expr;
 use Magento\Framework\App\ResourceConnection;
+use Mageplaza\Smtp\Model\Config\Source\DaysRange;
 
 /**
  * Class EmailMarketing
@@ -1394,14 +1395,19 @@ class EmailMarketing extends Data
     }
 
     /**
+     * @param string $daysRange
      * @param string $from
      * @param string $to
      * @param string $pre
      *
      * @return string|Zend_Db_Expr
      */
-    public function queryExpr($from = '', $to = '', $pre = 'main_table')
+    public function queryExpr($daysRange, $from = '', $to = '', $pre = 'main_table')
     {
+        if ($daysRange !== DaysRange::CUSTOM) {
+            $from = date('Y-m-d', time() - (int) $daysRange * 24 * 60 *60);
+        }
+
         $queryExpr = '';
 
         if ($from) {

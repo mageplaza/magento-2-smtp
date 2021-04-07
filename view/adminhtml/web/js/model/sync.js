@@ -57,7 +57,8 @@ define([
             var self         = this;
             var percent, percentText;
             var created_from = $('#datepicker-from').val(),
-                created_to   = $('#datepicker-to').val();
+                created_to   = $('#datepicker-to').val(),
+                days_range   = $('#email_marketing_general_synchronization_days_range').val();
 
             $.ajax({
                 url: this.options.ajaxUrl,
@@ -66,7 +67,8 @@ define([
                 data: {
                     ids: ids,
                     from: created_from,
-                    to: created_to
+                    to: created_to,
+                    days_range: days_range
                 },
                 success: function (result) {
                     if (result.status) {
@@ -112,7 +114,8 @@ define([
             options.buttonElement = '#email_marketing_general_synchronization button';
             this.options          = options;
             var created_from      = $('#datepicker-from').val(),
-                created_to        = $('#datepicker-to').val();
+                created_to        = $('#datepicker-to').val(),
+                days_range        = $('#email_marketing_general_synchronization_days_range').val();
 
 
             this.currentResult = {};
@@ -122,7 +125,8 @@ define([
                     websiteId: this.options.websiteId,
                     storeId: this.options.storeId,
                     from: created_from,
-                    to: created_to
+                    to: created_to,
+                    days_range: days_range
                 },
                 dataType: 'json',
                 showLoader: true,
