@@ -113,7 +113,8 @@ class Customer extends Action
 
             $result['status'] = true;
             $result['total']  = count($ids);
-            $this->helperEmailMarketing->syncCustomers($data);
+            $response         = $this->helperEmailMarketing->syncCustomers($data);
+            $result['log']    = $response;
 
         } catch (Exception $e) {
             $result['status']  = false;

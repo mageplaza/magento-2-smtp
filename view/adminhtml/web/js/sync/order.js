@@ -30,6 +30,7 @@ define([
             storeId: '',
             estimateUrl: '',
             buttonElement: '#email_marketing_general_synchronization_sync_order',
+            saveLog: '#email_marketing_general_synchronization_sync_order_log',
             prefix: '#mp-sync-order'
         },
 
@@ -39,6 +40,11 @@ define([
             $(this.options.buttonElement).click(function (e) {
                 e.preventDefault();
                 Sync.process(self.options);
+            });
+
+            $(this.options.saveLog).click(function (e) {
+                e.preventDefault();
+                Sync.saveLog();
             });
         },
     });

@@ -33,6 +33,15 @@
                 </div>
             </div>
         </div>
+
+        <div id="console-log" style="display: none">
+            <textarea name="console-log" id="mp-console-log" cols="30" rows="10" disabled></textarea>
+            <input type="hidden" value="" id="mp-log-data">
+            <button class="actions-log primary" type="button" id="<?= $block->getHtmlId() . '_log' ?>">
+                <span><?= __('Download log') ?></span>
+            </button>
+        </div>
+
         <div class="message" style="display: none;padding: 10px 10px 10px 48px;margin-bottom: 5px">
             <span class="message-text">
                 <strong></strong>
@@ -60,6 +69,10 @@
 
 <?php if ($block->isRenderCss()): ?>
 <style>
+    .actions-log {
+        margin-bottom: 25px;
+    }
+
     .text-right {text-align: right;}
 
     .progress {

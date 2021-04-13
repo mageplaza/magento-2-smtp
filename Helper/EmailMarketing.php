@@ -966,17 +966,22 @@ class EmailMarketing extends Data
      * @param string $url
      * @param string $secretKey
      * @param bool $isTest
+     * @param bool $isLog
      *
      * @return mixed
      * @throws LocalizedException
      */
-    public function sendRequest($data, $url = '', $appID = '', $secretKey = '', $isTest = false)
+    public function sendRequest($data, $url = '', $appID = '', $secretKey = '', $isTest = false, $isLog = false)
     {
         $this->initCurl();
         $body = $this->setHeaders($data, $url, $appID, $secretKey, $isTest);
         $this->_curl->post($this->url, $body);
         $body     = $this->_curl->getBody();
         $bodyData = self::jsonDecode($body);
+
+        if ($isLog) {
+            return $bodyData;
+        }
 
         if (!isset($bodyData['success']) || !$bodyData['success']) {
             throw new LocalizedException(__('Error : %1', isset($bodyData['message']) ? $bodyData['message'] : ''));
@@ -1349,7 +1354,7 @@ class EmailMarketing extends Data
      */
     public function syncCustomers($data)
     {
-        return $this->sendRequest($data, self::SYNC_CUSTOMER_URL);
+        return $this->sendRequest($data, self::SYNC_CUSTOMER_URL, '', '', false, true);
     }
 
     /**
@@ -1360,7 +1365,7 @@ class EmailMarketing extends Data
      */
     public function syncOrders($data)
     {
-        return $this->sendRequest($data, self::SYNC_ORDER_URL);
+        return $this->sendRequest($data, self::SYNC_ORDER_URL, '', '', false, true);
     }
 
     /**

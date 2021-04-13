@@ -109,6 +109,7 @@ class Order extends Action
             $result['status'] = true;
             $result['total']  = count($ids);
             $response         = $this->helperEmailMarketing->syncOrders($data);
+            $result['log']    = $response;
 
             if (isset($response['success'])) {
                 $this->updateData(
