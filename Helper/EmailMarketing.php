@@ -1125,6 +1125,7 @@ class EmailMarketing extends Data
         }
 
         $data = [
+            'id'           => (int) $customer->getId(),
             'email'        => $customer->getEmail(),
             'firstName'    => $customer->getFirstname(),
             'lastName'     => $customer->getLastname(),

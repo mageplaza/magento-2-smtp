@@ -143,6 +143,7 @@ class Subscriber extends Action
 
                 } else {
                     $data[] = [
+                        'id'           => (int) $subscriber->getId(),
                         'email'        => $subscriber->getSubscriberEmail(),
                         'status'       => $status,
                         'source'       => 'Magento',
