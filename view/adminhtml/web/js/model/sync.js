@@ -198,9 +198,9 @@ define([
             });
         },
 
-        saveLog: function () {
+        saveLog: function (console) {
             var self    = this;
-            var log     = self.getElement('#mp-log-data').val();
+            var log     = $(console).val();
             var content = 'status,message,success,error,detail' + '\n';
             var arrLog  = log.split('|');
 

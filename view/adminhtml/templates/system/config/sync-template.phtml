@@ -36,8 +36,8 @@
 
         <div id="console-log" style="display: none">
             <textarea name="console-log" id="mp-console-log" cols="30" rows="10" disabled></textarea>
-            <input type="hidden" value="" id="mp-log-data">
-            <button class="actions-log primary" type="button" id="<?= $block->getHtmlId() . '_log' ?>">
+            <input type="hidden" value="" id="mp-log-data" class="<?= /* @noEscape */ $block->getHtmlId() . '_console' ?>">
+            <button class="actions-log primary" type="button" id="<?= /* @noEscape */ $block->getHtmlId() . '_log' ?>">
                 <span><?= __('Download log') ?></span>
             </button>
         </div>

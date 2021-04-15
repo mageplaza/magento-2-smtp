@@ -31,7 +31,8 @@ define([
             estimateUrl: '',
             buttonElement: '#email_marketing_general_synchronization_sync_order',
             saveLog: '#email_marketing_general_synchronization_sync_order_log',
-            prefix: '#mp-sync-order'
+            prefix: '#mp-sync-order',
+            console: '.email_marketing_general_synchronization_sync_order_console'
         },
 
         _create: function () {
@@ -44,7 +45,7 @@ define([
 
             $(this.options.saveLog).click(function (e) {
                 e.preventDefault();
-                Sync.saveLog();
+                Sync.saveLog(self.options.console);
             });
         },
     });

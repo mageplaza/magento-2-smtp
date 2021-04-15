@@ -31,7 +31,8 @@ define([
             estimateUrl: '',
             buttonElement: '#email_marketing_general_synchronization_sync_subscriber',
             saveLog: '#email_marketing_general_synchronization_sync_subscriber_log',
-            prefix: '#mp-sync-subscriber'
+            prefix: '#mp-sync-subscriber',
+            console: '.email_marketing_general_synchronization_sync_subscriber_console'
         },
         _create: function () {
             var self = this;
@@ -43,7 +44,7 @@ define([
 
             $(this.options.saveLog).click(function (e) {
                 e.preventDefault();
-                Sync.saveLog();
+                Sync.saveLog(self.options.console);
             });
         },
     });
