@@ -520,12 +520,13 @@ class EmailMarketing extends Data
         $isCreditmemo      = $object instanceof Creditmemo;
         $isInvoice         = $object instanceof Invoice;
         if ($isCreditmemo || $isShipment || $isInvoice) {
-            $order             = $object->getOrder();
-            $customerEmail     = $order->getCustomerEmail();
-            $customerId        = $order->getCustomerId();
-            $customerFirstname = $order->getCustomerFirstname();
-            $customerLastname  = $order->getCustomerLastname();
-            $data['order_id']  = $object->getOrderId();
+            $order                  = $object->getOrder();
+            $customerEmail          = $order->getCustomerEmail();
+            $customerId             = $order->getCustomerId();
+            $customerFirstname      = $order->getCustomerFirstname();
+            $customerLastname       = $order->getCustomerLastname();
+            $data['order_id']       = $object->getOrderId();
+            $data['shipping_price'] = $order->getShippingAmount();
 
             $path = 'sales/order/creditmemo';
             if ($isShipment) {
