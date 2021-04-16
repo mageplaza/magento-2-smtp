@@ -19,8 +19,10 @@
  */
 
 define([
-    'jquery'
-], function ($) {
+    'jquery',
+    'underscore',
+    'mage/translate'
+], function ($, _, $t) {
     "use strict";
 
     return {
@@ -57,7 +59,8 @@ define([
             var self         = this;
             var percent, percentText;
             var created_from = $('#datepicker-from').val(),
-                created_to   = $('#datepicker-to').val();
+                created_to   = $('#datepicker-to').val(),
+                days_range   = $('#email_marketing_general_synchronization_days_range').val();
 
             $.ajax({
                 url: this.options.ajaxUrl,
@@ -66,9 +69,14 @@ define([
                 data: {
                     ids: ids,
                     from: created_from,
-                    to: created_to
+                    to: created_to,
+                    days_range: days_range
                 },
                 success: function (result) {
+                    var inputLog = self.getElement('#mp-log-data').val();
+
+                    inputLog += JSON.stringify(result.log) + '|';
+
                     if (result.status) {
                         percent = ids.length / self.currentResult.total * 100;
 
@@ -79,7 +87,8 @@ define([
                         if (self.currentResult.percent > 100) {
                             self.currentResult.percent = 100;
                         }
-
+                        self.getElement('#mp-log-data').val(inputLog);
+                        self.getElement('#mp-console-log').val(self.formatLog(result.log, self));
                         percentText = self.currentResult.percent.toFixed(2) + '%';
                         if (percentText === '100.00%' || self.totalSync === self.currentResult.total) {
                             percentText = '100%';
@@ -90,6 +99,7 @@ define([
                         self.getElement('#sync-percent').text(
                             percentText + ' (' + self.totalSync + '/' + self.currentResult.total + ')'
                         );
+
                         if (end < self.currentResult.total) {
                             self.syncData(end);
                         } else {
@@ -97,11 +107,38 @@ define([
                             self.showMessage('message-success', self.options.successMessage);
                         }
                     } else {
+                        self.getElement('#mp-console-log').val(self.formatLog(result.log, self));
+                        self.getElement('#mp-log-data').val(inputLog);
                         self.showMessage('message-error', result.message);
                         $(self.options.buttonElement).removeClass('disabled');
                     }
                 }
             });
+        },
+
+        formatLog: function (log, self) {
+            var rs = self.getElement('#mp-console-log').val();
+
+            rs += log.message + '\n';
+
+            _.each(log.data, function (item, index) {
+                if (index === 'success') {
+                    rs += ($t('Success: ') + item + '\n')
+                }
+
+                if (index === 'error') {
+                    rs += ($t('Error: ') + item + '\n')
+                }
+
+                if (index === 'error_details') {
+                    _.each(item, function (detail) {
+                        rs += ($t('Item ID: ' + detail.id + '\n'))
+                        rs += ($t('Error: ' + detail.message + '\n\n'))
+                    })
+                }
+            });
+
+            return rs;
         },
 
         /**
@@ -112,7 +149,8 @@ define([
             options.buttonElement = '#email_marketing_general_synchronization button';
             this.options          = options;
             var created_from      = $('#datepicker-from').val(),
-                created_to        = $('#datepicker-to').val();
+                created_to        = $('#datepicker-to').val(),
+                days_range        = $('#email_marketing_general_synchronization_days_range').val();
 
 
             this.currentResult = {};
@@ -122,7 +160,8 @@ define([
                     websiteId: this.options.websiteId,
                     storeId: this.options.storeId,
                     from: created_from,
-                    to: created_to
+                    to: created_to,
+                    days_range: days_range
                 },
                 dataType: 'json',
                 showLoader: true,
@@ -130,6 +169,9 @@ define([
                     if (result.status) {
                         self.currentResult = result;
                         self.getElement('.message').hide();
+                        self.getElement('#console-log').show();
+                        self.getElement('#mp-console-log').val('');
+                        self.getElement('#mp-log-data').val('');
 
                         if (self.currentResult.total > 0) {
                             self.getElement('#sync-percent').text('0%');
@@ -154,6 +196,36 @@ define([
                     }
                 }
             });
+        },
+
+        saveLog: function (console) {
+            var self    = this;
+            var log     = $(console).val();
+            var content = 'status,message,success,error,detail' + '\n';
+            var arrLog  = log.split('|');
+
+            _.each(arrLog, function (item) {
+                if (item) {
+                    var data   = JSON.parse(item),
+                        detail = '';
+
+                    content += data.success + ',' + data.message + ',' + data.data.success + ',' + data.data.error + ',';
+                    _.each(data.data.error_details, function (error) {
+                        if (error) {
+                            detail += JSON.stringify(error) + '\n';
+                        }
+                    })
+                    var newDetail = detail.replace(',', ';');
+                    newDetail     = newDetail.replace(/['"]+/g, '');
+                    content += '"' + newDetail + '"' + '\n';
+                }
+            });
+
+            var hiddenElement      = document.createElement('a');
+            hiddenElement.href     = 'data:text/csv;charset=utf-8,' + encodeURI(content);
+            hiddenElement.target   = '_blank';
+            hiddenElement.download = 'mp-console-log.csv';
+            hiddenElement.click();
         }
     };
 });

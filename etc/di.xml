@@ -61,4 +61,5 @@
             <argument name="resourceModel" xsi:type="string">Magento\Quote\Model\ResourceModel\Quote</argument>
         </arguments>
     </type>
+    <preference for="Mageplaza\Smtp\Api\GuestCheckoutManagementInterface" type="Mageplaza\Smtp\Model\GuestCheckoutManagement"/>
 </config>

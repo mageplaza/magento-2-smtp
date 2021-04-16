@@ -71,6 +71,7 @@ use Magento\Store\Model\StoreFactory;
 use Magento\Directory\Model\CountryFactory;
 use Zend_Db_Expr;
 use Magento\Framework\App\ResourceConnection;
+use Mageplaza\Smtp\Model\Config\Source\DaysRange;
 
 /**
  * Class EmailMarketing
@@ -497,11 +498,17 @@ class EmailMarketing extends Data
     public function getOrderData($object)
     {
         $data = [
-            'id'             => $object->getId(),
+            'id'             => (int) $object->getId(),
+            'name'           => '#' . $object->getIncrementId(),
+            'shipping_price' => $object->getShippingAmount(),
             'currency'       => $object->getBaseCurrencyCode(),
             'order_currency' => $object->getOrderCurrencyCode(),
             'created_at'     => $this->formatDate($object->getCreatedAt()),
-            'updated_at'     => $this->formatDate($object->getUpdatedAt())
+            'updated_at'     => $this->formatDate($object->getUpdatedAt()),
+            'timezone'       => $this->_localeDate->getConfigTimezone(
+                ScopeInterface::SCOPE_STORE,
+                $object->getStoreId()
+            )
         ];
 
         $path              = null;
@@ -513,12 +520,13 @@ class EmailMarketing extends Data
         $isCreditmemo      = $object instanceof Creditmemo;
         $isInvoice         = $object instanceof Invoice;
         if ($isCreditmemo || $isShipment || $isInvoice) {
-            $order             = $object->getOrder();
-            $customerEmail     = $order->getCustomerEmail();
-            $customerId        = $order->getCustomerId();
-            $customerFirstname = $order->getCustomerFirstname();
-            $customerLastname  = $order->getCustomerLastname();
-            $data['order_id']  = $object->getOrderId();
+            $order                  = $object->getOrder();
+            $customerEmail          = $order->getCustomerEmail();
+            $customerId             = $order->getCustomerId();
+            $customerFirstname      = $order->getCustomerFirstname();
+            $customerLastname       = $order->getCustomerLastname();
+            $data['order_id']       = $object->getOrderId();
+            $data['shipping_price'] = $order->getShippingAmount();
 
             $path = 'sales/order/creditmemo';
             if ($isShipment) {
@@ -959,17 +967,22 @@ class EmailMarketing extends Data
      * @param string $url
      * @param string $secretKey
      * @param bool $isTest
+     * @param bool $isLog
      *
      * @return mixed
      * @throws LocalizedException
      */
-    public function sendRequest($data, $url = '', $appID = '', $secretKey = '', $isTest = false)
+    public function sendRequest($data, $url = '', $appID = '', $secretKey = '', $isTest = false, $isLog = false)
     {
         $this->initCurl();
         $body = $this->setHeaders($data, $url, $appID, $secretKey, $isTest);
         $this->_curl->post($this->url, $body);
         $body     = $this->_curl->getBody();
         $bodyData = self::jsonDecode($body);
+
+        if ($isLog) {
+            return $bodyData;
+        }
 
         if (!isset($bodyData['success']) || !$bodyData['success']) {
             throw new LocalizedException(__('Error : %1', isset($bodyData['message']) ? $bodyData['message'] : ''));
@@ -1113,6 +1126,7 @@ class EmailMarketing extends Data
         }
 
         $data = [
+            'id'           => (int) $customer->getId(),
             'email'        => $customer->getEmail(),
             'firstName'    => $customer->getFirstname(),
             'lastName'     => $customer->getLastname(),
@@ -1121,6 +1135,10 @@ class EmailMarketing extends Data
             'isSubscriber' => $isSubscriber,
             'tags'         => $this->getTags($customer),
             'source'       => 'Magento',
+            'timezone'     => $this->_localeDate->getConfigTimezone(
+                ScopeInterface::SCOPE_STORE,
+                $customer->getStoreId()
+            )
         ];
 
         $defaultBillingAddress = $customer->getDefaultBillingAddress();
@@ -1338,7 +1356,7 @@ class EmailMarketing extends Data
      */
     public function syncCustomers($data)
     {
-        return $this->sendRequest($data, self::SYNC_CUSTOMER_URL);
+        return $this->sendRequest($data, self::SYNC_CUSTOMER_URL, '', '', false, true);
     }
 
     /**
@@ -1349,7 +1367,7 @@ class EmailMarketing extends Data
      */
     public function syncOrders($data)
     {
-        return $this->sendRequest($data, self::SYNC_ORDER_URL);
+        return $this->sendRequest($data, self::SYNC_ORDER_URL, '', '', false, true);
     }
 
     /**
@@ -1394,14 +1412,19 @@ class EmailMarketing extends Data
     }
 
     /**
+     * @param string $daysRange
      * @param string $from
      * @param string $to
      * @param string $pre
      *
      * @return string|Zend_Db_Expr
      */
-    public function queryExpr($from = '', $to = '', $pre = 'main_table')
+    public function queryExpr($daysRange, $from = '', $to = '', $pre = 'main_table')
     {
+        if ($daysRange !== DaysRange::CUSTOM) {
+            $from = date('Y-m-d', time() - (int) $daysRange * 24 * 60 * 60);
+        }
+
         $queryExpr = '';
 
         if ($from) {
