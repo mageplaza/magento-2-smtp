@@ -74,6 +74,7 @@ use Zend_Db_Expr;
 use Magento\Framework\App\ResourceConnection;
 use Mageplaza\Smtp\Model\Config\Source\DaysRange;
 use Mageplaza\Smtp\Model\Config\Source\SyncOptions;
+use Zend_Db_Select_Exception;
 
 /**
  * Class EmailMarketing
@@ -1445,7 +1446,8 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @return int|void
+     * @return int
+     * @throws Zend_Db_Select_Exception
      */
     public function getContactCount()
     {
@@ -1453,23 +1455,14 @@ class EmailMarketing extends Data
         $subscriberTable = $this->resourceConnection->getTableName('newsletter_subscriber');
         $customerTable   = $this->resourceConnection->getTableName('customer_entity');
 
-        $queryCustomer   = $connection->fetchAll($connection->select()->from($customerTable, 'email'));
-        $querySubscriber = $connection->fetchAll($connection->select()->from($subscriberTable, 'subscriber_email'));
-        $result          = [];
+        $union = $connection->select()->union([
+            $connection->select()->from($subscriberTable, 'subscriber_email'),
+            $connection->select()->from($customerTable, 'email')
+        ]);
+        $query = $connection->select()->from($union, 'COUNT(*)');
+        $count = $connection->fetchOne($query);
 
-        foreach ($queryCustomer as $value) {
-            $result[] = $value['email'];
-        }
-
-        foreach ($querySubscriber as $value) {
-            if (in_array($value['subscriber_email'], $result, 'true')) {
-                continue;
-            }
-
-            $result[] = $value['subscriber_email'];
-        }
-
-        return count($result);
+        return (int) $count;
     }
 
     /**
