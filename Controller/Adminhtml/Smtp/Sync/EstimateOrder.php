@@ -49,7 +49,7 @@ class EstimateOrder extends AbstractEstimate
         EmailMarketing $emailMarketing
     ) {
         $this->orderCollectionFactory = $orderCollectionFactory;
-        $this->emailMarketing = $emailMarketing;
+        $this->emailMarketing         = $emailMarketing;
 
         parent::__construct($context, $emailMarketing);
     }
@@ -59,10 +59,10 @@ class EstimateOrder extends AbstractEstimate
      */
     public function prepareCollection()
     {
-        $orderCollection = $this->orderCollectionFactory->create();
-        $storeTable = $orderCollection->getTable('store');
+        $orderCollection      = $this->orderCollectionFactory->create();
+        $storeTable           = $orderCollection->getTable('store');
         $this->websiteIdField = 'store_table.website_id';
-        $this->storeIdField = 'main_table.store_id';
+        $this->storeIdField   = 'main_table.store_id';
         $orderCollection->getSelect()->join(
             ['store_table' => $storeTable],
             'main_table.store_id = store_table.store_id',

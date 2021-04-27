@@ -38,6 +38,7 @@ use Magento\Directory\Model\Currency;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\DataObject;
+use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Escaper;
 use Magento\Framework\Exception\LocalizedException;
@@ -72,6 +73,7 @@ use Magento\Directory\Model\CountryFactory;
 use Zend_Db_Expr;
 use Magento\Framework\App\ResourceConnection;
 use Mageplaza\Smtp\Model\Config\Source\DaysRange;
+use Mageplaza\Smtp\Model\Config\Source\SyncOptions;
 
 /**
  * Class EmailMarketing
@@ -1468,5 +1470,37 @@ class EmailMarketing extends Data
         }
 
         return count($result);
+    }
+
+    /**
+     * @param AdapterInterface $connection
+     * @param array $ids
+     * @param string $table
+     *
+     * @throws Exception
+     */
+    public function updateData($connection, $ids, $table)
+    {
+        $connection->beginTransaction();
+        try {
+            $where = ['entity_id IN (?)' => $ids];
+            $connection->update(
+                $table,
+                ['mp_smtp_email_marketing_synced' => 1],
+                $where
+            );
+            $connection->commit();
+        } catch (Exception $e) {
+            $connection->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * @return mixed
+     */
+    public function isOnlyNotSync()
+    {
+        return $this->getEmailMarketingConfig('synchronization/sync_options') === SyncOptions::NOT_SYNC;
     }
 }
