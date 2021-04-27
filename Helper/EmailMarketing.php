@@ -1476,14 +1476,15 @@ class EmailMarketing extends Data
      * @param AdapterInterface $connection
      * @param array $ids
      * @param string $table
+     * @param bool $subscriber
      *
      * @throws Exception
      */
-    public function updateData($connection, $ids, $table)
+    public function updateData($connection, $ids, $table, $subscriber = false)
     {
         $connection->beginTransaction();
         try {
-            $where = ['entity_id IN (?)' => $ids];
+            $where = [$subscriber ? 'subscriber_id' : 'entity_id' . ' IN (?)' => $ids];
             $connection->update(
                 $table,
                 ['mp_smtp_email_marketing_synced' => 1],

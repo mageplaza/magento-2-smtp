@@ -174,7 +174,8 @@ class Subscriber extends Action
                 $this->helperEmailMarketing->updateData(
                     $subscribers->getConnection(),
                     $idUpdate,
-                    $subscribers->getMainTable()
+                    $subscribers->getMainTable(),
+                    true
                 );
             }
 
