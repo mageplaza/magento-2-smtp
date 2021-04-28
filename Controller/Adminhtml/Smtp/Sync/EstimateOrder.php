@@ -22,6 +22,9 @@
 namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync;
 
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
+use Magento\Framework\Phrase;
+use Magento\Sales\Model\ResourceModel\Order\Collection;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 
@@ -55,7 +58,7 @@ class EstimateOrder extends AbstractEstimate
     }
 
     /**
-     * @return \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection|\Magento\Sales\Model\ResourceModel\Order\Collection
+     * @return AbstractCollection|Collection
      */
     public function prepareCollection()
     {
@@ -75,7 +78,7 @@ class EstimateOrder extends AbstractEstimate
     }
 
     /**
-     * @return \Magento\Framework\Phrase
+     * @return Phrase
      */
     public function getZeroMessage()
     {
