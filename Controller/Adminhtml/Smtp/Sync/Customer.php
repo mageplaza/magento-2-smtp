@@ -95,12 +95,17 @@ class Customer extends Action
 
             $customers = $customerCollection->addFieldToFilter('entity_id', ['in' => $ids]);
 
+            if ($this->helperEmailMarketing->isOnlyNotSync()) {
+                $customers->addFieldToFilter('mp_smtp_email_marketing_synced', 1);
+            }
+
             if ($query = $this->helperEmailMarketing->queryExpr($daysRange, $from, $to, 'e')) {
                 $customerCollection->getSelect()->where($query);
             }
 
             $data          = [];
             $attributeData = [];
+            $idUpdate      = [];
 
             foreach ($customers as $customer) {
                 $data[]          = $this->helperEmailMarketing->getCustomerData($customer, false, true);
@@ -109,12 +114,21 @@ class Customer extends Action
                     'entity_id'    => $customer->getId(),
                     'value'        => 1
                 ];
+                $idUpdate[]      = $customer->getId();
             }
 
             $result['status'] = true;
             $result['total']  = count($ids);
             $response         = $this->helperEmailMarketing->syncCustomers($data);
             $result['log']    = $response;
+
+            if (isset($response['success'])) {
+                $this->helperEmailMarketing->updateData(
+                    $customers->getConnection(),
+                    $idUpdate,
+                    $customers->getMainTable()
+                );
+            }
 
         } catch (Exception $e) {
             $result['status']  = false;

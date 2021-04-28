@@ -112,6 +112,12 @@ class Subscriber extends Action
             $data        = [];
             $subscribers = $collection->addFieldToFilter('subscriber_id', ['in' => $ids]);
 
+            if ($this->helperEmailMarketing->isOnlyNotSync()) {
+                $subscribers->addFieldToFilter('mp_smtp_email_marketing_synced', 1);
+            }
+
+            $idUpdate    = [];
+
             foreach ($subscribers as $subscriber) {
                 switch ($subscriber->getSubscriberStatus()) {
                     case ModelSubscriber::STATUS_SUBSCRIBED:
@@ -154,6 +160,8 @@ class Subscriber extends Action
                             $subscriber->getStoreId()
                         )
                     ];
+
+                    $idUpdate[] = $subscriber->getId();
                 }
             }
 
@@ -161,6 +169,15 @@ class Subscriber extends Action
             $result['total']  = count($ids);
             $response         = $this->helperEmailMarketing->syncCustomers($data);
             $result['log']    = $response;
+
+            if (isset($response['success'])) {
+                $this->helperEmailMarketing->updateData(
+                    $subscribers->getConnection(),
+                    $idUpdate,
+                    $subscribers->getMainTable(),
+                    true
+                );
+            }
 
         } catch (Exception $e) {
             $result['status']  = false;

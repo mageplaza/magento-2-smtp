@@ -166,6 +166,10 @@
                 </field>
                 <group id="synchronization" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Synchronization</label>
+                    <field id="sync_options" translate="label comment" sortOrder="4" type="select" showInDefault="1" showInStore="1" canRestore="1">
+                        <label>Choose what to sync</label>
+                        <source_model>Mageplaza\Smtp\Model\Config\Source\SyncOptions</source_model>
+                    </field>
                     <field id="days_range" translate="label comment" sortOrder="4" type="select" showInDefault="1" showInStore="1" >
                         <label>Days Range</label>
                         <source_model>Mageplaza\Smtp\Model\Config\Source\DaysRange</source_model>

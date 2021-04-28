@@ -91,6 +91,11 @@ abstract class AbstractEstimate extends Action
             $from       = $this->getRequest()->getParam('from');
             $to         = $this->getRequest()->getParam('to');
             $collection = $this->prepareCollection();
+
+            if ($this->emailMarketing->isOnlyNotSync()) {
+                $collection->addFieldToFilter('mp_smtp_email_marketing_synced', 1);
+            }
+
             $storeId    = $this->getRequest()->getParam('storeId');
             $websiteId  = $this->getRequest()->getParam('websiteId');
 

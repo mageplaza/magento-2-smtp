@@ -35,6 +35,9 @@
             <general>
                 <enabled>0</enabled>
                 <newsletter_subscriber>0</newsletter_subscriber>
+                <synchronization>
+                    <sync_options>all</sync_options>
+                </synchronization>
             </general>
         </email_marketing>
     </default>
