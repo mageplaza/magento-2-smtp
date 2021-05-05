@@ -616,6 +616,11 @@ class EmailMarketing extends Data
         return $data;
     }
 
+    /**
+     * @param $object
+     *
+     * @return array
+     */
     public function getDataAddress($object)
     {
         return [
