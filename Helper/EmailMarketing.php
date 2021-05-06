@@ -632,7 +632,7 @@ class EmailMarketing extends Data
             'country'       => $object->getCountryId(),
             'phone'         => $object->getTelephone(),
             'province'      => $object->getRegion(),
-            'address2'      => '',
+            'address2'      => $object->getStreetLine(2) . ' ' . $object->getStreetLine(3),
             'company'       => $object->getCompany(),
             'latitude'      => '',
             'longitude'     => '',
