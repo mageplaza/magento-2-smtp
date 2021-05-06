@@ -547,16 +547,16 @@ class EmailMarketing extends Data
             'tags'       => $this->getTags($this->customerFactory->create()->load($customerId))
         ];
 
-        $shippingAddress = $object->getOrder()->getShippingAddress();
+        $shippingAddress = $object->getShippingAddress();
 
         if ($shippingAddress) {
             $data['shipping_address'] = $this->getDataAddress($shippingAddress);
         }
 
-        $billingAddress = $object->getOrder()->getBillingAddress();
+        $billingAddress = $object->getBillingAddress();
 
         if ($billingAddress) {
-            $data['shipping_address'] = $this->getDataAddress($billingAddress);
+            $data['billing_address'] = $this->getDataAddress($billingAddress);
         }
 
 
