@@ -546,6 +546,20 @@ class EmailMarketing extends Data
             'telephone'  => $object->getBillingAddress() ? $object->getBillingAddress()->getTelephone() : '',
             'tags'       => $this->getTags($this->customerFactory->create()->load($customerId))
         ];
+
+        $shippingAddress = $object->getShippingAddress();
+
+        if ($shippingAddress) {
+            $data['shipping_address'] = $this->getDataAddress($shippingAddress);
+        }
+
+        $billingAddress = $object->getBillingAddress();
+
+        if ($billingAddress) {
+            $data['billing_address'] = $this->getDataAddress($billingAddress);
+        }
+
+
         if (!$isInvoice) {
             $data['order_status_url'] = $this->getOrderViewUrl($object->getStoreId(), $object->getId(), $path);
         }
@@ -600,6 +614,32 @@ class EmailMarketing extends Data
         }
 
         return $data;
+    }
+
+    /**
+     * @param $object
+     *
+     * @return array
+     */
+    public function getDataAddress($object)
+    {
+        return [
+            'first_name'    => $object->getFirstname(),
+            'last_name'     => $object->getLastname(),
+            'address1'      => $object->getStreetLine(1),
+            'city'          => $object->getCity(),
+            'zip'           => $object->getPostcode(),
+            'country'       => $object->getCountryId(),
+            'phone'         => $object->getTelephone(),
+            'province'      => $object->getRegion(),
+            'address2'      => $object->getStreetLine(2) . ' ' . $object->getStreetLine(3),
+            'company'       => $object->getCompany(),
+            'latitude'      => '',
+            'longitude'     => '',
+            'name'          => $object->getFirstname() . $object->getLastname(),
+            'country_code'  => $object->getCountryId(),
+            'province_code' => ''
+        ];
     }
 
     /**
