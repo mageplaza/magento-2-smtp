@@ -166,6 +166,11 @@ define([
                 dataType: 'json',
                 showLoader: true,
                 success: function (result) {
+                    window.onbeforeunload = (e) => {
+                        e.preventDefault();
+                        e.returnValue = $t('Changes you made may not be saved.');
+                    };
+
                     if (result.status) {
                         self.currentResult = result;
                         self.getElement('.message').hide();
