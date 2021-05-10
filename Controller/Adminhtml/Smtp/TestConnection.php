@@ -27,6 +27,9 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Mageplaza\Smtp\Helper\EmailMarketing;
+use Magento\Config\Model\ResourceModel\Config as ModelConfig;
+use Mageplaza\Smtp\Helper\Data;
+use Magento\Framework\Encryption\EncryptorInterface;
 
 /**
  * Class TestConnection
@@ -47,16 +50,32 @@ class TestConnection extends Action
     protected $helperEmailMarketing;
 
     /**
+     * @var ModelConfig
+     */
+    protected $modelConfig;
+
+    /**
+     * @var EncryptorInterface
+     */
+    protected $encryptor;
+
+    /**
      * TestConnection constructor.
      *
      * @param Context $context
      * @param EmailMarketing $helperEmailMarketing
+     * @param ModelConfig $modelConfig
+     * @param EncryptorInterface $encryptor
      */
     public function __construct(
         Context $context,
-        EmailMarketing $helperEmailMarketing
+        EmailMarketing $helperEmailMarketing,
+        ModelConfig $modelConfig,
+        EncryptorInterface $encryptor
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
+        $this->modelConfig          = $modelConfig;
+        $this->encryptor            = $encryptor;
         parent::__construct($context);
     }
 
@@ -66,14 +85,17 @@ class TestConnection extends Action
     public function execute()
     {
         try {
-
             $result    = [
                 'status'  => true,
                 'content' => __('Email marketing connection is working properly.')
             ];
             $appID     = trim($this->getRequest()->getParam('appID'));
             $secretKey = $this->getRequest()->getParam('secretKey');
-            $this->helperEmailMarketing->testConnection($appID, $secretKey);
+            $request   = $this->helperEmailMarketing->testConnection($appID, $secretKey);
+            $this->modelConfig->saveConfig(
+                Data::EMAIL_MARKETING . '/general/connectToken',
+                $this->encryptor->encrypt($request['data']['connectToken'])
+            );
 
         } catch (Exception $e) {
             $result = [
