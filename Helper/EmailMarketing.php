@@ -458,6 +458,18 @@ class EmailMarketing extends Data
     }
 
     /**
+     * @param null $storeId
+     *
+     * @return mixed
+     */
+    public function getConnectToken($storeId = null)
+    {
+        $token = $this->getEmailMarketingConfig('connectToken', $storeId);
+
+        return $this->encryptor->decrypt($token);
+    }
+
+    /**
      * @param int $quoteId
      *
      * @return string
@@ -1063,6 +1075,7 @@ class EmailMarketing extends Data
         $this->_curl->addHeader('X-EmailMarketing-Hmac-Sha256', $generatedHash);
         $this->_curl->addHeader('X-EmailMarketing-App-Id', $appID);
         $this->_curl->addHeader('X-EmailMarketing-Connection-Test', $isTest);
+        $this->_curl->addHeader('X-EmailMarketing-Integration-Key', $this->getConnectToken($storeId));
 
         return $body;
     }
