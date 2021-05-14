@@ -571,7 +571,6 @@ class EmailMarketing extends Data
             $data['billing_address'] = $this->getDataAddress($billingAddress);
         }
 
-
         if (!$isInvoice) {
             $data['order_status_url'] = $this->getOrderViewUrl($object->getStoreId(), $object->getId(), $path);
         }
