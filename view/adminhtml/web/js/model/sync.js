@@ -174,7 +174,9 @@ define([
                     if (result.status) {
                         self.currentResult = result;
                         self.getElement('.message').hide();
-                        self.getElement('#console-log').show();
+                        if (self.currentResult.total > 0) {
+                            self.getElement('#console-log').show();
+                        }
                         self.getElement('#mp-console-log').val('');
                         self.getElement('#mp-log-data').val('');
 
