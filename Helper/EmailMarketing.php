@@ -1198,11 +1198,12 @@ class EmailMarketing extends Data
 
         $defaultBillingAddress = $customer->getDefaultBillingAddress();
         if ($defaultBillingAddress) {
-            $data['country'] = $defaultBillingAddress->getCountryId();
-            $data['city']    = $defaultBillingAddress->getCity();
-            $renderer        = $this->_addressConfig->getFormatByCode(ElementFactory::OUTPUT_FORMAT_ONELINE)
+            $data['country']     = $defaultBillingAddress->getCountryId();
+            $data['city']        = $defaultBillingAddress->getCity();
+            $renderer            = $this->_addressConfig->getFormatByCode(ElementFactory::OUTPUT_FORMAT_ONELINE)
                 ->getRenderer();
-            $data['address'] = $renderer->renderArray($defaultBillingAddress->getData());
+            $data['address']     = $renderer->renderArray($defaultBillingAddress->getData());
+            $data['phoneNumber'] = $defaultBillingAddress->getTelephone();
         }
 
         if ($isUpdateOrder) {
