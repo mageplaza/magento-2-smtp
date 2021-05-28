@@ -73,6 +73,10 @@ class AccountManagement
     {
         $cartId = $this->checkoutSession->getQuote()->getId();
 
+        if (!$cartId) {
+            return $result;
+        }
+
         /** @var Quote $quote */
         $quote = $this->cartRepository->getActive($cartId);
         $quote->setCustomerEmail($customerEmail);
