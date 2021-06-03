@@ -28,7 +28,6 @@ use Magento\Customer\Model\CustomerFactory;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
-use Magento\Framework\DB\Adapter\AdapterInterface;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 
 /**
@@ -84,25 +83,39 @@ class Order extends Action
      */
     public function execute()
     {
-        $result = [];
+        $daysRange = $this->getRequest()->getParam('days_range');
+        $from      = $this->getRequest()->getParam('from');
+        $to        = $this->getRequest()->getParam('to');
+        $result    = [];
+
         try {
             $orderCollection = $this->orderCollectionFactory->create();
-            $ids = $this->getRequest()->getParam('ids');
+            $ids             = $this->getRequest()->getParam('ids');
+            $orders          = $orderCollection->addFieldToFilter('entity_id', ['in' => $ids]);
 
-            $orders = $orderCollection->addFieldToFilter('entity_id', ['in' => $ids]);
+            if ($this->helperEmailMarketing->isOnlyNotSync()) {
+                $orderCollection->addFieldToFilter('mp_smtp_email_marketing_synced', 1);
+            }
 
-            $data = [];
+            if ($query = $this->helperEmailMarketing->queryExpr($daysRange, $from, $to)) {
+                $orderCollection->getSelect()->where($query);
+            }
+
+            $data     = [];
             $idUpdate = [];
+
             foreach ($orders as $order) {
-                $data[] = $this->helperEmailMarketing->getOrderData($order);
-                $idUpdate[]  = $order->getId();
+                $data[]     = $this->helperEmailMarketing->getOrderData($order);
+                $idUpdate[] = $order->getId();
             }
 
             $result['status'] = true;
-            $result['total'] = count($ids);
-            $response = $this->helperEmailMarketing->syncOrders($data);
+            $result['total']  = count($ids);
+            $response         = $this->helperEmailMarketing->syncOrders($data);
+            $result['log']    = $response;
+
             if (isset($response['success'])) {
-                $this->updateData(
+                $this->helperEmailMarketing->updateData(
                     $orders->getConnection(),
                     $idUpdate,
                     $orders->getMainTable()
@@ -110,34 +123,10 @@ class Order extends Action
             }
 
         } catch (Exception $e) {
-            $result['status'] = false;
+            $result['status']  = false;
             $result['message'] = $e->getMessage();
         }
 
         return $this->getResponse()->representJson(EmailMarketing::jsonEncode($result));
-    }
-
-    /**
-     * @param AdapterInterface $connection
-     * @param array $ids
-     * @param string $table
-     *
-     * @throws Exception
-     */
-    public function updateData($connection, $ids, $table)
-    {
-        $connection->beginTransaction();
-        try {
-            $where      = ['entity_id IN (?)' => $ids];
-            $connection->update(
-                $table,
-                ['mp_smtp_email_marketing_synced' => 1],
-                $where
-            );
-            $connection->commit();
-        } catch (Exception $e) {
-            $connection->rollBack();
-            throw $e;
-        }
     }
 }

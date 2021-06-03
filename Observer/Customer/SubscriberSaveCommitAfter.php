@@ -102,7 +102,7 @@ class SubscriberSaveCommitAfter implements ObserverInterface
                     $data['lastName'] = $customer->getLastname();
                 }
 
-                $this->helperEmailMarketing->syncCustomer($data);
+                $this->helperEmailMarketing->syncCustomer($data, false);
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
             }

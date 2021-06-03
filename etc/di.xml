@@ -61,4 +61,7 @@
             <argument name="resourceModel" xsi:type="string">Magento\Quote\Model\ResourceModel\Quote</argument>
         </arguments>
     </type>
+    <type name="Magento\Customer\Model\AccountManagement">
+        <plugin name="mpsmtp_account_management" type="Mageplaza\Smtp\Plugin\AccountManagement"/>
+    </type>
 </config>

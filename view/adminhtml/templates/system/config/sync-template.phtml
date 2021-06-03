@@ -33,6 +33,15 @@
                 </div>
             </div>
         </div>
+
+        <div id="console-log" style="display: none">
+            <textarea name="console-log" id="mp-console-log" cols="30" rows="10" disabled></textarea>
+            <input type="hidden" value="" id="mp-log-data" class="<?= /* @noEscape */ $block->getHtmlId() . '_console' ?>">
+            <button class="actions-log primary" type="button" id="<?= /* @noEscape */ $block->getHtmlId() . '_log' ?>">
+                <span><?= __('Download log') ?></span>
+            </button>
+        </div>
+
         <div class="message" style="display: none;padding: 10px 10px 10px 48px;margin-bottom: 5px">
             <span class="message-text">
                 <strong></strong>
@@ -59,25 +68,29 @@
 </script>
 
 <?php if ($block->isRenderCss()): ?>
-<style>
-    .text-right {text-align: right;}
+    <style>
+        .actions-log {
+            margin-bottom: 25px;
+        }
 
-    .progress {
-        background-color: #fafafa;
-        border: 1px solid #ccc;
-        clear: left;
-        height: 30px;
-        margin-bottom: 30px;
-        overflow: hidden;
-    }
-    .progress-bar {
-        background-color: #79a22e;
-        color: #fff;
-        float: left;
-        height: 100%;
-        text-align: center;
-        width: 0;
-        transition: width .6s ease;
-    }
-</style>
+        .text-right {text-align: right;}
+
+        .progress {
+            background-color: #fafafa;
+            border: 1px solid #ccc;
+            clear: left;
+            height: 30px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            background-color: #79a22e;
+            color: #fff;
+            float: left;
+            height: 100%;
+            text-align: center;
+            width: 0;
+            transition: width .6s ease;
+        }
+    </style>
 <?php endif; ?>
