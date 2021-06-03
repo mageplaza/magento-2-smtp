@@ -65,7 +65,7 @@ class Customer extends Action
         EmailMarketing $helperEmailMarketing,
         CustomerCollectionFactory $customerCollectionFactory
     ) {
-        $this->helperEmailMarketing = $helperEmailMarketing;
+        $this->helperEmailMarketing      = $helperEmailMarketing;
         $this->customerCollectionFactory = $customerCollectionFactory;
         parent::__construct($context);
     }
@@ -75,13 +75,16 @@ class Customer extends Action
      */
     public function execute()
     {
-        $result = [];
-        try {
-            $attribute = $this->helperEmailMarketing->getSyncedAttribute();
+        $daysRange = $this->getRequest()->getParam('days_range');
+        $from      = $this->getRequest()->getParam('from');
+        $to        = $this->getRequest()->getParam('to');
+        $result    = [];
 
+        try {
+            $attribute          = $this->helperEmailMarketing->getSyncedAttribute();
             $customerCollection = $this->customerCollectionFactory->create();
-            $ids = $this->getRequest()->getParam('ids');
-            $subscriberTable = $customerCollection->getTable('newsletter_subscriber');
+            $ids                = $this->getRequest()->getParam('ids');
+            $subscriberTable    = $customerCollection->getTable('newsletter_subscriber');
             $customerCollection->getSelect()->columns(
                 [
                     'subscriber_status' => new Zend_Db_Expr(
@@ -92,23 +95,43 @@ class Customer extends Action
 
             $customers = $customerCollection->addFieldToFilter('entity_id', ['in' => $ids]);
 
-            $data = [];
+            if ($this->helperEmailMarketing->isOnlyNotSync()) {
+                $customers->addFieldToFilter('mp_smtp_email_marketing_synced', 1);
+            }
+
+            if ($query = $this->helperEmailMarketing->queryExpr($daysRange, $from, $to, 'e')) {
+                $customerCollection->getSelect()->where($query);
+            }
+
+            $data          = [];
             $attributeData = [];
+            $idUpdate      = [];
+
             foreach ($customers as $customer) {
-                $data[] = $this->helperEmailMarketing->getCustomerData($customer, false, true);
+                $data[]          = $this->helperEmailMarketing->getCustomerData($customer, false, true);
                 $attributeData[] = [
                     'attribute_id' => $attribute->getId(),
-                    'entity_id' => $customer->getId(),
-                    'value' => 1
+                    'entity_id'    => $customer->getId(),
+                    'value'        => 1
                 ];
+                $idUpdate[]      = $customer->getId();
             }
 
             $result['status'] = true;
-            $result['total'] = count($ids);
-            $this->helperEmailMarketing->syncCustomers($data);
+            $result['total']  = count($ids);
+            $response         = $this->helperEmailMarketing->syncCustomers($data);
+            $result['log']    = $response;
+
+            if (isset($response['success'])) {
+                $this->helperEmailMarketing->updateData(
+                    $customers->getConnection(),
+                    $idUpdate,
+                    $customers->getMainTable()
+                );
+            }
 
         } catch (Exception $e) {
-            $result['status'] = false;
+            $result['status']  = false;
             $result['message'] = $e->getMessage();
         }
 

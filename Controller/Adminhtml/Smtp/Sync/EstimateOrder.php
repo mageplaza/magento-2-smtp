@@ -22,6 +22,9 @@
 namespace Mageplaza\Smtp\Controller\Adminhtml\Smtp\Sync;
 
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
+use Magento\Framework\Phrase;
+use Magento\Sales\Model\ResourceModel\Order\Collection;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 
@@ -49,20 +52,20 @@ class EstimateOrder extends AbstractEstimate
         EmailMarketing $emailMarketing
     ) {
         $this->orderCollectionFactory = $orderCollectionFactory;
-        $this->emailMarketing = $emailMarketing;
+        $this->emailMarketing         = $emailMarketing;
 
         parent::__construct($context, $emailMarketing);
     }
 
     /**
-     * @return \Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection|\Magento\Sales\Model\ResourceModel\Order\Collection
+     * @return AbstractCollection|Collection
      */
     public function prepareCollection()
     {
-        $orderCollection = $this->orderCollectionFactory->create();
-        $storeTable = $orderCollection->getTable('store');
+        $orderCollection      = $this->orderCollectionFactory->create();
+        $storeTable           = $orderCollection->getTable('store');
         $this->websiteIdField = 'store_table.website_id';
-        $this->storeIdField = 'main_table.store_id';
+        $this->storeIdField   = 'main_table.store_id';
         $orderCollection->getSelect()->join(
             ['store_table' => $storeTable],
             'main_table.store_id = store_table.store_id',
@@ -75,7 +78,7 @@ class EstimateOrder extends AbstractEstimate
     }
 
     /**
-     * @return \Magento\Framework\Phrase
+     * @return Phrase
      */
     public function getZeroMessage()
     {
