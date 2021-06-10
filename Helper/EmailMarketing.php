@@ -948,6 +948,7 @@ class EmailMarketing extends Data
                 'title'         => $item->getName(),
                 'name'          => $name,
                 'price'         => (float) $item->getBasePrice(),
+                'tax_price'     => (float) $item->getBaseTaxAmount(),
                 'quantity'      => (int) ($isQuote ? $item->getQty() : $item->getQtyOrdered()),
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
@@ -1193,12 +1194,19 @@ class EmailMarketing extends Data
             'timezone'     => $this->_localeDate->getConfigTimezone(
                 ScopeInterface::SCOPE_STORE,
                 $customer->getStoreId()
-            )
+            ),
+            'customer_type'=> 'new_customer'
         ];
 
         $defaultBillingAddress = $customer->getDefaultBillingAddress();
         if ($defaultBillingAddress) {
-            $data['country']     = $defaultBillingAddress->getCountryId();
+            $data['country_code']     = $defaultBillingAddress->getCountryId();
+
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $countryFactory = $objectManager->get('Magento\Directory\Model\CountryFactory')->create();
+            $country = $countryFactory->loadByCode($data['country_code']);
+            $data['country'] = $country->getName();
+
             $data['city']        = $defaultBillingAddress->getCity();
             $renderer            = $this->_addressConfig->getFormatByCode(ElementFactory::OUTPUT_FORMAT_ONELINE)
                 ->getRenderer();
