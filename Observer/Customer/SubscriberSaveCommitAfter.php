@@ -90,7 +90,8 @@ class SubscriberSaveCommitAfter implements ObserverInterface
                     'phoneNumber' => '',
                     'description' => '',
                     'source' => 'Magento',
-                    'isSubscriber' => $subscriber->getSubscriberStatus() === Subscriber::STATUS_SUBSCRIBED
+                    'isSubscriber' => $subscriber->getSubscriberStatus() === Subscriber::STATUS_SUBSCRIBED,
+                    'customer_type' => 'new_subscriber'
                 ];
 
                 /**
