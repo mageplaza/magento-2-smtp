@@ -43,7 +43,7 @@ define(
         'uiRegistry',
         'mage/translate',
         'Magento_Checkout/js/model/shipping-rate-service',
-        'Mageplaza_Smtp/js/model/shipping-address-on-change'
+        'Mageplaza_Smtp/js/model/address-on-change'
     ],
     function (
         $,

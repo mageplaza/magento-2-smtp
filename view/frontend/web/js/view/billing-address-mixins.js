@@ -36,7 +36,7 @@ define(
         'Magento_Ui/js/model/messageList',
         'mage/translate',
         'Magento_Checkout/js/model/billing-address-postcode-validator',
-        'Mageplaza_Smtp/js/model/billing-address-on-change'
+        'Mageplaza_Smtp/js/model/address-on-change'
     ],
     function (
         $,
