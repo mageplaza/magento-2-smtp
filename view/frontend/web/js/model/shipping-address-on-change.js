@@ -62,7 +62,7 @@ define([
                 element.on('value', function () {
                     clearTimeout(self.validateAddressTimeout);
                     self.validateAddressTimeout = setTimeout(function () {
-                        sendAddress(JSON.stringify(self.collectObservedData()));
+                        sendAddress(JSON.stringify(self.collectObservedData()), false);
                     }, delay);
                 });
 

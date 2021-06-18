@@ -61,8 +61,17 @@ define(
 
         var mixin = {
             initialize: function () {
+                var fieldset;
+
                 this._super();
-                billingAddressOnChange.initFields(this.get('name') + '.form-fields')
+
+                if (window.checkoutConfig.oscConfig) {
+                    fieldset = this.get('name') + '.billing-address-fieldset';
+                } else {
+                    fieldset = this.get('name') + '.form-fields';
+                }
+
+                billingAddressOnChange.initFields(fieldset);
             },
         };
 

@@ -30,8 +30,9 @@ interface CheckoutManagementInterface
     /**
      * @param string $cartId
      * @param string $address
+     * @param boolean $isOsc
      *
      * @return bool
      */
-    public function updateOrder($cartId, $address);
+    public function updateOrder($cartId, $address, $isOsc);
 }

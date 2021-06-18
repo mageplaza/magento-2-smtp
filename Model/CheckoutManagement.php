@@ -68,7 +68,7 @@ class CheckoutManagement implements CheckoutManagementInterface
     /**
      * {@inheritDoc}
      */
-    public function updateOrder($cartId, $address)
+    public function updateOrder($cartId, $address, $isOsc)
     {
         if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
@@ -77,8 +77,8 @@ class CheckoutManagement implements CheckoutManagementInterface
             $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
             /** @var Quote $quote */
             $quote           = $this->cartRepository->getActive($quoteIdMask->getQuoteId());
-            $shippingAddress = EmailMarketing::jsonDecode($address);
-            $ACEData         = $this->helperEmailMarketing->getACEData($quote, $shippingAddress);
+            $newAddress = EmailMarketing::jsonDecode($address);
+            $ACEData         = $this->helperEmailMarketing->getACEData($quote, $newAddress, $isOsc);
 
             $this->helperEmailMarketing->sendRequestWithoutWaitResponse(
                 $ACEData,

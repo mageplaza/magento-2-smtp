@@ -710,12 +710,14 @@ class EmailMarketing extends Data
 
     /**
      * @param Quote $quote
+     * @param array|null $address
+     * @param boolean $isOsc
      *
      * @return array
-     * @throws NoSuchEntityException
      * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
-    public function getACEData($quote, $address = null)
+    public function getACEData($quote, array $address = null, $isOsc = false)
     {
         $isActive         = (bool) $quote->getIsActive();
         $quoteCompletedAt = null;
@@ -755,7 +757,7 @@ class EmailMarketing extends Data
             'total_tax'              => !$quote->isVirtual() ? $quote->getShippingAddress()->getBaseTaxAmount() : 0,
             'customer_locale'        => null,
             'shipping_address'       => $this->getShippingAddress($quote, $address),
-            'billing_address'        => $this->getBillingAddress($quote, $address)
+            'billing_address'        => $this->getBillingAddress($quote, $address, $isOsc)
         ];
     }
 
@@ -773,15 +775,21 @@ class EmailMarketing extends Data
     /**
      * @param Quote $quote
      * @param array|null $address
+     * @param boolean $isOsc
      *
      * @return array
      */
-    public function getBillingAddress(Quote $quote, $address = null)
+    public function getBillingAddress(Quote $quote, $address = null, $isOsc = false)
     {
+        $field         = 'billingAddress';
         $paymentMethod = $quote->getPayment()->getMethod();
 
         if ($paymentMethod) {
-            return $this->getAddress($quote, $quote->getBillingAddress(), $address, 'billingAddress' . $paymentMethod);
+            if (!$isOsc) {
+                $field .= $paymentMethod;
+            }
+
+            return $this->getAddress($quote, $quote->getBillingAddress(), $address, $field);
         }
 
         return [];

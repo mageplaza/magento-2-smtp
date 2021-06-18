@@ -62,7 +62,7 @@ define([
                 element.on('value', function () {
                     clearTimeout(self.validateAddressTimeout);
                     self.validateAddressTimeout = setTimeout(function () {
-                        sendAddress(JSON.stringify(self.collectObservedData()));
+                        sendAddress(JSON.stringify(self.collectObservedData()), self.isOsc());
                     }, delay);
                 });
 
@@ -87,6 +87,9 @@ define([
             });
 
             return observedValues;
+        },
+        isOsc: function () {
+            return !!window.checkoutConfig.oscConfig;
         }
     };
 });

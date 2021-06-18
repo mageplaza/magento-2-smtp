@@ -25,11 +25,12 @@ define([
 ], function (storage, resourceUrlManager, quote) {
     'use strict';
 
-    return function (address) {
+    return function (address, isOsc) {
         return storage.post(
             resourceUrlManager.getUrlForUpdateOrder(quote),
             JSON.stringify({
-                address: address
+                address: address,
+                isOsc: isOsc
             }),
             false
         );
