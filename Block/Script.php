@@ -23,9 +23,12 @@ namespace Mageplaza\Smtp\Block;
 
 use Magento\Catalog\Block\Product\Context;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\Template;
 use Magento\Sales\Model\Order;
 use Mageplaza\Smtp\Helper\EmailMarketing;
+use Magento\Framework\Registry;
 
 /**
  * Class Script
@@ -44,21 +47,29 @@ class Script extends Template
     protected $checkoutSession;
 
     /**
+     * @var Registry
+     */
+    protected $registry;
+
+    /**
      * Script constructor.
      *
      * @param Context $context
      * @param EmailMarketing $helperEmailMarketing
      * @param Session $checkoutSession
+     * @param Registry $registry
      * @param array $data
      */
     public function __construct(
         Context $context,
         EmailMarketing $helperEmailMarketing,
         Session $checkoutSession,
+        Registry $registry,
         array $data = []
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->checkoutSession = $checkoutSession;
+        $this->checkoutSession      = $checkoutSession;
+        $this->registry             = $registry;
         parent::__construct($context, $data);
     }
 
@@ -76,7 +87,7 @@ class Script extends Template
     public function isSuccessPage()
     {
         $fullActionName = $this->getRequest()->getFullActionName();
-        $pages = ['checkout_onepage_success', 'mpthankyoupage_index_index'];
+        $pages          = ['checkout_onepage_success', 'mpthankyoupage_index_index'];
 
         return in_array($fullActionName, $pages);
     }
@@ -99,5 +110,32 @@ class Script extends Template
         }
 
         return parent::toHtml();
+    }
+
+    /**
+     * @return array|false
+     * @throws NoSuchEntityException
+     */
+    public function productAbandoned()
+    {
+        if ($this->getRequest()->getFullActionName() === 'catalog_product_view') {
+            $product  = $this->registry->registry('current_product');
+            $imageUrl = $this->_storeManager->getStore()
+                    ->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
+
+            return [
+                'collections' => [],
+                'id'          => $product->getId(),
+                'image'       => $imageUrl,
+                'price'       => $product->getFinalPrice(),
+                'productType' => $product->getTypeId(),
+                'tags'        => [],
+                'title'       => $product->getName(),
+                'url'         => $product->getProductUrl(),
+                'vendor'      => 'magento'
+            ];
+        }
+
+        return false;
     }
 }

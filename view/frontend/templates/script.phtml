@@ -53,4 +53,25 @@ $isSuccessPage = $block->isSuccessPage();
 
     </script>
 <?php } ?>
+
+<?php if ($product = $block->productAbandoned()) : ?>
+    <script data-cfasync="false" type="text/javascript">
+        var AVADA_EM = {
+            isTrackingEnabled: Boolean(<?= $block->getHelperEmailMarketing()->isTracking() ?>),
+            product: {
+                collections: [],
+                id: "<?= /* @noEscape */ $product['id'] ?>",
+                image: "<?= /* @noEscape */ $product['image'] ?>",
+                price: "<?= /* @noEscape */ $product['price'] ?>",
+                productType: "<?= /* @noEscape */ $product['productType'] ?>",
+                tags: [],
+                title: "<?= /* @noEscape */ $product['title'] ?>",
+                url: "<?= /* @noEscape */ $product['url'] ?>",
+                vendor: "magento"
+            },
+            shopId: "<?= /* @noEscape */ $shopId ?>",
+            template: "product"
+        };
+    </script>
+<?php endif ; ?>
 <script data-cfasync="false" type="text/javascript">(function(b){var s=document.createElement("script");s.type="text/javascript";s.async=true;s.src=b;var x=document.getElementsByTagName("script")[0];x.parentNode.insertBefore(s,x);})("https://app.avada.io/avada-sdk.min.js");</script>

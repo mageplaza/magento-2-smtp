@@ -64,4 +64,6 @@
     <type name="Magento\Customer\Model\AccountManagement">
         <plugin name="mpsmtp_account_management" type="Mageplaza\Smtp\Plugin\AccountManagement"/>
     </type>
+
+    <preference for="Mageplaza\Smtp\Api\CheckoutManagementInterface" type="Mageplaza\Smtp\Model\CheckoutManagement"/>
 </config>
