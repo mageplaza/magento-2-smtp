@@ -84,18 +84,18 @@ use Magento\Directory\Model\Region;
 class EmailMarketing extends Data
 {
     const IS_SYNCED_ATTRIBUTE = 'mp_smtp_is_synced';
-
-    const APP_URL            = 'https://app.avada.io/app/api/v1/connects';
-    const CHECKOUT_URL       = 'https://app.avada.io/app/api/v1/checkouts';
-    const CUSTOMER_URL       = 'https://app.avada.io/app/api/v1/customers';
-    const ORDER_URL          = 'https://app.avada.io/app/api/v1/orders';
-    const ORDER_COMPLETE_URL = 'https://app.avada.io/app/api/v1/orders/complete';
-    const INVOICE_URL        = 'https://app.avada.io/app/api/v1/orders/invoice';
-    const SHIPMENT_URL       = 'https://app.avada.io/app/api/v1/orders/ship';
-    const CREDITMEMO_URL     = 'https://app.avada.io/app/api/v1/orders/refund';
-    const DELETE_URL         = 'https://app.avada.io/app/api/v1/checkouts?id=';
-    const SYNC_CUSTOMER_URL  = 'https://app.avada.io/app/api/v1/customers/bulk';
-    const SYNC_ORDER_URL     = 'https://app.avada.io/app/api/v1/orders/bulk';
+    const API_URL            = 'https://app.avada.io';
+    const APP_URL            = self::API_URL . '/app/api/v1/connects';
+    const CHECKOUT_URL       = self::API_URL . '/app/api/v1/checkouts';
+    const CUSTOMER_URL       = self::API_URL . '/app/api/v1/customers';
+    const ORDER_URL          = self::API_URL . '/app/api/v1/orders';
+    const ORDER_COMPLETE_URL = self::API_URL . '/app/api/v1/orders/complete';
+    const INVOICE_URL        = self::API_URL . '/app/api/v1/orders/invoice';
+    const SHIPMENT_URL       = self::API_URL . '/app/api/v1/orders/ship';
+    const CREDITMEMO_URL     = self::API_URL . '/app/api/v1/orders/refund';
+    const DELETE_URL         = self::API_URL . '/app/api/v1/checkouts?id=';
+    const SYNC_CUSTOMER_URL  = self::API_URL . '/app/api/v1/customers/bulk';
+    const SYNC_ORDER_URL     = self::API_URL . '/app/api/v1/orders/bulk';
 
     /**
      * @var UrlInterface
