@@ -181,6 +181,7 @@
                     <field id="days_range" translate="label comment" sortOrder="4" type="select" showInDefault="1" showInStore="1" >
                         <label>Days Range</label>
                         <source_model>Mageplaza\Smtp\Model\Config\Source\DaysRange</source_model>
+                        <comment>If "Custom" is selected, all the records will be sync if the "Created From - To" is empty.</comment>
                     </field>
                     <field id="created_from" translate="label comment" sortOrder="5" type="text" showInDefault="1" showInStore="1" >
                         <label>Created From</label>
