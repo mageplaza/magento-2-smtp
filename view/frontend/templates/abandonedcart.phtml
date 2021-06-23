@@ -73,7 +73,7 @@ $itemCollection = $block->getProductCollection();
             </td>
             <td class="item-price">
                 <?php if ($block->getTaxConfig()->displayCartPricesInclTax()): ?>
-                    <span class="price"><?= /* @noEscape */ $block->formatPrice($_item->getPriceInclTax(), $item->getStoreId()) ?></span>
+                    <span class="price"><?= /* @noEscape */ $block->formatPrice($item->getPriceInclTax(), $item->getStoreId()) ?></span>
                 <?php endif; ?>
 
                 <?php if ($block->getTaxConfig()->displayCartPricesExclTax()): ?>
