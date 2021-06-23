@@ -623,10 +623,17 @@ class EmailMarketing extends Data
         }
 
         if ($object instanceof Order) {
+            $payment      = $object->getPayment();
+            $paymentTitle = '';
+            if ($payment && $payment->getMethodInstance()) {
+                $paymentTitle = $payment->getMethodInstance()->getTitle();
+            }
+
+            $data['gateway']             = $paymentTitle;
             $data['status']              = $object->getStatus();
             $data['state']               = $object->getState();
-            $data['total_price']         = $object->getBaseGrandTotal();
-            $data['subtotal_price']      = $object->getBaseSubtotal();
+            $data['total_price']         = (float)$object->getBaseGrandTotal();
+            $data['subtotal_price']      = (float)$object->getBaseSubtotal();
             $data['total_tax']           = $object->getBaseTaxAmount();
             $data['total_weight']        = $object->getTotalWeight() ?: '0';
             $data['total_shipping_cost'] = $object->getBaseShippingAmount();
@@ -1007,7 +1014,7 @@ class EmailMarketing extends Data
             ];
 
             if ($isQuote) {
-                $itemRequest['line_price'] = $item->getBaseRowTotal();
+                $itemRequest['line_price'] = (float)$item->getBaseRowTotal();
             }
 
             if ($item->getHasChildren()) {
