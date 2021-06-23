@@ -623,6 +623,13 @@ class EmailMarketing extends Data
         }
 
         if ($object instanceof Order) {
+            $payment      = $object->getPayment();
+            $paymentTitle = '';
+            if ($payment && $payment->getMethodInstance()) {
+                $paymentTitle = $payment->getMethodInstance()->getTitle();
+            }
+
+            $data['gateway']             = $paymentTitle;
             $data['status']              = $object->getStatus();
             $data['state']               = $object->getState();
             $data['total_price']         = $object->getBaseGrandTotal();
@@ -752,8 +759,8 @@ class EmailMarketing extends Data
             'created_at'             => $createdAt,
             'updated_at'             => $updatedAt,
             'abandoned_checkout_url' => $this->getRecoveryUrl($quote),
-            'subtotal_price'         => $quote->getBaseSubtotal(),
-            'total_price'            => $quote->getBaseGrandTotal(),
+            'subtotal_price'         => (float)$quote->getBaseSubtotal(),
+            'total_price'            => (float)$quote->getData('base_grand_total'),
             'total_tax'              => !$quote->isVirtual() ? $quote->getShippingAddress()->getBaseTaxAmount() : 0,
             'customer_locale'        => null,
             'shipping_address'       => $this->getShippingAddress($quote, $address),
@@ -1007,7 +1014,7 @@ class EmailMarketing extends Data
             ];
 
             if ($isQuote) {
-                $itemRequest['line_price'] = $item->getBaseRowTotal();
+                $itemRequest['line_price'] = (float)$item->getBaseRowTotal();
             }
 
             if ($item->getHasChildren()) {
