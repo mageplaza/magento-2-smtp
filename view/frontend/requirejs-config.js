@@ -17,16 +17,18 @@
  * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
-
-var config = {
-    config: {
-        mixins: {
-            'Magento_Checkout/js/view/billing-address': {
-                'Mageplaza_Smtp/js/view/billing-address-mixins' : true
-            },
-            'Magento_Checkout/js/view/shipping': {
-                'Mageplaza_Smtp/js/view/shipping-mixins' : true
+var config = {};
+if (typeof wwindow.AVADA_EM !== 'undefined') {
+    config = {
+        config: {
+            mixins: {
+                'Magento_Checkout/js/view/billing-address': {
+                    'Mageplaza_Smtp/js/view/billing-address-mixins' : true
+                },
+                'Magento_Checkout/js/view/shipping': {
+                    'Mageplaza_Smtp/js/view/shipping-mixins' : true
+                }
             }
         }
-    }
-};
+    };
+}
