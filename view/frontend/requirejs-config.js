@@ -18,7 +18,7 @@
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 var config = {};
-if (typeof wwindow.AVADA_EM !== 'undefined') {
+if (typeof window.AVADA_EM !== 'undefined') {
     config = {
         config: {
             mixins: {
