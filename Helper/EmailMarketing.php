@@ -1258,7 +1258,7 @@ class EmailMarketing extends Data
         $defaultBillingAddress = $customer->getDefaultBillingAddress();
         if ($defaultBillingAddress) {
             $data['countryCode'] = $defaultBillingAddress->getCountryId();
-            $country              = $this->countryFactory->create()->loadByCode($data['country_code']);
+            $country              = $this->countryFactory->create()->loadByCode($data['countryCode']);
             $data['country']      = $country->getName();
             $data['city']         = $defaultBillingAddress->getCity();
             $renderer             = $this->_addressConfig->getFormatByCode(ElementFactory::OUTPUT_FORMAT_ONELINE)
