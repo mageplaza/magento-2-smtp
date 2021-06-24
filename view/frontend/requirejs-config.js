@@ -32,4 +32,3 @@ if (typeof wwindow.AVADA_EM !== 'undefined') {
         }
     };
 }
-
