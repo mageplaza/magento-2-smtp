@@ -113,6 +113,15 @@ class Script extends Template
     }
 
     /**
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function getCurrencyCode()
+    {
+        return $this->_storeManager->getStore()->getCurrentCurrency()->getCode();
+    }
+
+    /**
      * @return array|false
      * @throws NoSuchEntityException
      */

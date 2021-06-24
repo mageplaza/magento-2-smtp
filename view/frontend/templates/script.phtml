@@ -29,6 +29,9 @@ $isSuccessPage = $block->isSuccessPage();
 <script>
     window.AVADA_EM = window.AVADA_EM || {};
     window.AVADA_EM.shopId = "<?= /* @noEscape */ $shopId ?>";
+    window.AVADA_EM.isTrackingEnabled = "<?= /* @noEscape */ $block->getHelperEmailMarketing()->isTracking() ?>";
+    window.AVADA_EM.template = "<?= /* @noEscape */ "" ?>";
+    window.AVADA_EM.currency = "<?= /* @noEscape */ $block->getCurrencyCode() ?>";
 </script>
 <!-- BEGIN AVADA EMAIL MARKETING SCRIPT-->
 <?php if ($isSuccessPage && $block->getCurrentOrder()) {
@@ -40,38 +43,30 @@ $isSuccessPage = $block->isSuccessPage();
 
     ?>
     <script data-cfasync="false" type="text/javascript">
-        var AVADA_EM = {
-            shopId: "<?= /* @noEscape */ $shopId ?>",
-            vendor: "magento",
-            checkout: {
-                revenue: "<?=  /* @noEscape */ $grandTotal ?>",
-                currency: "<?=  /* @noEscape */ $currencyCode ?>",
-                checkoutId: "<?=  /* @noEscape */ $checkoutId ?>",
-                checkoutEmail: "<?=  /* @noEscape */ $email ?>"
-            }
+        window.AVADA_EM.vendor= "magento";
+        window.AVADA_EM.checkout= {
+            revenue: "<?=  /* @noEscape */ $grandTotal ?>",
+            currency: "<?=  /* @noEscape */ $currencyCode ?>",
+            checkoutId: "<?=  /* @noEscape */ $checkoutId ?>",
+            checkoutEmail: "<?=  /* @noEscape */ $email ?>"
         };
-
     </script>
 <?php } ?>
 
 <?php if ($product = $block->productAbandoned()) : ?>
     <script data-cfasync="false" type="text/javascript">
-        var AVADA_EM = {
-            isTrackingEnabled: Boolean(<?= $block->getHelperEmailMarketing()->isTracking() ?>),
-            product: {
-                collections: [],
-                id: "<?= /* @noEscape */ $product['id'] ?>",
-                image: "<?= /* @noEscape */ $product['image'] ?>",
-                price: "<?= /* @noEscape */ $product['price'] ?>",
-                productType: "<?= /* @noEscape */ $product['productType'] ?>",
-                tags: [],
-                title: "<?= /* @noEscape */ $product['title'] ?>",
-                url: "<?= /* @noEscape */ $product['url'] ?>",
-                vendor: "magento"
-            },
-            shopId: "<?= /* @noEscape */ $shopId ?>",
-            template: "product"
+        window.AVADA_EM.product =  {
+            collections: [],
+            id: "<?= /* @noEscape */ $product['id'] ?>",
+            image: "<?= /* @noEscape */ $product['image'] ?>",
+            price: "<?= /* @noEscape */ $product['price'] ?>",
+            productType: "<?= /* @noEscape */ $product['productType'] ?>",
+            tags: [],
+            title: "<?= /* @noEscape */ $product['title'] ?>",
+            url: "<?= /* @noEscape */ $product['url'] ?>",
+            vendor: "magento"
         };
+        window.AVADA_EM.template = "product";
     </script>
 <?php endif ; ?>
 <script data-cfasync="false" type="text/javascript">(function(b){var s=document.createElement("script");s.type="text/javascript";s.async=true;s.src=b;var x=document.getElementsByTagName("script")[0];x.parentNode.insertBefore(s,x);})("https://app.avada.io/avada-sdk.min.js");</script>
