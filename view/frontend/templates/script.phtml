@@ -29,7 +29,7 @@ $isSuccessPage = $block->isSuccessPage();
 <script>
     window.AVADA_EM = window.AVADA_EM || {};
     window.AVADA_EM.shopId = "<?= /* @noEscape */ $shopId ?>";
-    window.AVADA_EM.isTrackingEnabled = "<?= /* @noEscape */ $block->getHelperEmailMarketing()->isTracking() ?>";
+    window.AVADA_EM.isTrackingEnabled = Boolean(<?= /* @noEscape */ $block->getHelperEmailMarketing()->isTracking() ?>);
     window.AVADA_EM.template = "<?= /* @noEscape */ "" ?>";
     window.AVADA_EM.currency = "<?= /* @noEscape */ $block->getCurrencyCode() ?>";
 </script>
