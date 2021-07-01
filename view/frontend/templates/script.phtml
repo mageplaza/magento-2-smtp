@@ -25,6 +25,7 @@
 
 $shopId = $block->getHelperEmailMarketing()->getAppID();
 $isSuccessPage = $block->isSuccessPage();
+$customerData = $block->getCustomerData();
 ?>
 <script>
     window.AVADA_EM = window.AVADA_EM || {};
@@ -32,6 +33,11 @@ $isSuccessPage = $block->isSuccessPage();
     window.AVADA_EM.isTrackingEnabled = Boolean(<?= /* @noEscape */ $block->getHelperEmailMarketing()->isTracking() ?>);
     window.AVADA_EM.template = "<?= /* @noEscape */ "" ?>";
     window.AVADA_EM.currency = "<?= /* @noEscape */ $block->getCurrencyCode() ?>";
+    window.AVADA_EM.customers = {
+        email: "<?=  /* @noEscape */ $customerData['email'] ?>",
+        firstName: "<?=  /* @noEscape */ $customerData['firstname'] ?>",
+        lastName: "<?=  /* @noEscape */ $customerData['lastname'] ?>"
+    };
 </script>
 <!-- BEGIN AVADA EMAIL MARKETING SCRIPT-->
 <?php if ($isSuccessPage && $block->getCurrentOrder()) {
