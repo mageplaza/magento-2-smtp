@@ -22,6 +22,7 @@
 namespace Mageplaza\Smtp\Block;
 
 use Magento\Catalog\Block\Product\Context;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\UrlInterface;
@@ -47,6 +48,11 @@ class Script extends Template
     protected $checkoutSession;
 
     /**
+     * @var CustomerSession
+     */
+    protected $customerSession;
+
+    /**
      * @var Registry
      */
     protected $registry;
@@ -57,6 +63,7 @@ class Script extends Template
      * @param Context $context
      * @param EmailMarketing $helperEmailMarketing
      * @param Session $checkoutSession
+     * @param CustomerSession $customerSession
      * @param Registry $registry
      * @param array $data
      */
@@ -64,11 +71,13 @@ class Script extends Template
         Context $context,
         EmailMarketing $helperEmailMarketing,
         Session $checkoutSession,
+        CustomerSession $customerSession,
         Registry $registry,
         array $data = []
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
         $this->checkoutSession      = $checkoutSession;
+        $this->customerSession      = $customerSession;
         $this->registry             = $registry;
         parent::__construct($context, $data);
     }
@@ -119,6 +128,32 @@ class Script extends Template
     public function getCurrencyCode()
     {
         return $this->_storeManager->getStore()->getCurrentCurrency()->getCode();
+    }
+
+    /**
+     * @return array
+     * @throws NoSuchEntityException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getCustomerData()
+    {
+        if (!$this->customerSession->getCustomerId()) {
+            $shippingAddress = $this->checkoutSession->getQuote()->getShippingAddress();
+            $data = [
+                'email' => $shippingAddress->getData('email') === null ? '' : $shippingAddress->getData('email'),
+                'firstname' => $shippingAddress->getData('firstname') === null ? '' : $shippingAddress->getData('firstname'),
+                'lastname' => $shippingAddress->getData('lastname') === null ? '' : $shippingAddress->getData('lastname')
+            ];
+            return $data;
+        } else {
+            $customer = $this->customerSession->getCustomer();
+            $data = [
+                'email' => $customer->getData('email') === null ? '' : $customer->getData('email'),
+                'firstname' => $customer->getData('firstname') === null ? '' : $customer->getData('firstname'),
+                'lastname' => $customer->getData('lastname') === null ? '' : $customer->getData('lastname')
+            ];
+            return $data;
+        }
     }
 
     /**
