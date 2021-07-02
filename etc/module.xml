@@ -22,6 +22,12 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
     <module name="Mageplaza_Smtp" setup_version="1.2.4">
         <sequence>
+            <module name="Magento_Config"/>
+            <module name="Magento_Customer"/>
+            <module name="Magento_Eav"/>
+            <module name="Magento_Quote"/>
+            <module name="Magento_Newsletter"/>
+            <module name="Magento_Sales"/>
             <module name="Mageplaza_Core"/>
         </sequence>
     </module>
