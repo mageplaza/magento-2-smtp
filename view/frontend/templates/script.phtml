@@ -33,7 +33,7 @@ $customerData = $block->getCustomerData();
     window.AVADA_EM.isTrackingEnabled = Boolean(<?= /* @noEscape */ $block->getHelperEmailMarketing()->isTracking() ?>);
     window.AVADA_EM.template = "<?= /* @noEscape */ "" ?>";
     window.AVADA_EM.currency = "<?= /* @noEscape */ $block->getCurrencyCode() ?>";
-    window.AVADA_EM.customers = {
+    window.AVADA_EM.customer = {
         email: "<?=  /* @noEscape */ $customerData['email'] ?>",
         firstName: "<?=  /* @noEscape */ $customerData['firstname'] ?>",
         lastName: "<?=  /* @noEscape */ $customerData['lastname'] ?>"
