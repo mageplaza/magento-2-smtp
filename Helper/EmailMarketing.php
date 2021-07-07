@@ -449,6 +449,16 @@ class EmailMarketing extends Data
      *
      * @return mixed
      */
+    public function getDefineVendor($storeId = null)
+    {
+        return $this->getEmailMarketingConfig('define_vendor', $storeId);
+    }
+
+    /**
+     * @param null $storeId
+     *
+     * @return mixed
+     */
     public function getAppID($storeId = null)
     {
         return $this->getEmailMarketingConfig('app_id', $storeId);
@@ -1000,6 +1010,13 @@ class EmailMarketing extends Data
                 }
             }
 
+            $products = $this->productRepository->get($item->getData('sku'));
+            if(is_object($products->getCustomAttribute($this->getDefineVendor()))){
+                $vendorValue = $products->getAttributeText($this->getDefineVendor());
+            } else {
+                $vendorValue = '';
+            }
+
             $itemRequest = [
                 'type'          => $productType,
                 'title'         => $item->getName(),
@@ -1010,7 +1027,8 @@ class EmailMarketing extends Data
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
                 'image'         => $this->getProductImage($product),
-                'frontend_link' => $product->getProductUrl() ?: '#'
+                'frontend_link' => $product->getProductUrl() ?: '#',
+                'vendor'        => $vendorValue
             ];
 
             if ($isQuote) {
