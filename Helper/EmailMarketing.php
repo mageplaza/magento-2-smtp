@@ -449,6 +449,16 @@ class EmailMarketing extends Data
      *
      * @return mixed
      */
+    public function getDefineVendor($storeId = null)
+    {
+        return $this->getEmailMarketingConfig('define_vendor', $storeId);
+    }
+
+    /**
+     * @param null $storeId
+     *
+     * @return mixed
+     */
     public function getAppID($storeId = null)
     {
         return $this->getEmailMarketingConfig('app_id', $storeId);
@@ -632,8 +642,8 @@ class EmailMarketing extends Data
             $data['gateway']             = $paymentTitle;
             $data['status']              = $object->getStatus();
             $data['state']               = $object->getState();
-            $data['total_price']         = (float)$object->getBaseGrandTotal();
-            $data['subtotal_price']      = (float)$object->getBaseSubtotal();
+            $data['total_price']         = $object->getBaseGrandTotal();
+            $data['subtotal_price']      = $object->getBaseSubtotal();
             $data['total_tax']           = $object->getBaseTaxAmount();
             $data['total_weight']        = $object->getTotalWeight() ?: '0';
             $data['total_shipping_cost'] = $object->getBaseShippingAmount();
@@ -759,8 +769,8 @@ class EmailMarketing extends Data
             'created_at'             => $createdAt,
             'updated_at'             => $updatedAt,
             'abandoned_checkout_url' => $this->getRecoveryUrl($quote),
-            'subtotal_price'         => $quote->getBaseSubtotal(),
-            'total_price'            => $quote->getBaseGrandTotal(),
+            'subtotal_price'         => (float)$quote->getBaseSubtotal(),
+            'total_price'            => (float)$quote->getData('base_grand_total'),
             'total_tax'              => !$quote->isVirtual() ? $quote->getShippingAddress()->getBaseTaxAmount() : 0,
             'customer_locale'        => null,
             'shipping_address'       => $this->getShippingAddress($quote, $address),
@@ -1000,6 +1010,13 @@ class EmailMarketing extends Data
                 }
             }
 
+            $products = $this->productRepository->get($item->getData('sku'));
+            if(is_object($products->getCustomAttribute($this->getDefineVendor()))){
+                $vendorValue = $products->getAttributeText($this->getDefineVendor());
+            } else {
+                $vendorValue = '';
+            }
+
             $itemRequest = [
                 'type'          => $productType,
                 'title'         => $item->getName(),
@@ -1010,7 +1027,8 @@ class EmailMarketing extends Data
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
                 'image'         => $this->getProductImage($product),
-                'frontend_link' => $product->getProductUrl() ?: '#'
+                'frontend_link' => $product->getProductUrl() ?: '#',
+                'vendor'        => $vendorValue
             ];
 
             if ($isQuote) {

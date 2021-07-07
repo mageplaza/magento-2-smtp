@@ -134,6 +134,13 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[By enabling Marketing Automation, you agree to the <a href="https://avada.io/tos.html" target="_blank">Terms & Conditions</a> and <a href="https://avada.io/dpa.html" target="_blank">Data processing agreement</a>.]]></comment>
                 </field>
+                <field id="define_vendor" translate="label comment" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Vendor Attribute Code</label>
+                    <comment><![CDATA[You need to go to attribute lists and get code]]></comment>
+                    <depends>
+                        <field id="email_marketing/general/enabled">1</field>
+                    </depends>
+                </field>
                 <field id="newsletter_subscriber" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Sync Newsletter Subscribers</label>
                     <source_model>Mageplaza\Smtp\Model\Config\Source\Newsletter</source_model>
@@ -141,6 +148,7 @@
                         <field id="email_marketing/general/enabled">1</field>
                     </depends>
                 </field>
+                //thêm 1 field text để khai báo attr code nào được định nghĩa là vendor
                 <field id="app_id" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>App ID</label>
                     <comment><![CDATA[Create API key <a href="https://app.avada.io/manage/keys" target="_blank">here</a>.]]></comment>
