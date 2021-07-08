@@ -148,7 +148,6 @@
                         <field id="email_marketing/general/enabled">1</field>
                     </depends>
                 </field>
-                //thêm 1 field text để khai báo attr code nào được định nghĩa là vendor
                 <field id="app_id" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>App ID</label>
                     <comment><![CDATA[Create API key <a href="https://app.avada.io/manage/keys" target="_blank">here</a>.]]></comment>
