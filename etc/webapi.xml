@@ -1,4 +1,5 @@
-<?xml version="1.0"?><!--
+<?xml version="1.0"?>
+<!--
 /**
  * Mageplaza
  *
@@ -19,14 +20,11 @@
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="Mageplaza_Smtp" setup_version="1.2.4">
-        <sequence>
-            <module name="Mageplaza_Core"/>
-            <module name="Magento_Customer"/>
-            <module name="Magento_Newsletter"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Sales"/>
-        </sequence>
-    </module>
-</config>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/carts/:cartId/update-order" method="POST">
+        <service class="Mageplaza\Smtp\Api\CheckoutManagementInterface" method="updateOrder"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+</routes>

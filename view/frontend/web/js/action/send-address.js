@@ -1,4 +1,3 @@
-<?xml version="1.0"?><!--
 /**
  * Mageplaza
  *
@@ -18,15 +17,22 @@
  * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="Mageplaza_Smtp" setup_version="1.2.4">
-        <sequence>
-            <module name="Mageplaza_Core"/>
-            <module name="Magento_Customer"/>
-            <module name="Magento_Newsletter"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Sales"/>
-        </sequence>
-    </module>
-</config>
+
+define([
+    'mage/storage',
+    'Mageplaza_Smtp/js/model/resource-url-manager',
+    'Magento_Checkout/js/model/quote'
+], function (storage, resourceUrlManager, quote) {
+    'use strict';
+
+    return function (address, isOsc) {
+        return storage.post(
+            resourceUrlManager.getUrlForUpdateOrder(quote),
+            JSON.stringify({
+                address: address,
+                isOsc: isOsc
+            }),
+            false
+        );
+    };
+});

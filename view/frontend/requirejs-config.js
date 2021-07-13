@@ -1,4 +1,3 @@
-<?xml version="1.0"?><!--
 /**
  * Mageplaza
  *
@@ -18,15 +17,18 @@
  * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="Mageplaza_Smtp" setup_version="1.2.4">
-        <sequence>
-            <module name="Mageplaza_Core"/>
-            <module name="Magento_Customer"/>
-            <module name="Magento_Newsletter"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Sales"/>
-        </sequence>
-    </module>
-</config>
+var config = {};
+if (typeof window.AVADA_EM !== 'undefined') {
+    config = {
+        config: {
+            mixins: {
+                'Magento_Checkout/js/view/billing-address': {
+                    'Mageplaza_Smtp/js/view/billing-address-mixins' : true
+                },
+                'Magento_Checkout/js/view/shipping': {
+                    'Mageplaza_Smtp/js/view/shipping-mixins' : true
+                }
+            }
+        }
+    };
+}

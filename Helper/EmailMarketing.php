@@ -75,6 +75,7 @@ use Magento\Framework\App\ResourceConnection;
 use Mageplaza\Smtp\Model\Config\Source\DaysRange;
 use Mageplaza\Smtp\Model\Config\Source\SyncOptions;
 use Zend_Db_Select_Exception;
+use Magento\Directory\Model\Region;
 
 /**
  * Class EmailMarketing
@@ -83,18 +84,18 @@ use Zend_Db_Select_Exception;
 class EmailMarketing extends Data
 {
     const IS_SYNCED_ATTRIBUTE = 'mp_smtp_is_synced';
-
-    const APP_URL            = 'https://app.avada.io/app/api/v1/connects';
-    const CHECKOUT_URL       = 'https://app.avada.io/app/api/v1/checkouts';
-    const CUSTOMER_URL       = 'https://app.avada.io/app/api/v1/customers';
-    const ORDER_URL          = 'https://app.avada.io/app/api/v1/orders';
-    const ORDER_COMPLETE_URL = 'https://app.avada.io/app/api/v1/orders/complete';
-    const INVOICE_URL        = 'https://app.avada.io/app/api/v1/orders/invoice';
-    const SHIPMENT_URL       = 'https://app.avada.io/app/api/v1/orders/ship';
-    const CREDITMEMO_URL     = 'https://app.avada.io/app/api/v1/orders/refund';
-    const DELETE_URL         = 'https://app.avada.io/app/api/v1/checkouts?id=';
-    const SYNC_CUSTOMER_URL  = 'https://app.avada.io/app/api/v1/customers/bulk';
-    const SYNC_ORDER_URL     = 'https://app.avada.io/app/api/v1/orders/bulk';
+    const API_URL            = 'https://app.avada.io';
+    const APP_URL            = self::API_URL . '/app/api/v1/connects';
+    const CHECKOUT_URL       = self::API_URL . '/app/api/v1/checkouts';
+    const CUSTOMER_URL       = self::API_URL . '/app/api/v1/customers';
+    const ORDER_URL          = self::API_URL . '/app/api/v1/orders';
+    const ORDER_COMPLETE_URL = self::API_URL . '/app/api/v1/orders/complete';
+    const INVOICE_URL        = self::API_URL . '/app/api/v1/orders/invoice';
+    const SHIPMENT_URL       = self::API_URL . '/app/api/v1/orders/ship';
+    const CREDITMEMO_URL     = self::API_URL . '/app/api/v1/orders/refund';
+    const DELETE_URL         = self::API_URL . '/app/api/v1/checkouts?id=';
+    const SYNC_CUSTOMER_URL  = self::API_URL . '/app/api/v1/customers/bulk';
+    const SYNC_ORDER_URL     = self::API_URL . '/app/api/v1/orders/bulk';
 
     /**
      * @var UrlInterface
@@ -248,6 +249,11 @@ class EmailMarketing extends Data
     protected $resourceConnection;
 
     /**
+     * @var Region
+     */
+    protected $region;
+
+    /**
      * EmailMarketing constructor.
      *
      * @param Context $context
@@ -277,6 +283,7 @@ class EmailMarketing extends Data
      * @param StoreFactory $storeFactory
      * @param CountryFactory $countryFactory
      * @param ResourceConnection $resourceConnection
+     * @param Region $region
      */
     public function __construct(
         Context $context,
@@ -305,7 +312,8 @@ class EmailMarketing extends Data
         Information $storeInfo,
         StoreFactory $storeFactory,
         CountryFactory $countryFactory,
-        ResourceConnection $resourceConnection
+        ResourceConnection $resourceConnection,
+        Region $region
     ) {
         parent::__construct($context, $objectManager, $storeManager);
 
@@ -333,6 +341,7 @@ class EmailMarketing extends Data
         $this->storeFactory               = $storeFactory;
         $this->countryFactory             = $countryFactory;
         $this->resourceConnection         = $resourceConnection;
+        $this->region                     = $region;
     }
 
     /**
@@ -433,6 +442,16 @@ class EmailMarketing extends Data
         }
 
         return $this->escaper->escapeHtml($customerName);
+    }
+
+    /**
+     * @param null $storeId
+     *
+     * @return mixed
+     */
+    public function getDefineVendor($storeId = null)
+    {
+        return $this->getEmailMarketingConfig('define_vendor', $storeId);
     }
 
     /**
@@ -614,6 +633,13 @@ class EmailMarketing extends Data
         }
 
         if ($object instanceof Order) {
+            $payment      = $object->getPayment();
+            $paymentTitle = '';
+            if ($payment && $payment->getMethodInstance()) {
+                $paymentTitle = $payment->getMethodInstance()->getTitle();
+            }
+
+            $data['gateway']             = $paymentTitle;
             $data['status']              = $object->getStatus();
             $data['state']               = $object->getState();
             $data['total_price']         = $object->getBaseGrandTotal();
@@ -701,12 +727,14 @@ class EmailMarketing extends Data
 
     /**
      * @param Quote $quote
+     * @param array|null $address
+     * @param boolean $isOsc
      *
      * @return array
-     * @throws NoSuchEntityException
      * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
-    public function getACEData($quote)
+    public function getACEData($quote, array $address = null, $isOsc = false)
     {
         $isActive         = (bool) $quote->getIsActive();
         $quoteCompletedAt = null;
@@ -741,45 +769,84 @@ class EmailMarketing extends Data
             'created_at'             => $createdAt,
             'updated_at'             => $updatedAt,
             'abandoned_checkout_url' => $this->getRecoveryUrl($quote),
-            'subtotal_price'         => $quote->getBaseSubtotal(),
-            'total_price'            => $quote->getBaseGrandTotal(),
+            'subtotal_price'         => (float)$quote->getBaseSubtotal(),
+            'total_price'            => (float)$quote->getData('base_grand_total'),
             'total_tax'              => !$quote->isVirtual() ? $quote->getShippingAddress()->getBaseTaxAmount() : 0,
             'customer_locale'        => null,
-            'shipping_address'       => $this->getShippingAddress($quote)
+            'shipping_address'       => $this->getShippingAddress($quote, $address),
+            'billing_address'        => $this->getBillingAddress($quote, $address, $isOsc)
         ];
     }
 
     /**
      * @param Quote $quote
+     * @param array|null $address
      *
      * @return array
      */
-    public function getShippingAddress(Quote $quote)
+    public function getShippingAddress(Quote $quote, $address = null)
     {
-        $address = [];
+        return $this->getAddress($quote, $quote->getShippingAddress(), $address, 'shippingAddress');
+    }
 
-        if (!$quote->isVirtual() && $quote->getShippingAddress()) {
+    /**
+     * @param Quote $quote
+     * @param array|null $address
+     * @param boolean $isOsc
+     *
+     * @return array
+     */
+    public function getBillingAddress(Quote $quote, $address = null, $isOsc = false)
+    {
+        $field         = 'billingAddress';
+        $paymentMethod = $quote->getPayment()->getMethod();
 
-            /**
-             * @var Address $shippingAddress
-             */
-            $shippingAddress = $quote->getShippingAddress();
-            $address         = [
-                'name'          => $shippingAddress->getName(),
-                'last_name'     => $shippingAddress->getLastname(),
-                'phone'         => $shippingAddress->getTelephone(),
-                'company'       => $shippingAddress->getCompany(),
-                'country_code'  => $shippingAddress->getCountryId(),
-                'zip'           => $shippingAddress->getPostcode(),
-                'address1'      => $shippingAddress->getStreetLine(1),
-                'address2'      => $shippingAddress->getStreetLine(2),
-                'city'          => $shippingAddress->getCity(),
-                'province_code' => $shippingAddress->getRegionCode(),
-                'province'      => $shippingAddress->getRegion()
+        if ($paymentMethod) {
+            if (!$isOsc) {
+                $field .= $paymentMethod;
+            }
+
+            return $this->getAddress($quote, $quote->getBillingAddress(), $address, $field);
+        }
+
+        return [];
+    }
+
+    /**
+     * @param Quote $quote
+     * @param Address $addressObject
+     * @param array|null $addr
+     * @param string $field
+     *
+     * @return array
+     */
+    public function getAddress(Quote $quote, Address $addressObject, array $addr = null, string $field)
+    {
+        $result = [];
+
+        if (!$quote->isVirtual() && $addressObject) {
+            $result = [
+                'name'          => (isset($addr[$field . '.firstname']) || isset($addr[$field . '.lastname']))
+                    ? $addr[$field . '.firstname'] . ' ' . $addr[$field . '.lastname']
+                    : $addressObject->getName(),
+                'last_name'     => $addr[$field . '.lastname'] ?? $addressObject->getLastname(),
+                'phone'         => $addr[$field . '.telephone'] ?? $addressObject->getTelephone(),
+                'company'       => $addr[$field . '.company'] ?? $addressObject->getCompany(),
+                'country_code'  => $addr[$field . '.country_id'] ?? $addressObject->getCountryId(),
+                'zip'           => $addr[$field . '.postcode'] ?? $addressObject->getPostcode(),
+                'address1'      => $addr[$field . '.street.0'] ?? $addressObject->getStreetLine(1),
+                'address2'      => $addr[$field . '.street.1'] ?? $addressObject->getStreetLine(2),
+                'city'          => $addr[$field . '.city'] ?? $addressObject->getCity(),
+                'province_code' => isset($addr[$field . '.region_id'])
+                    ? $this->region->load($addr[$field . '.region_id'])->getCode()
+                    : $addressObject->getRegionCode(),
+                'province'      => isset($addr[$field . '.region_id'])
+                    ? $this->region->load($addr[$field . '.region_id'])->getName()
+                    : $addressObject->getRegion()
             ];
         }
 
-        return $address;
+        return $result;
     }
 
     /**
@@ -943,20 +1010,29 @@ class EmailMarketing extends Data
                 }
             }
 
+            $products = $this->productRepository->get($item->getData('sku'));
+            if(is_object($products->getCustomAttribute($this->getDefineVendor()))){
+                $vendorValue = $products->getAttributeText($this->getDefineVendor());
+            } else {
+                $vendorValue = '';
+            }
+
             $itemRequest = [
                 'type'          => $productType,
                 'title'         => $item->getName(),
                 'name'          => $name,
                 'price'         => (float) $item->getBasePrice(),
+                'tax_price'     => (float) $item->getBaseTaxAmount(),
                 'quantity'      => (int) ($isQuote ? $item->getQty() : $item->getQtyOrdered()),
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
                 'image'         => $this->getProductImage($product),
-                'frontend_link' => $product->getProductUrl() ?: '#'
+                'frontend_link' => $product->getProductUrl() ?: '#',
+                'vendor'        => $vendorValue
             ];
 
             if ($isQuote) {
-                $itemRequest['line_price'] = $item->getBaseRowTotal();
+                $itemRequest['line_price'] = (float)$item->getBaseRowTotal();
             }
 
             if ($item->getHasChildren()) {
@@ -1181,29 +1257,32 @@ class EmailMarketing extends Data
         }
 
         $data = [
-            'id'           => (int) $customer->getId(),
-            'email'        => $customer->getEmail(),
-            'firstName'    => $customer->getFirstname(),
-            'lastName'     => $customer->getLastname(),
-            'phoneNumber'  => '',
-            'description'  => '',
-            'isSubscriber' => $isSubscriber,
-            'tags'         => $this->getTags($customer),
-            'source'       => 'Magento',
-            'timezone'     => $this->_localeDate->getConfigTimezone(
+            'id'            => (int) $customer->getId(),
+            'email'         => $customer->getEmail(),
+            'firstName'     => $customer->getFirstname(),
+            'lastName'      => $customer->getLastname(),
+            'phoneNumber'   => '',
+            'description'   => '',
+            'isSubscriber'  => $isSubscriber,
+            'tags'          => $this->getTags($customer),
+            'source'        => 'Magento',
+            'timezone'      => $this->_localeDate->getConfigTimezone(
                 ScopeInterface::SCOPE_STORE,
                 $customer->getStoreId()
-            )
+            ),
+            'customer_type' => 'new_customer'
         ];
 
         $defaultBillingAddress = $customer->getDefaultBillingAddress();
         if ($defaultBillingAddress) {
-            $data['country']     = $defaultBillingAddress->getCountryId();
-            $data['city']        = $defaultBillingAddress->getCity();
-            $renderer            = $this->_addressConfig->getFormatByCode(ElementFactory::OUTPUT_FORMAT_ONELINE)
+            $data['countryCode'] = $defaultBillingAddress->getCountryId();
+            $country              = $this->countryFactory->create()->loadByCode($data['countryCode']);
+            $data['country']      = $country->getName();
+            $data['city']         = $defaultBillingAddress->getCity();
+            $renderer             = $this->_addressConfig->getFormatByCode(ElementFactory::OUTPUT_FORMAT_ONELINE)
                 ->getRenderer();
-            $data['address']     = $renderer->renderArray($defaultBillingAddress->getData());
-            $data['phoneNumber'] = $defaultBillingAddress->getTelephone();
+            $data['address']      = $renderer->renderArray($defaultBillingAddress->getData());
+            $data['phoneNumber']  = $defaultBillingAddress->getTelephone();
         }
 
         if ($isUpdateOrder) {
@@ -1549,5 +1628,15 @@ class EmailMarketing extends Data
     public function isOnlyNotSync()
     {
         return $this->getEmailMarketingConfig('synchronization/sync_options') === SyncOptions::NOT_SYNC;
+    }
+
+    /**
+     * @param string|null $storeId
+     *
+     * @return mixed
+     */
+    public function isTracking($storeId = null)
+    {
+        return $this->getEmailMarketingConfig('is_tracking', $storeId);
     }
 }

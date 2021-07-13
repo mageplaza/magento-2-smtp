@@ -1,4 +1,4 @@
-<?xml version="1.0"?><!--
+<?php
 /**
  * Mageplaza
  *
@@ -18,15 +18,21 @@
  * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="Mageplaza_Smtp" setup_version="1.2.4">
-        <sequence>
-            <module name="Mageplaza_Core"/>
-            <module name="Magento_Customer"/>
-            <module name="Magento_Newsletter"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Sales"/>
-        </sequence>
-    </module>
-</config>
+
+namespace Mageplaza\Smtp\Api;
+
+/**
+ * Interface for update item information
+ * @api
+ */
+interface CheckoutManagementInterface
+{
+    /**
+     * @param string $cartId
+     * @param string $address
+     * @param boolean $isOsc
+     *
+     * @return bool
+     */
+    public function updateOrder($cartId, $address, $isOsc);
+}

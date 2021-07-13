@@ -134,6 +134,16 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[By enabling Marketing Automation, you agree to the <a href="https://avada.io/tos.html" target="_blank">Terms & Conditions</a> and <a href="https://avada.io/dpa.html" target="_blank">Data processing agreement</a>.]]></comment>
                 </field>
+                <field id="define_vendor" translate="label comment" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Attribute Code for Vendor</label>
+                    <comment><![CDATA[
+                    Only applicable with an attribute code </br>
+                    Go to <strong>Stores>Attributes>Product</strong> to get field information Attribute Code of <strong>Vendor</strong> attribute
+                    ]]></comment>
+                    <depends>
+                        <field id="email_marketing/general/enabled">1</field>
+                    </depends>
+                </field>
                 <field id="newsletter_subscriber" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Sync Newsletter Subscribers</label>
                     <source_model>Mageplaza\Smtp\Model\Config\Source\Newsletter</source_model>
@@ -164,6 +174,13 @@
                         <field id="email_marketing/general/enabled">1</field>
                     </depends>
                 </field>
+                <field id="is_tracking" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Tracking Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="email_marketing/general/enabled">1</field>
+                    </depends>
+                </field>
                 <group id="synchronization" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Synchronization</label>
                     <field id="sync_options" translate="label comment" sortOrder="4" type="select" showInDefault="1" showInStore="1" canRestore="1">
@@ -174,6 +191,7 @@
                     <field id="days_range" translate="label comment" sortOrder="4" type="select" showInDefault="1" showInStore="1" >
                         <label>Days Range</label>
                         <source_model>Mageplaza\Smtp\Model\Config\Source\DaysRange</source_model>
+                        <comment>If "Custom" is selected, all the records will be sync if the "Created From - To" is empty.</comment>
                     </field>
                     <field id="created_from" translate="label comment" sortOrder="5" type="text" showInDefault="1" showInStore="1" >
                         <label>Created From</label>
