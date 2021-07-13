@@ -137,8 +137,8 @@
                 <field id="define_vendor" translate="label comment" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Attribute Code for Vendor</label>
                     <comment><![CDATA[
-                    Only applicable with an attribute code
-                    Go to <strong>Stores>Attributes>Product</strong> to get field information Attribute Code of <strong>Vendor</strong>
+                    Only applicable with an attribute code </br>
+                    Go to <strong>Stores>Attributes>Product</strong> to get field information Attribute Code of <strong>Vendor</strong> attribute
                     ]]></comment>
                     <depends>
                         <field id="email_marketing/general/enabled">1</field>
