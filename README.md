@@ -165,3 +165,29 @@ The Clean Email Log Every field limits the storage time for the email you sent. 
 - magento 2.3 smtp
 - magento 2 smtp configuration
 
+**Orther Mageplaza extension on Github & Maketplace**
+
+☞ [Magento 2 One Page Checkout](https://marketplace.magento.com/mageplaza-magento-2-one-step-checkout-extension.html)
+
+☞ [Magento 2 SEO extension](https://marketplace.magento.com/mageplaza-magento-2-seo-extension.html)
+
+☞ [Magento 2 Reward Points extension](https://marketplace.magento.com/mageplaza-module-reward-points.html)
+
+☞ [Magento 2 Blog extension](https://marketplace.magento.com/mageplaza-magento-2-blog-extension.html)
+
+☞ [Magento 2 Layered Navigation extension](https://marketplace.magento.com/mageplaza-layered-navigation-m2.html)
+
+☞ [Magento 2 GDPR module](https://marketplace.magento.com/mageplaza-module-gdpr.html)
+
+☞ [Magento 2 Google Tag Manager](https://www.mageplaza.com/magento-2-google-tag-manager/)
+
+☞ [Magento 2 Social Login on Github](https://github.com/mageplaza/magento-2-social-login)
+
+☞ [Magento 2 SEO extension on Github](https://github.com/mageplaza/magento-2-seo)
+
+☞ [Magento 2 Blog extension on Github](https://github.com/mageplaza/magento-2-blog)
+
+☞ [Magento 2 Product Slider on Github](https://github.com/mageplaza/magento-2-product-slider)
+
+☞ [Magento 2 Login as Customer on Github](https://github.com/mageplaza/magento-2-login-as-customer)
+
