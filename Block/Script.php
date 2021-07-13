@@ -22,7 +22,9 @@
 namespace Mageplaza\Smtp\Block;
 
 use Magento\Catalog\Block\Product\Context;
+use Magento\Customer\Model\SessionFactory as CustomerSession;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\App\Http\Context as HttpContext;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\Template;
@@ -47,9 +49,19 @@ class Script extends Template
     protected $checkoutSession;
 
     /**
+     * @var CustomerSession
+     */
+    protected $customerSession;
+
+    /**
      * @var Registry
      */
     protected $registry;
+
+    /**
+     * @var HttpContext
+     */
+    protected $httpContext;
 
     /**
      * Script constructor.
@@ -57,19 +69,25 @@ class Script extends Template
      * @param Context $context
      * @param EmailMarketing $helperEmailMarketing
      * @param Session $checkoutSession
+     * @param CustomerSession $customerSession
      * @param Registry $registry
+     * @param HttpContext $httpContext
      * @param array $data
      */
     public function __construct(
         Context $context,
         EmailMarketing $helperEmailMarketing,
         Session $checkoutSession,
+        CustomerSession $customerSession,
         Registry $registry,
+        HttpContext $httpContext,
         array $data = []
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
         $this->checkoutSession      = $checkoutSession;
+        $this->customerSession      = $customerSession;
         $this->registry             = $registry;
+        $this->httpContext          = $httpContext;
         parent::__construct($context, $data);
     }
 
@@ -110,6 +128,42 @@ class Script extends Template
         }
 
         return parent::toHtml();
+    }
+
+    /**
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function getCurrencyCode()
+    {
+        return $this->_storeManager->getStore()->getCurrentCurrency()->getCode();
+    }
+
+    /**
+     * @return array
+     * @throws NoSuchEntityException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getCustomerData()
+    {
+        $isLoggedIn = $this->httpContext->getValue(\Magento\Customer\Model\Context::CONTEXT_AUTH);
+        if (!$isLoggedIn) {
+            $shippingAddress = $this->checkoutSession->getQuote()->getShippingAddress();
+            $data = [
+                'email' => $shippingAddress->getData('email') === null ? '' : $shippingAddress->getData('email'),
+                'firstname' => $shippingAddress->getData('firstname') === null ? '' : $shippingAddress->getData('firstname'),
+                'lastname' => $shippingAddress->getData('lastname') === null ? '' : $shippingAddress->getData('lastname')
+            ];
+            return $data;
+        } else {
+            $customer = $this->customerSession->create()->getCustomer();
+            $data = [
+                'email' => $customer->getData('email') === null ? '' : $customer->getData('email'),
+                'firstname' => $customer->getData('firstname') === null ? '' : $customer->getData('firstname'),
+                'lastname' => $customer->getData('lastname') === null ? '' : $customer->getData('lastname')
+            ];
+            return $data;
+        }
     }
 
     /**

@@ -84,18 +84,18 @@ use Magento\Directory\Model\Region;
 class EmailMarketing extends Data
 {
     const IS_SYNCED_ATTRIBUTE = 'mp_smtp_is_synced';
-
-    const APP_URL            = 'https://app.avada.io/app/api/v1/connects';
-    const CHECKOUT_URL       = 'https://app.avada.io/app/api/v1/checkouts';
-    const CUSTOMER_URL       = 'https://app.avada.io/app/api/v1/customers';
-    const ORDER_URL          = 'https://app.avada.io/app/api/v1/orders';
-    const ORDER_COMPLETE_URL = 'https://app.avada.io/app/api/v1/orders/complete';
-    const INVOICE_URL        = 'https://app.avada.io/app/api/v1/orders/invoice';
-    const SHIPMENT_URL       = 'https://app.avada.io/app/api/v1/orders/ship';
-    const CREDITMEMO_URL     = 'https://app.avada.io/app/api/v1/orders/refund';
-    const DELETE_URL         = 'https://app.avada.io/app/api/v1/checkouts?id=';
-    const SYNC_CUSTOMER_URL  = 'https://app.avada.io/app/api/v1/customers/bulk';
-    const SYNC_ORDER_URL     = 'https://app.avada.io/app/api/v1/orders/bulk';
+    const API_URL            = 'https://app.avada.io';
+    const APP_URL            = self::API_URL . '/app/api/v1/connects';
+    const CHECKOUT_URL       = self::API_URL . '/app/api/v1/checkouts';
+    const CUSTOMER_URL       = self::API_URL . '/app/api/v1/customers';
+    const ORDER_URL          = self::API_URL . '/app/api/v1/orders';
+    const ORDER_COMPLETE_URL = self::API_URL . '/app/api/v1/orders/complete';
+    const INVOICE_URL        = self::API_URL . '/app/api/v1/orders/invoice';
+    const SHIPMENT_URL       = self::API_URL . '/app/api/v1/orders/ship';
+    const CREDITMEMO_URL     = self::API_URL . '/app/api/v1/orders/refund';
+    const DELETE_URL         = self::API_URL . '/app/api/v1/checkouts?id=';
+    const SYNC_CUSTOMER_URL  = self::API_URL . '/app/api/v1/customers/bulk';
+    const SYNC_ORDER_URL     = self::API_URL . '/app/api/v1/orders/bulk';
 
     /**
      * @var UrlInterface
@@ -449,6 +449,16 @@ class EmailMarketing extends Data
      *
      * @return mixed
      */
+    public function getDefineVendor($storeId = null)
+    {
+        return $this->getEmailMarketingConfig('define_vendor', $storeId);
+    }
+
+    /**
+     * @param null $storeId
+     *
+     * @return mixed
+     */
     public function getAppID($storeId = null)
     {
         return $this->getEmailMarketingConfig('app_id', $storeId);
@@ -623,6 +633,13 @@ class EmailMarketing extends Data
         }
 
         if ($object instanceof Order) {
+            $payment      = $object->getPayment();
+            $paymentTitle = '';
+            if ($payment && $payment->getMethodInstance()) {
+                $paymentTitle = $payment->getMethodInstance()->getTitle();
+            }
+
+            $data['gateway']             = $paymentTitle;
             $data['status']              = $object->getStatus();
             $data['state']               = $object->getState();
             $data['total_price']         = $object->getBaseGrandTotal();
@@ -752,8 +769,8 @@ class EmailMarketing extends Data
             'created_at'             => $createdAt,
             'updated_at'             => $updatedAt,
             'abandoned_checkout_url' => $this->getRecoveryUrl($quote),
-            'subtotal_price'         => $quote->getBaseSubtotal(),
-            'total_price'            => $quote->getBaseGrandTotal(),
+            'subtotal_price'         => (float)$quote->getBaseSubtotal(),
+            'total_price'            => (float)$quote->getData('base_grand_total'),
             'total_tax'              => !$quote->isVirtual() ? $quote->getShippingAddress()->getBaseTaxAmount() : 0,
             'customer_locale'        => null,
             'shipping_address'       => $this->getShippingAddress($quote, $address),
@@ -993,6 +1010,13 @@ class EmailMarketing extends Data
                 }
             }
 
+            $products = $this->productRepository->get($item->getData('sku'));
+            if(is_object($products->getCustomAttribute($this->getDefineVendor()))){
+                $vendorValue = $products->getAttributeText($this->getDefineVendor());
+            } else {
+                $vendorValue = '';
+            }
+
             $itemRequest = [
                 'type'          => $productType,
                 'title'         => $item->getName(),
@@ -1003,11 +1027,12 @@ class EmailMarketing extends Data
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
                 'image'         => $this->getProductImage($product),
-                'frontend_link' => $product->getProductUrl() ?: '#'
+                'frontend_link' => $product->getProductUrl() ?: '#',
+                'vendor'        => $vendorValue
             ];
 
             if ($isQuote) {
-                $itemRequest['line_price'] = $item->getBaseRowTotal();
+                $itemRequest['line_price'] = (float)$item->getBaseRowTotal();
             }
 
             if ($item->getHasChildren()) {
@@ -1250,8 +1275,8 @@ class EmailMarketing extends Data
 
         $defaultBillingAddress = $customer->getDefaultBillingAddress();
         if ($defaultBillingAddress) {
-            $data['country_code'] = $defaultBillingAddress->getCountryId();
-            $country              = $this->countryFactory->create()->loadByCode($data['country_code']);
+            $data['countryCode'] = $defaultBillingAddress->getCountryId();
+            $country              = $this->countryFactory->create()->loadByCode($data['countryCode']);
             $data['country']      = $country->getName();
             $data['city']         = $defaultBillingAddress->getCity();
             $renderer             = $this->_addressConfig->getFormatByCode(ElementFactory::OUTPUT_FORMAT_ONELINE)
