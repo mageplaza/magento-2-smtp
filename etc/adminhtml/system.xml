@@ -123,9 +123,12 @@
                 </field>
             </group>
         </section>
+        <tab id="avada" translate="label" sortOrder="401" class="avada-extensions">
+            <label>Avada Marketing Automation</label>
+        </tab>
         <section id="email_marketing" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Marketing Automation</label>
-            <tab>mageplaza</tab>
+            <label>Configuration</label>
+            <tab>avada</tab>
             <resource>Mageplaza_Smtp::email_marketing</resource>
             <group id="general" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>General Configuration</label>
