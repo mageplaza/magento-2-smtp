@@ -135,7 +135,7 @@
                 <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[By enabling Marketing Automation, you agree to the <a href="https://avada.io/tos.html" target="_blank">Terms & Conditions</a> and <a href="https://avada.io/dpa.html" target="_blank">Data processing agreement</a>.]]></comment>
+                    <comment><![CDATA[By enabling <a href="https://avada.io/" target="_blank">Marketing Automation</a>, you agree to the <a href="https://avada.io/tos.html" target="_blank">Terms & Conditions</a> and <a href="https://avada.io/dpa.html" target="_blank">Data processing agreement</a>.]]></comment>
                 </field>
                 <field id="define_vendor" translate="label comment" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Attribute Code for Vendor</label>
@@ -177,7 +177,7 @@
                         <field id="email_marketing/general/enabled">1</field>
                     </depends>
                 </field>
-                <field id="is_tracking" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <field id="is_tracking" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Tracking Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
