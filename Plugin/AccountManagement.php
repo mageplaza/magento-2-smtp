@@ -78,7 +78,7 @@ class AccountManagement
         }
 
         /** @var Quote $quote */
-        $quote = $this->cartRepository->getActive($cartId);
+        $quote = $this->cartRepository->get($cartId);
         $quote->setCustomerEmail($customerEmail);
 
         try {
