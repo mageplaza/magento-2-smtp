@@ -184,6 +184,14 @@ class Host extends Field
                     'protocol' => 'tls'
                 ]
             ],
+            'migomail'    => [
+                'label' => __('Migomail'),
+                'info'  => [
+                    'host'     => 'sn1.migomta.one',
+                    'port'     => '587',
+                    'protocol' => 'tls'
+                ]
+            ],
             'mandrill'    => [
                 'label' => __('Mandrill'),
                 'info'  => [
