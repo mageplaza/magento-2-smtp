@@ -97,7 +97,7 @@ abstract class AbstractEstimate extends Action
                     $collection->addFieldToFilter('mp_smtp_email_marketing_synced', 1);
                 } catch (Exception $e) {
                     try {
-                        $collection->getSelect()->where('mp_smtp_email_marketing_synced', 0);
+                        $collection->getSelect()->where('mp_smtp_email_marketing_synced = ?', 0);
                     } catch (Exception $e) {
                         $result = [
                             'status'  => false,
