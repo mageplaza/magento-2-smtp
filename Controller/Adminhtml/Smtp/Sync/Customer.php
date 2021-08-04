@@ -97,7 +97,7 @@ class Customer extends Action
 
             if ($this->helperEmailMarketing->isOnlyNotSync()) {
                 try {
-                    $customers->addFieldToFilter('mp_smtp_email_marketing_synced', 1);
+                    $customers->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
                 } catch (Exception $e) {
                     try {
                         $customers->getSelect()->where('mp_smtp_email_marketing_synced = ?', 0);
