@@ -100,7 +100,7 @@ class Customer extends Action
                     $customers->addFieldToFilter('mp_smtp_email_marketing_synced', 1);
                 } catch (Exception $e) {
                     try {
-                        $customers->getSelect()->where('mp_smtp_email_marketing_synced', 1);
+                        $customers->getSelect()->where('mp_smtp_email_marketing_synced', 0);
                     } catch (Exception $e) {
                         $result = [
                             'status'  => false,
