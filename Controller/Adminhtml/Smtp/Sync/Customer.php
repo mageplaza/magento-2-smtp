@@ -96,18 +96,7 @@ class Customer extends Action
             $customers = $customerCollection->addFieldToFilter('entity_id', ['in' => $ids]);
 
             if ($this->helperEmailMarketing->isOnlyNotSync()) {
-                try {
-                    $customers->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
-                } catch (Exception $e) {
-                    try {
-                        $customers->getSelect()->where('mp_smtp_email_marketing_synced = ?', 0);
-                    } catch (Exception $e) {
-                        $result = [
-                            'status'  => false,
-                            'message' => $e->getMessage()
-                        ];
-                    }
-                }
+                $customers->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
             }
 
             if ($query = $this->helperEmailMarketing->queryExpr($daysRange, $from, $to, 'e')) {

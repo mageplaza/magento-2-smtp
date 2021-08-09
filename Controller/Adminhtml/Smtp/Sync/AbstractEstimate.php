@@ -93,18 +93,7 @@ abstract class AbstractEstimate extends Action
             $collection = $this->prepareCollection();
 
             if ($this->emailMarketing->isOnlyNotSync()) {
-                try {
-                    $collection->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
-                } catch (Exception $e) {
-                    try {
-                        $collection->getSelect()->where('mp_smtp_email_marketing_synced = ?', 0);
-                    } catch (Exception $e) {
-                        $result = [
-                            'status'  => false,
-                            'message' => $e->getMessage()
-                        ];
-                    }
-                }
+                $collection->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
             }
 
             $storeId    = $this->getRequest()->getParam('storeId');
