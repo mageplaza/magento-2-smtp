@@ -626,10 +626,17 @@ class EmailMarketing extends Data
         }
 
         if ($isShipment || $isCreditmemo || $isInvoice) {
-            $data['line_items'] = $this->getShipmentOrCreditmemoItems($object);
+            try {
+                $data['line_items'] = $this->getShipmentOrCreditmemoItems($object);
+            } catch (Exception $e) {
 
+            }
         } else {
-            $data['line_items'] = $this->getCartItems($object);
+            try {
+                $data['line_items'] = $this->getCartItems($object);
+            } catch (Exception $e) {
+
+            }
         }
 
         if ($object instanceof Order) {
