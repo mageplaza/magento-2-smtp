@@ -64,6 +64,9 @@
     <type name="Magento\Customer\Model\AccountManagement">
         <plugin name="mpsmtp_account_management" type="Mageplaza\Smtp\Plugin\AccountManagement"/>
     </type>
+    <type name="Magento\Eav\Model\Entity\AbstractEntity">
+        <plugin name="mpsmtp_handle_entity" type="Mageplaza\Smtp\Plugin\DefaultAttributes"/>
+    </type>
 
     <preference for="Mageplaza\Smtp\Api\CheckoutManagementInterface" type="Mageplaza\Smtp\Model\CheckoutManagement"/>
 </config>

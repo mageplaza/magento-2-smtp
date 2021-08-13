@@ -94,7 +94,7 @@ class Order extends Action
             $orders          = $orderCollection->addFieldToFilter('entity_id', ['in' => $ids]);
 
             if ($this->helperEmailMarketing->isOnlyNotSync()) {
-                $orderCollection->addFieldToFilter('mp_smtp_email_marketing_synced', 1);
+                $orderCollection->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
             }
 
             if ($query = $this->helperEmailMarketing->queryExpr($daysRange, $from, $to)) {

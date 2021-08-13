@@ -113,7 +113,7 @@ class Subscriber extends Action
             $subscribers = $collection->addFieldToFilter('subscriber_id', ['in' => $ids]);
 
             if ($this->helperEmailMarketing->isOnlyNotSync()) {
-                $subscribers->addFieldToFilter('mp_smtp_email_marketing_synced', 1);
+                $subscribers->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
             }
 
             $idUpdate    = [];
