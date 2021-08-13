@@ -77,11 +77,12 @@ class AccountManagement
             return $result;
         }
 
-        /** @var Quote $quote */
-        $quote = $this->cartRepository->getActive($cartId);
-        $quote->setCustomerEmail($customerEmail);
-
         try {
+
+            /** @var Quote $quote */
+            $quote = $this->cartRepository->getActive($cartId);
+            $quote->setCustomerEmail($customerEmail);
+
             $this->cartRepository->save($quote);
 
             return $result;
