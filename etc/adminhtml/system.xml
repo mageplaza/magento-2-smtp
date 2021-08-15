@@ -123,7 +123,7 @@
             </group>
         </section>
         <tab id="avada" translate="label" sortOrder="401" class="avada-extensions">
-            <label>Avada Marketing Automation</label>
+            <label>Marketing Automation</label>
         </tab>
         <section id="email_marketing" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Configuration</label>
@@ -134,7 +134,7 @@
                 <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[By enabling <a href="https://avada.io/" target="_blank">Marketing Automation</a>, you agree to the <a href="https://avada.io/tos.html" target="_blank">Terms & Conditions</a> and <a href="https://avada.io/dpa.html" target="_blank">Data processing agreement</a>.]]></comment>
+                    <comment><![CDATA[By enabling <a href="https://avada.io/platform/magento/?utm_source=m2-smtp" target="_blank">Marketing Automation</a>, you agree to the <a href="https://avada.io/tos.html" target="_blank">Terms & Conditions</a> and <a href="https://avada.io/dpa.html" target="_blank">Data processing agreement</a>.]]></comment>
                 </field>
                 <field id="define_vendor" translate="label comment" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Attribute Code for Vendor</label>
