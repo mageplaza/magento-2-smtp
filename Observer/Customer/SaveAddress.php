@@ -54,7 +54,7 @@ class SaveAddress implements ObserverInterface
         LoggerInterface $logger
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->logger = $logger;
+        $this->logger               = $logger;
     }
 
     /**
@@ -65,7 +65,7 @@ class SaveAddress implements ObserverInterface
         /**
          * @var Customer $customer
          */
-        $address = $observer->getEvent()->getDataObject();
+        $address  = $observer->getEvent()->getDataObject();
         $customer = $address->getCustomer();
         if ($address->getIsDefaultBilling() &&
             $customer->getMpSmtpIsSynced() &&

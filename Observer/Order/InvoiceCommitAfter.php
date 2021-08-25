@@ -23,6 +23,8 @@ namespace Mageplaza\Smtp\Observer\Order;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model\Order\Invoice;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 
@@ -50,6 +52,9 @@ class InvoiceCommitAfter implements ObserverInterface
 
     /**
      * @param Observer $observer
+     *
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function execute(Observer $observer)
     {
@@ -63,7 +68,7 @@ class InvoiceCommitAfter implements ObserverInterface
             if ($invoice->getId() && $invoice->getCreatedAt() == $invoice->getUpdatedAt()) {
                 $this->helperEmailMarketing->sendOrderRequest($invoice, EmailMarketing::INVOICE_URL);
             }
-             $this->helperEmailMarketing->updateCustomer($invoice->getOrder()->getCustomerId());
+            $this->helperEmailMarketing->updateCustomer($invoice->getOrder()->getCustomerId());
         }
     }
 }

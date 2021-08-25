@@ -91,6 +91,7 @@ class Subscriber extends Action
         $this->subscriberCollectionFactory = $subscriberCollectionFactory;
         $this->customerCollectionFactory   = $customerCollectionFactory;
         $this->_localeDate                 = $localeDate;
+
         parent::__construct($context);
     }
 
@@ -113,10 +114,10 @@ class Subscriber extends Action
             $subscribers = $collection->addFieldToFilter('subscriber_id', ['in' => $ids]);
 
             if ($this->helperEmailMarketing->isOnlyNotSync()) {
-                $subscribers->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
+                $subscribers->addFieldToFilter('mp_smtp_email_marketing_synced', 1);
             }
 
-            $idUpdate    = [];
+            $idUpdate = [];
 
             foreach ($subscribers as $subscriber) {
                 switch ($subscriber->getSubscriberStatus()) {
@@ -131,6 +132,8 @@ class Subscriber extends Action
                         break;
                 }
 
+                $updatedAt = $this->helperEmailMarketing->formatDate($subscriber->getChangeStatusAt());
+
                 if ($subscriber->getCustomerId()) {
                     $customerCollection = $this->customerCollectionFactory->create();
                     $customerCollection->addFieldToFilter('entity_id', ['eq' => $subscriber->getCustomerId()]);
@@ -144,6 +147,8 @@ class Subscriber extends Action
                         $customerData['status']       = $status;
                         $customerData['tags']         = 'newsletter';
                         $customerData['isSubscriber'] = true;
+                        $customerData['isSubscriber'] = true;
+                        $customerData['updated_at']   = $updatedAt;
                         $data[]                       = $customerData;
                     }
 
@@ -158,7 +163,8 @@ class Subscriber extends Action
                         'timezone'     => $this->_localeDate->getConfigTimezone(
                             ScopeInterface::SCOPE_STORE,
                             $subscriber->getStoreId()
-                        )
+                        ),
+                        'updated_at'   => $updatedAt
                     ];
 
                     $idUpdate[] = $subscriber->getId();
