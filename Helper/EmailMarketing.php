@@ -1289,7 +1289,7 @@ class EmailMarketing extends Data
                 $customer->getStoreId()
             ),
             'customer_type' => 'new_customer',
-            'dob'           => $this->formatDate($customer->getDob()),
+            'dob'           => $customer->getDob() ? $this->formatDate($customer->getDob()) : '',
             'created_at'    => $this->formatDate($customer->getCreatedAt()),
             'updated_at'    => $this->formatDate($customer->getUpdatedAt())
         ];
