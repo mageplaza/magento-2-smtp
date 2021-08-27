@@ -1283,7 +1283,7 @@ class EmailMarketing extends Data
                 $customer->getStoreId()
             ),
             'customer_type' => 'new_customer',
-            'dob'           => $customer->getDob(),
+            'dob'           => $this->formatDate($customer->getDob()),
             'created_at'    => $this->formatDate($customer->getCreatedAt()),
             'updated_at'    => $this->formatDate($customer->getUpdatedAt())
         ];
