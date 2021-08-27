@@ -1253,12 +1253,18 @@ class EmailMarketing extends Data
      * @param Customer $customer
      * @param bool $isLoadSubscriber
      * @param bool $isUpdateOrder
+     * @param null $address
      *
      * @return array
      * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
-    public function getCustomerData(Customer $customer, $isLoadSubscriber = false, $isUpdateOrder = false)
-    {
+    public function getCustomerData(
+        Customer $customer,
+        $isLoadSubscriber = false,
+        $isUpdateOrder = false,
+        $address = null
+    ) {
 
         if ($isLoadSubscriber) {
             $subscriber   = $this->_subscriberFactory->create()->loadByEmail($customer->getEmail());
@@ -1273,7 +1279,7 @@ class EmailMarketing extends Data
             'email'         => $customer->getEmail(),
             'firstName'     => $customer->getFirstname(),
             'lastName'      => $customer->getLastname(),
-            'phoneNumber'   => '',
+            'phoneNumber'   => $address ? $address->getTelephone() : '',
             'description'   => '',
             'isSubscriber'  => $isSubscriber,
             'tags'          => $this->getTags($customer),

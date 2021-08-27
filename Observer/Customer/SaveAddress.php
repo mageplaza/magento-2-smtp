@@ -74,7 +74,7 @@ class SaveAddress implements ObserverInterface
             $this->helperEmailMarketing->getAppID()
         ) {
             try {
-                $data = $this->helperEmailMarketing->getCustomerData($customer, true);
+                $data = $this->helperEmailMarketing->getCustomerData($customer, true, false, $address);
                 $this->helperEmailMarketing->syncCustomer($data, false);
 
             } catch (Exception $e) {
