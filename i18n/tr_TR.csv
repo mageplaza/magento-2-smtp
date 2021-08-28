@@ -1,0 +1,204 @@
+"Send Email","Mail Gönder"
+"Clear All Logs","Tüm Günlükleri Temizle"
+"Are you sure you want to clear all email logs?","Tüm günlükleri temizlemek istediğinizden emin misiniz ?"
+"Server Name (host)","Sunucu Adı (host)"
+Port,Port
+Protocol,Protokol
+"Transport Layer Security (TLS)","Transport Layer Security (TLS)"
+"Secure Sockets Layer (SSL)","Secure Sockets Layer (SSL)"
+None,Yok
+
+"Gmail, GSuite","Gmail, GSuite"
+"Amazon SES","Amazon SES"
+"US East (N. Virginia)","US East (N. Virginia)"
+"US West (Oregon)","US West (Oregon)"
+"EU (Ireland)","EU (Ireland)"
+Mailgun,Mailgun
+Mandrill,Mandrill
+Sendinblue,Sendinblue
+Sendgrid,Sendgrid
+"Elastic Email","Elastic Email"
+SparkPost,SparkPost
+Mailjet,Mailjet
+Postmark,Postmark
+"AOL Mail","AOL Mail"
+Comcast,Comcast
+GMX,GMX
+Hotmail,Hotmail
+Mail.com,Mail.com
+"O2 Mail","O2 Mail"
+Office365,Office365
+Orange,Orange
+Outlook,Outlook
+"Yahoo Mail","Yahoo Mail"
+"Yahoo Mail Plus","Yahoo Mail Plus"
+"Yahoo AU/NZ","Yahoo AU/NZ"
+AT&T,AT&T
+"NTL @ntlworld.com","NTL @ntlworld.com"
+"BT Connect","BT Connect"
+"Zoho Mail","Zoho Mail"
+Verizon,Verizon
+"BT Openworld","BT Openworld"
+"O2 Online Deutschland","O2 Online Deutschland"
+"1&1 Webmail","1&1 Webmail"
+OVH,OVH
+SMTP2GO,SMTP2GO
+
+"Customer synchronization has been completed.","Müşteri aktarımı tamamlandı."
+"The recovery succeeded.","Kurtarma tamamlandı."
+"Marketing Automation is disabled.","Pazarlama otomasyonu devre dışı."
+"The link is not available for your use","Bağlantı kullanımınız için uygun değil"
+"An error occurred while recovering your cart.","Sepetinizin geri yüklenmesi sırasında bir sorun oluştu."
+"An error occurred while logging in your account. Please try to log in again.","Hesabınıza giriş yapılırken bir sorun oluştu."
+"Please login with %1","Lütfen %1 ile giriş yapınız"
+"Abandoned Carts","Terkedilen Sepetler"
+Mageplaza,Mageplaza
+Smtp,Smtp
+"Cart recovery email was sent to the customer successfully!","Sepet kurtarma mesajı müşteriye gönderildi!"
+"Cart recovery email cannot sent to the customer.","Sepet kurtarma mesajı müşteriye gönderilemedi."
+"Cart recovery email is not sent to the customer yet.","Sepet kurtarma mesajı müşteriye henüz gönderilmedi."
+"Abandoned Cart #%1","Terkedilmiş Sepet #%1"
+Success,Başarılı
+"Something went wrong.","Bir sorun oluştu."
+"We can't process your request right now. %1","İsteğinizi şu an işleyemiyoruz. %1"
+"A total of 1 record have been deleted.","Toplam 1 kayıt silindi."
+"Email re-sent successfully!","E-posta mesajının yeniden gönderimi tamamlandı!"
+"We can't process your request right now.","İsteğinizi şu an işleyemiyoruz."
+"Email Log","Email Günlüğü"
+"Email Marketing","Email İle Pazarlama"
+"A total of %1 record(s) have been deleted.","Toplam %1 kayıt silindi."
+"We can't process your request for email log #%1","E-mail günlüğü için işlem isteğinizi yerine getiremiyoruz #%1"
+"A total of %1 record(s) have been sent.","Toplam %1 kayıt gönderildi."
+"App ID or Secret Key is empty","App ID veya Gizli Anahtar verisi boş"
+"No customers to synchronize.","Aktarılacak müşteri bulunamadı."
+"Sent successfully! Please check your email box.","Gönderildi! Lütfen e-mail kutunuzu kontrol ediniz."
+"Test Error","Test Hatası"
+"Email marketing connection is working properly.","E-mail pazarlama bağlantısı sorunsuz çalışıyor."
+"Can't connect to the email marketing app. Please check the app id and secret key.","E-mail pazarlama uygulamasına bağlanılamıyor. Lütfen App Id veya Gizli Anahtar verisini kontrol ediniz."
+"Error : %1","Hata : %1"
+"%1 not found.","%1 bulunamadı."
+"A host is necessary for smtp transport, but none was given","SMTP erişimi için bir sunucu bilgisi gerekli. Ancak bu veri girilmemiş."
+NONE,YOK
+PLAIN,DÜZ
+LOGIN,GİRİŞ
+CRAM-MD5,CRAM-MD5
+SSL,SSL
+TLS,TLS
+Sent,Gönderildi
+"Wait for send","Göndermek için bekle"
+Error,Hata
+View,Göster
+Resend,Tekrar Gönder
+"Resend Email","E-maili Tekrar Gönder"
+"Are you sure you want to resend the email <strong>""%1""</strong>?","<strong>""%1""</strong> e-mailini tekrar göndermek istediğinizden emin misiniz ?"
+Delete,Sil
+"Delete Log","Günlüğü Sil"
+"Are you sure you want to delete this log?","BU günlüğü silmek istediğinizden emin misiniz ?"
+"Load Settings","Ayarları Yükle"
+Syncing...,Aktarılıyor...
+"Cart Recovery Information","Sepet Kurtarma Bilgisi"
+"Cart Recovery Link","Sepet Kurtarma Bağlantısı"
+"Copy link","Bağlantıyı Kopyala"
+"Copy to clipboard","Kopyala"
+"Send your customer this link to recover their cart","Müşterinize sepetini kurtarmak için bu bağlantıyı yollayınız"
+"Cart Recovery Email Status","Sepet Kurtarma Email Durumu"
+"Sent Date Logs","Gönderim Zamanı Günlükleri"
+"View all email logs ","Tüm mail günlüklerini göster "
+here,burada
+"Cart Details","Sepet Detayları"
+"Quote ID","Sepet No"
+"Store View","Mağaza Görünümü"
+"Created Date","Oluşturma Tarihi"
+"Customer Name","Müşteri Adı"
+"Customer Email","Müşteri Email Adresi"
+"Customer Group","Müşteri Grubu"
+"Shipping Address","Teslimat Adresi"
+"Billing Address","Fatura Adresi"
+"Cart Items","Sepet Satırları"
+Product,Ürün
+Price,Fiyat
+Qty,Adet
+Subtotal,Ara Toplam
+SKU,Ürün Kodu
+"Cart Total","Sepet Toplamı"
+"Subtotal (Excl. Tax)","Ara Toplam (Vergi Hariç)"
+"Subtotal (Incl. Tax)","Ara Toplam (Vergi Dahil)"
+"Cart Recovery Email","Sepet Kurtarma Maili"
+Send,Gönder
+Preview,Önizleme
+Back,Geri
+Sender,Gönderici
+To,Alıcı
+"Email Template","Email Şablonu"
+"You can go to  <strong>Marketing > Communications > Email Template</strong> to create new template or edit available template","You can go to  <strong>Marketing > Communications > Email Template</strong> to create new template or edit available template"
+"Additional Message","Ek Mesaj"
+From,Gönderen
+Subject,Konu
+"Copied the link","Bağlantı kopyalandı"
+Image,Resim
+"Product Name","Ürün Adı"
+"Excl. Tax:","Vergi Hariç:"
+"Incl. Tax:","Vergi Dahil:"
+"Subtotal (Excl.Tax)","Ara Toplam (Vergi Hariç)"
+"Subtotal (Incl.Tax)","Ara Toplam (Vergi Dahil)"
+"Please comeback and complete your purchase!","Sitemize tekrar gelip alışverişinizi tamamlayabilirsiniz!"
+"Hello %name,","Merhaba %name,"
+"Look like you left something in your shopping cart on our site. Please allow me to take you directly back to your cart with no extra fee. I'd be happy to.","Sitemizdeki sepetiniz sizi bekliyor. Siparişinizi hemen tamamlamak ister misiniz ?"
+%additionalMessage,%additionalMessage
+"<a href=""%cart_recovery_link"">Go to your cart</a>","<a href=""%cart_recovery_link"">Sepete Git</a>"
+"TEST EMAIL from Custom SMTP","Özel SMTP Üzerinden TEST MESAJI"
+"Your store has been connected with a custom SMTP successfully. Now you can Save Config and use this connection.","Mağazanızın SMTP bağlantısı yapıldı. Artık ayarları kaydedebilir ve bu bağlantıyı kullanabilirsiniz."
+"Mageplaza Smtp","Mageplaza Smtp"
+"Emails Log","Email Günlüğü"
+"Abandoned Cart","Terkedilen Sepet"
+SMTP,SMTP
+"General Configuration","Genel Ayarlar"
+"Enable Mageplaza SMTP","Mageplaza SMTP Eklentisini Aç"
+"Log Emails","Günlük (Log) Emailleri"
+"It will log all sent emails, you can preview it and schedule clean up.","It will log all sent emails, you can preview it and schedule clean up."
+"Clean Email Log Every","Email Günlüğü Silme Aralığı"
+"Day(s). If empty or zero, the Email log will not be cleaned.","Gün. Boş bırakır veya 0 (sıfır) girerseniz e-mail günlükleri silinmez."
+Blacklist,Kara Liste
+"Enter the main email pattern format. Separated by line breaks.<br />
+                        For the email having the same pattern format with this main pattern, it can not receive email from the system.<br />
+                        For example: Enter the pattern: /^[0-9][a-z0-9\$\%\&]+@[a-z]+\.[a-z]{2,}$/ means that email format must start with number, the following characters can be normal text, number or special character ($, %, &). The domain after @ with normal-text characters will not receive email from system. For instance: 1abc@example.com</br>
+                        For more details of writing email pattern, please see it <a href="" https://docs.mageplaza.com/smtp-m2/index.html"" target=""_blank"">here</a>.","Her satıra bir kayıt gelecek şekilde ana e-posta şablonunu girin.<br />
+                         Bu biçime uygun olan adresler sistemden e-mail alamayacaktır.<br />
+                         Örneğin: Şu kalıbı girin: /^[0-9][a-z0-9\$\%\&]+@[az]+\.[az]{2,}$/<br /> 
+			 Bu kalıp -posta biçiminin rakamla başlaması gerektiğini ve devamında da harf,rakam veya özel karakter olabileceğini belirtir. @'den sonra normal metin karakterli alan adı sistemden e-posta almaz. Örneğin: 1abc@example.com</br>
+                         E-posta kalıbı yazmayla ilgili daha fazla ayrıntı için lütfen <a href="" https://docs.mageplaza.com/smtp-m2/index.html"" target=""_blank"">buraya</a> bakın."
+"SMTP Configuration Options","SMTP Ayar Seçenekleri"
+Host,Sunucu
+"Support Host name and IP Address","Sunucu Adı, Adresi veya IP Adresi"
+"Default ports: 25, 465, or 587. Port 465 (SSL required), Port 587 (TLS required)","Varsayılan portlar : 25, 465 veya 587. Port 465 için SSL, Port 587 için TLS gereklidir."
+"We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols.","Şu güvenli bağlantı tiplerinden birini kullanmanızı öneririz : SSL (Secure Socket Layer) veya TLS (Transport Layer Security)."
+Authentication,Kimlik Doğrulama
+Username,Kullanıcı Adı
+Password,Şifre
+"Return-Path Email","E-mail Dönüş Adresi"
+"Leave empty to ignore it.","Gözardı etmek için boş bırakınız."
+"Send Test Email","Test Maili Gönder"
+"Send From","Gönderici"
+"Send To","Alıcı"
+Developer,Geliştirici
+"Developer Mode","Geliştirici Modu"
+"If Enable, Magento will not delivery any email to receiver. This is useful for developers.","Eğer bu özellik açık olursa , Magento hiç bir alıcıya mesaj göndermeyecektir. Bu özellik geliştiricilerin test yapabilmesi için eklenmiştir."
+"Marketing Automation","Pazarlama Otomasyonu"
+Enable,Aç
+"By enable AVADA Email Marketing, it means that you agree with the <a href=""https://avada.io/tos.html"" target=""_blank"">Terms & Conditions</a> and <a href=""https://avada.io/dpa.html"" target=""_blank"">Data processing agreement</a>.","AVADA Email Pazarlama özelliğini açarak,<a href=""https://avada.io/tos.html"" target=""_blank"">Kullanım Koşulları</a> ve <a href=""https://avada.io/dpa.html"" target=""_blank"">Veri İşleme Şartnamesini</a> onaylamış olacaksınız."
+"App ID","App ID"
+"Create API key <a href=""https://app.avada.io/manage/keys"" target=""_blank"">here</a>.","Api Anahtarı oluşturmak için <a href=""https://app.avada.io/manage/keys"" target=""_blank"">buraya</a> tıklayınız."
+"Secret key","Gizli Anahtar"
+Synchronization,Aktarım
+"All Store Views","Tüm Mağaza Görünümleri"
+Customer,Müşteri
+Status,Durum
+"Created At","Oluşturma Tarihi"
+"Resend items","Kayıtları Yeniden Gönder"
+"Are you sure to resend selected log(s)?","Seçili günlükleri tekrar göndermek istediğinizden emin misiniz ?"
+"Delete items","Kayıtları Sil"
+"Are you sure to delete selected log email(s)?","Seçili günlük (log) maillerini silmek istediğinizden emin misiniz ?"
+ID,ID
+Recipient,Alıcı
+Cc,Cc
+Bcc,Bcc
