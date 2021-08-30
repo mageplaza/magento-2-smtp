@@ -121,7 +121,6 @@ class Mail
         return $this;
     }
 
-
     /**
      * @param $storeId
      *
@@ -143,7 +142,7 @@ class Mail
      * @throws Zend_Exception
      */
     protected function createTransportForStore($storeId)
-{
+    {
         if (!isset($this->_smtpOptions[$storeId])) {
             $configData = $this->smtpHelper->getSmtpConfig('', $storeId);
             $options    = [
