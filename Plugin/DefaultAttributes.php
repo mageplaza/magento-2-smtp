@@ -21,7 +21,6 @@
 
 namespace Mageplaza\Smtp\Plugin;
 
-use Magento\Framework\Exception\MailException;
 use Magento\Eav\Model\Entity\AbstractEntity;
 
 /**
@@ -32,7 +31,8 @@ class DefaultAttributes
 {
     /**
      * @param AbstractEntity $subject
-     * @param $result
+     * @param array $result
+     *
      * @return array
      */
     public function afterGetDefaultAttributes(AbstractEntity $subject, $result)

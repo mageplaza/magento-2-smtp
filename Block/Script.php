@@ -22,9 +22,9 @@
 namespace Mageplaza\Smtp\Block;
 
 use Magento\Catalog\Block\Product\Context;
+use Magento\Customer\Model\Context as CustomerContext;
 use Magento\Catalog\Helper\Data;
 use Magento\Catalog\Model\Product;
-use Magento\Catalog\Pricing\Price\FinalPrice;
 use Magento\Customer\Model\SessionFactory as CustomerSession;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Http\Context as HttpContext;
@@ -163,12 +163,12 @@ class Script extends Template
 
     /**
      * @return array
-     * @throws NoSuchEntityException
      * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function getCustomerData()
     {
-        $isLoggedIn = $this->httpContext->getValue(\Magento\Customer\Model\Context::CONTEXT_AUTH);
+        $isLoggedIn = $this->httpContext->getValue(CustomerContext::CONTEXT_AUTH);
         if (!$isLoggedIn) {
             $shippingAddress = $this->checkoutSession->getQuote()->getShippingAddress();
             $data            = [
@@ -193,7 +193,7 @@ class Script extends Template
     }
 
     /**
-     * @return array|false
+     * @return array|bool
      * @throws NoSuchEntityException
      */
     public function productAbandoned()

@@ -185,15 +185,19 @@
                 </field>
                 <group id="synchronization" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Synchronization</label>
+                    <field id="sync_type" translate="label comment" sortOrder="3" type="select" showInDefault="1" showInStore="1" canRestore="1">
+                        <label>Sync type</label>
+                        <source_model>Mageplaza\Smtp\Model\Config\Source\SyncType</source_model>
+                    </field>
                     <field id="sync_options" translate="label comment" sortOrder="4" type="select" showInDefault="1" showInStore="1" canRestore="1">
                         <label>Choose what to sync</label>
                         <source_model>Mageplaza\Smtp\Model\Config\Source\SyncOptions</source_model>
-                        <comment>If "New Object" is selected, only sync objects that have never been synced to Marketing Automation App</comment>
+                        <comment>If "New Object Only" is selected, only sync objects that have never been synced to Marketing Automation App</comment>
                     </field>
-                    <field id="days_range" translate="label comment" sortOrder="4" type="select" showInDefault="1" showInStore="1" >
-                        <label>Days Range</label>
+                    <field id="days_range" translate="label comment" sortOrder="4" type="select" showInDefault="1" showInStore="1" canRestore="1">
+                        <label>Days</label>
                         <source_model>Mageplaza\Smtp\Model\Config\Source\DaysRange</source_model>
-                        <comment>If "Custom" is selected, all the records will be sync if the "Created From - To" is empty.</comment>
+                        <comment>If "Choose Date Range" is selected, all the records will be sync if the "Created From - To" is empty.</comment>
                     </field>
                     <field id="created_from" translate="label comment" sortOrder="5" type="text" showInDefault="1" showInStore="1" >
                         <label>Created From</label>
@@ -202,23 +206,11 @@
                             <field id="email_marketing/general/synchronization/days_range">custom</field>
                         </depends>
                     </field>
-                    <field id="sync_customer" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <field id="sync" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label></label>
-                        <button_label>Synchronize Customers</button_label>
-                        <button_url>adminhtml/smtp_sync/customer</button_url>
-                        <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncCustomer</frontend_model>
-                    </field>
-                    <field id="sync_order" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label></label>
-                        <button_label>Synchronize Orders</button_label>
-                        <button_url>adminhtml/smtp_sync/order</button_url>
-                        <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncOrder</frontend_model>
-                    </field>
-                    <field id="sync_subscriber" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label></label>
-                        <button_label>Synchronize Subscribers</button_label>
-                        <button_url>adminhtml/smtp_sync/subscriber</button_url>
-                        <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncSubscriber</frontend_model>
+                        <button_label>Synchronize Now</button_label>
+                        <button_url>adminhtml/smtp_sync/sync</button_url>
+                        <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\Sync</frontend_model>
                     </field>
                     <depends>
                         <field id="email_marketing/general/enabled">1</field>

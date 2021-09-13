@@ -37,7 +37,9 @@
                 <is_tracking>0</is_tracking>
                 <newsletter_subscriber>0</newsletter_subscriber>
                 <synchronization>
+                    <sync_type>1</sync_type>
                     <sync_options>all</sync_options>
+                    <days_range>lifetime</days_range>
                 </synchronization>
             </general>
         </email_marketing>
