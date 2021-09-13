@@ -73,7 +73,6 @@ use Magento\Directory\Model\CountryFactory;
 use Zend_Db_Expr;
 use Magento\Framework\App\ResourceConnection;
 use Mageplaza\Smtp\Model\Config\Source\DaysRange;
-use Mageplaza\Smtp\Model\Config\Source\SyncOptions;
 use Zend_Db_Select_Exception;
 use Magento\Directory\Model\Region;
 
@@ -315,8 +314,6 @@ class EmailMarketing extends Data
         ResourceConnection $resourceConnection,
         Region $region
     ) {
-        parent::__construct($context, $objectManager, $storeManager);
-
         $this->frontendUrl                = $frontendUrl;
         $this->escaper                    = $escaper;
         $this->productConfig              = $catalogConfiguration;
@@ -342,6 +339,8 @@ class EmailMarketing extends Data
         $this->countryFactory             = $countryFactory;
         $this->resourceConnection         = $resourceConnection;
         $this->region                     = $region;
+
+        parent::__construct($context, $objectManager, $storeManager);
     }
 
     /**
@@ -508,9 +507,12 @@ class EmailMarketing extends Data
      * @param string|null $date
      *
      * @return string
+     * @throws LocalizedException
      */
     public function formatDate($date)
     {
+        $date = $this->_localeDate->convertConfigTimeToUtc($date);
+
         return $this->_localeDate->formatDateTime(
             $date,
             IntlDateFormatter::MEDIUM,
@@ -818,7 +820,7 @@ class EmailMarketing extends Data
      *
      * @return array
      */
-    public function getAddress(Quote $quote, Address $addressObject, array $addr = null, string $field)
+    public function getAddress(Quote $quote, Address $addressObject, $addr, $field)
     {
         $result = [];
 
@@ -1643,14 +1645,6 @@ class EmailMarketing extends Data
             $connection->rollBack();
             throw $e;
         }
-    }
-
-    /**
-     * @return mixed
-     */
-    public function isOnlyNotSync()
-    {
-        return $this->getEmailMarketingConfig('synchronization/sync_options') === SyncOptions::NOT_SYNC;
     }
 
     /**
