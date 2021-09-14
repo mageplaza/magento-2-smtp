@@ -95,6 +95,7 @@ class EmailMarketing extends Data
     const DELETE_URL          = self::API_URL . '/app/api/v1/checkouts?id=';
     const SYNC_CUSTOMER_URL   = self::API_URL . '/app/api/v1/customers/bulk';
     const SYNC_ORDER_URL      = self::API_URL . '/app/api/v1/orders/bulk';
+    const PROXY_URL           = self::API_URL . '/app/api/v1/proxy';
 
     /**
      * @var UrlInterface
@@ -253,6 +254,11 @@ class EmailMarketing extends Data
     protected $region;
 
     /**
+     * @var Collection
+     */
+    protected $abandonedCartCollection;
+
+    /**
      * EmailMarketing constructor.
      *
      * @param Context $context
@@ -283,6 +289,7 @@ class EmailMarketing extends Data
      * @param CountryFactory $countryFactory
      * @param ResourceConnection $resourceConnection
      * @param Region $region
+     * @param Collection $abandonedCartCollection
      */
     public function __construct(
         Context $context,
@@ -312,7 +319,8 @@ class EmailMarketing extends Data
         StoreFactory $storeFactory,
         CountryFactory $countryFactory,
         ResourceConnection $resourceConnection,
-        Region $region
+        Region $region,
+        Collection $abandonedCartCollection
     ) {
         $this->frontendUrl                = $frontendUrl;
         $this->escaper                    = $escaper;
@@ -339,6 +347,7 @@ class EmailMarketing extends Data
         $this->countryFactory             = $countryFactory;
         $this->resourceConnection         = $resourceConnection;
         $this->region                     = $region;
+        $this->abandonedCartCollection    = $abandonedCartCollection;
 
         parent::__construct($context, $objectManager, $storeManager);
     }
@@ -688,11 +697,12 @@ class EmailMarketing extends Data
      */
     public function sendOrderRequest($object, $url = '')
     {
-        if (!$url) {
-            $url = self::ORDER_URL;
-        }
+        $data = $this->getOrderData($object);
 
-        $data          = $this->getOrderData($object);
+        if (!$url) {
+            $data['checkout_id'] = $object->getQuoteId();
+            $url                 = self::ORDER_URL;
+        }
         $this->storeId = $object->getStoreId();
         $this->sendRequest($data, $url);
     }
@@ -850,9 +860,10 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param Shipment | Creditmemo $object
+     * @param Shipment|Creditmemo $object
      *
      * @return array
+     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function getShipmentOrCreditmemoItems($object)
@@ -986,6 +997,7 @@ class EmailMarketing extends Data
      * @param Quote|Shipment|Creditmemo|Order $object
      *
      * @return array
+     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function getCartItems($object)
@@ -1469,7 +1481,9 @@ class EmailMarketing extends Data
             'address1'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE1, $scope, $scopeCode),
             'address2'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE2, $scope, $scopeCode),
             'email'         => $this->getConfigData('trans_email/ident_general/email'),
-            'contact_count' => $this->getContactCount() ?: 0
+            'contact_count' => $this->getContactCount() ?: 0,
+            'order_count'   => $this->orderCollection->getSize(),
+            'ace_count'     => $this->abandonedCartCollection->getSize()
         ];
 
         if ($info['countryCode']) {
@@ -1655,5 +1669,24 @@ class EmailMarketing extends Data
     public function isTracking($storeId = null)
     {
         return $this->getEmailMarketingConfig('is_tracking', $storeId);
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return mixed
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function sendRequestProxy($data)
+    {
+        $this->initCurl();
+        $body = $this->setHeaders($data, self::PROXY_URL);
+        $this->_curl->post($this->url, $body);
+        $body        = $this->_curl->getBody();
+        $bodyData    = self::jsonDecode($body);
+        $this->_curl = '';
+
+        return $bodyData;
     }
 }
