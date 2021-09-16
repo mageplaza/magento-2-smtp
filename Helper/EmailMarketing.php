@@ -65,6 +65,7 @@ use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 use Magento\Shipping\Helper\Data as ShippingHelper;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Mageplaza\Smtp\Model\ResourceModel\AbandonedCart\Grid\Collection;
 use Psr\Log\LoggerInterface;
 use Magento\Sales\Model\Order\Config as OrderConfig;
 use Magento\Store\Model\Information;
