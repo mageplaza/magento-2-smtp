@@ -96,7 +96,7 @@ class EmailMarketing extends Data
     const DELETE_URL          = self::API_URL . '/app/api/v1/checkouts?id=';
     const SYNC_CUSTOMER_URL   = self::API_URL . '/app/api/v1/customers/bulk';
     const SYNC_ORDER_URL      = self::API_URL . '/app/api/v1/orders/bulk';
-    const PROXY_URL           = self::API_URL . '/app/api/v1/proxy';
+    const PROXY_URL           = self::API_URL . '/app/api/v1/proxy/';
 
     /**
      * @var UrlInterface
@@ -1681,8 +1681,12 @@ class EmailMarketing extends Data
      */
     public function sendRequestProxy($data)
     {
+        $url = self::PROXY_URL;
+        if (isset($data['path'])) {
+            $url = self::PROXY_URL . $data['path'];
+        }
         $this->initCurl();
-        $body = $this->setHeaders($data, self::PROXY_URL);
+        $body = $this->setHeaders($data, $url);
         $this->_curl->post($this->url, $body);
         $body        = $this->_curl->getBody();
         $bodyData    = self::jsonDecode($body);
