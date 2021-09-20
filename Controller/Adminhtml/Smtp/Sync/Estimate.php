@@ -33,6 +33,7 @@ use Magento\Newsletter\Model\ResourceModel\Subscriber\Collection as SubscriberCo
 use Magento\Newsletter\Model\ResourceModel\Subscriber\CollectionFactory as SubscriberCollectionFactory;
 use Magento\Newsletter\Model\Subscriber;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
+use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 use Magento\Framework\Phrase;
@@ -84,6 +85,11 @@ class Estimate extends Action
     protected $subscriberCollectionFactory;
 
     /**
+     * @var Data
+     */
+    protected $helperData;
+
+    /**
      * Estimate constructor.
      *
      * @param Context $context
@@ -91,18 +97,21 @@ class Estimate extends Action
      * @param CustomerCollectionFactory $customerCollectionFactory
      * @param OrderCollectionFactory $orderCollectionFactory
      * @param SubscriberCollectionFactory $subscriberCollectionFactory
+     * @param Data $helperData
      */
     public function __construct(
         Context $context,
         EmailMarketing $emailMarketing,
         CustomerCollectionFactory $customerCollectionFactory,
         OrderCollectionFactory $orderCollectionFactory,
-        SubscriberCollectionFactory $subscriberCollectionFactory
+        SubscriberCollectionFactory $subscriberCollectionFactory,
+        Data $helperData
     ) {
         $this->emailMarketing              = $emailMarketing;
         $this->customerCollectionFactory   = $customerCollectionFactory;
         $this->orderCollectionFactory      = $orderCollectionFactory;
         $this->subscriberCollectionFactory = $subscriberCollectionFactory;
+        $this->helperData                  = $helperData;
 
         parent::__construct($context);
     }
@@ -126,7 +135,11 @@ class Estimate extends Action
             $collection  = $this->prepareCollection($type);
 
             if ($syncOptions === SyncOptions::NOT_SYNC) {
-                $collection->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
+                if ($this->helperData->versionCompare('2.4.0')) {
+                    $collection->getSelect()->where('mp_smtp_email_marketing_synced = ?', 0);
+                } else {
+                    $collection->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
+                }
             }
 
             $storeId   = $this->getRequest()->getParam('storeId');
