@@ -19,13 +19,19 @@
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
-/** @var \Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncCustomer $block */
+use Mageplaza\Smtp\Block\Adminhtml\System\Config\Sync;
+use Mageplaza\Smtp\Helper\Data;
+
+/** @var Sync $block */
 ?>
 <div class="actions actions-test-email" id="<?= /* @noEscape */ $block->getElementId() ?>">
     <div id="mp-sync">
         <div id="progress-content" style="display: none">
             <p class="text-right">
-                <span id="syncing"><?= /* @noEscape */ __('Syncing...') ?></span>
+                <span id="syncing" class="syncing"><?= $block->escapeHtml(__('Syncing...')) ?></span>
+                <span id="syncing-1" class="syncing"><?= $block->escapeHtml(__('Syncing Customers...')) ?></span>
+                <span id="syncing-2" class="syncing"><?= $block->escapeHtml(__('Syncing Orders...')) ?></span>
+                <span id="syncing-3" class="syncing"><?= $block->escapeHtml(__('Syncing Subscribers...')) ?></span>
                 <span id="sync-percent">0%</span>
             </p>
             <div class="progress">
@@ -36,18 +42,19 @@
 
         <div id="console-log" style="display: none">
             <textarea name="console-log" id="mp-console-log" cols="30" rows="10" disabled></textarea>
-            <input type="hidden" value="" id="mp-log-data" class="<?= /* @noEscape */ $block->getHtmlId() . '_console' ?>">
+            <input type="hidden" value="" id="mp-log-data"
+                   class="<?= /* @noEscape */ $block->getHtmlId() . '_console' ?>">
             <button class="actions-log primary" type="button" id="<?= /* @noEscape */ $block->getHtmlId() . '_log' ?>">
-                <span><?= __('Download log') ?></span>
+                <span><?= $block->escapeHtml(__('Download log')) ?></span>
             </button>
         </div>
-
         <div class="message" style="display: none;padding: 10px 10px 10px 48px;margin-bottom: 5px">
             <span class="message-text">
                 <strong></strong>
             </span>
             <br>
         </div>
+        <div class="multi-messages" style="display: none;padding: 10px 10px 10px 0;margin-bottom: 5px"></div>
     </div>
     <button class="actions-sync-order" type="button" id="<?= $block->getHtmlId() ?>">
         <span><?= $block->escapeHtml($block->getButtonLabel()) ?></span>
@@ -59,21 +66,21 @@
             "<?= /* @noEscape */ $block->getComponent() ?>": {
                 "ajaxUrl": "<?= $block->escapeHtml($block->getButtonUrl())?>",
                 "estimateUrl": "<?= $block->escapeHtml($block->getEstimateUrl())?>",
-                 "websiteId": "<?= $block->escapeHtml($block->getWebsiteId())?>",
-                 "storeId": "<?= $block->escapeHtml($block->getStoreId())?>",
-                 "successMessage": "<?= $block->escapeHtml($block->getSyncSuccessMessage())?>"
+                "websiteId": "<?= $block->escapeHtml($block->getWebsiteId())?>",
+                "storeId": "<?= $block->escapeHtml($block->getStoreId())?>",
+                "successMessage": <?= /* @noEscape */ Data::jsonEncode($block->getSyncSuccessMessage())?>
             }
         }
     }
 </script>
-
-<?php if ($block->isRenderCss()): ?>
 <style>
     .actions-log {
         margin-bottom: 25px;
     }
 
-    .text-right {text-align: right;}
+    .text-right {
+        text-align: right;
+    }
 
     .progress {
         background-color: #fafafa;
@@ -83,6 +90,7 @@
         margin-bottom: 30px;
         overflow: hidden;
     }
+
     .progress-bar {
         background-color: #79a22e;
         color: #fff;
@@ -93,4 +101,3 @@
         transition: width .6s ease;
     }
 </style>
-<?php endif; ?>

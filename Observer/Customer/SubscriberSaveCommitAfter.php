@@ -65,8 +65,8 @@ class SubscriberSaveCommitAfter implements ObserverInterface
         LoggerInterface $logger
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->logger = $logger;
-        $this->customerRepository = $customerRepository;
+        $this->logger               = $logger;
+        $this->customerRepository   = $customerRepository;
     }
 
     /**
@@ -84,14 +84,16 @@ class SubscriberSaveCommitAfter implements ObserverInterface
             try {
 
                 $data = [
-                    'email' => $subscriber->getSubscriberEmail(),
-                    'firstName' => '',
-                    'lastName' => '',
-                    'phoneNumber' => '',
-                    'description' => '',
-                    'source' => 'Magento',
-                    'isSubscriber' => $subscriber->getSubscriberStatus() === Subscriber::STATUS_SUBSCRIBED,
-                    'customer_type' => 'new_subscriber'
+                    'email'         => $subscriber->getSubscriberEmail(),
+                    'firstName'     => '',
+                    'lastName'      => '',
+                    'phoneNumber'   => '',
+                    'description'   => '',
+                    'source'        => 'Magento',
+                    'isSubscriber'  => $subscriber->getSubscriberStatus() === Subscriber::STATUS_SUBSCRIBED,
+                    'customer_type' => 'new_subscriber',
+                    'is_utc'        => true,
+                    'updated_at'    => $this->helperEmailMarketing->formatDate($subscriber->getChangeStatusAt())
                 ];
 
                 /**
@@ -100,7 +102,7 @@ class SubscriberSaveCommitAfter implements ObserverInterface
                 $customer = $this->getCustomerByEmail($subscriber->getSubscriberEmail());
                 if ($customer && $customer->getId()) {
                     $data['firstName'] = $customer->getFirstname();
-                    $data['lastName'] = $customer->getLastname();
+                    $data['lastName']  = $customer->getLastname();
                 }
 
                 $this->helperEmailMarketing->syncCustomer($data, false);
@@ -112,6 +114,7 @@ class SubscriberSaveCommitAfter implements ObserverInterface
 
     /**
      * @param string $email
+     *
      * @return CustomerInterface|string
      */
     public function getCustomerByEmail($email)

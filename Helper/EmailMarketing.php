@@ -65,6 +65,7 @@ use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 use Magento\Shipping\Helper\Data as ShippingHelper;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Mageplaza\Smtp\Model\ResourceModel\AbandonedCart\Grid\Collection;
 use Psr\Log\LoggerInterface;
 use Magento\Sales\Model\Order\Config as OrderConfig;
 use Magento\Store\Model\Information;
@@ -73,7 +74,6 @@ use Magento\Directory\Model\CountryFactory;
 use Zend_Db_Expr;
 use Magento\Framework\App\ResourceConnection;
 use Mageplaza\Smtp\Model\Config\Source\DaysRange;
-use Mageplaza\Smtp\Model\Config\Source\SyncOptions;
 use Zend_Db_Select_Exception;
 use Magento\Directory\Model\Region;
 
@@ -84,18 +84,19 @@ use Magento\Directory\Model\Region;
 class EmailMarketing extends Data
 {
     const IS_SYNCED_ATTRIBUTE = 'mp_smtp_is_synced';
-    const API_URL            = 'https://app.avada.io';
-    const APP_URL            = self::API_URL . '/app/api/v1/connects';
-    const CHECKOUT_URL       = self::API_URL . '/app/api/v1/checkouts';
-    const CUSTOMER_URL       = self::API_URL . '/app/api/v1/customers';
-    const ORDER_URL          = self::API_URL . '/app/api/v1/orders';
-    const ORDER_COMPLETE_URL = self::API_URL . '/app/api/v1/orders/complete';
-    const INVOICE_URL        = self::API_URL . '/app/api/v1/orders/invoice';
-    const SHIPMENT_URL       = self::API_URL . '/app/api/v1/orders/ship';
-    const CREDITMEMO_URL     = self::API_URL . '/app/api/v1/orders/refund';
-    const DELETE_URL         = self::API_URL . '/app/api/v1/checkouts?id=';
-    const SYNC_CUSTOMER_URL  = self::API_URL . '/app/api/v1/customers/bulk';
-    const SYNC_ORDER_URL     = self::API_URL . '/app/api/v1/orders/bulk';
+    const API_URL             = 'https://app.avada.io';
+    const APP_URL             = self::API_URL . '/app/api/v1/connects';
+    const CHECKOUT_URL        = self::API_URL . '/app/api/v1/checkouts';
+    const CUSTOMER_URL        = self::API_URL . '/app/api/v1/customers';
+    const ORDER_URL           = self::API_URL . '/app/api/v1/orders';
+    const ORDER_COMPLETE_URL  = self::API_URL . '/app/api/v1/orders/complete';
+    const INVOICE_URL         = self::API_URL . '/app/api/v1/orders/invoice';
+    const SHIPMENT_URL        = self::API_URL . '/app/api/v1/orders/ship';
+    const CREDITMEMO_URL      = self::API_URL . '/app/api/v1/orders/refund';
+    const DELETE_URL          = self::API_URL . '/app/api/v1/checkouts?id=';
+    const SYNC_CUSTOMER_URL   = self::API_URL . '/app/api/v1/customers/bulk';
+    const SYNC_ORDER_URL      = self::API_URL . '/app/api/v1/orders/bulk';
+    const PROXY_URL           = self::API_URL . '/app/api/v1/proxy/';
 
     /**
      * @var UrlInterface
@@ -254,6 +255,11 @@ class EmailMarketing extends Data
     protected $region;
 
     /**
+     * @var Collection
+     */
+    protected $abandonedCartCollection;
+
+    /**
      * EmailMarketing constructor.
      *
      * @param Context $context
@@ -284,6 +290,7 @@ class EmailMarketing extends Data
      * @param CountryFactory $countryFactory
      * @param ResourceConnection $resourceConnection
      * @param Region $region
+     * @param Collection $abandonedCartCollection
      */
     public function __construct(
         Context $context,
@@ -313,10 +320,9 @@ class EmailMarketing extends Data
         StoreFactory $storeFactory,
         CountryFactory $countryFactory,
         ResourceConnection $resourceConnection,
-        Region $region
+        Region $region,
+        Collection $abandonedCartCollection
     ) {
-        parent::__construct($context, $objectManager, $storeManager);
-
         $this->frontendUrl                = $frontendUrl;
         $this->escaper                    = $escaper;
         $this->productConfig              = $catalogConfiguration;
@@ -342,6 +348,9 @@ class EmailMarketing extends Data
         $this->countryFactory             = $countryFactory;
         $this->resourceConnection         = $resourceConnection;
         $this->region                     = $region;
+        $this->abandonedCartCollection    = $abandonedCartCollection;
+
+        parent::__construct($context, $objectManager, $storeManager);
     }
 
     /**
@@ -505,13 +514,15 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param string $date
+     * @param string|null $date
      *
      * @return string
-     * @throws Exception
+     * @throws LocalizedException
      */
     public function formatDate($date)
     {
+        $date = $this->_localeDate->convertConfigTimeToUtc($date);
+
         return $this->_localeDate->formatDateTime(
             $date,
             IntlDateFormatter::MEDIUM,
@@ -537,6 +548,7 @@ class EmailMarketing extends Data
             'shipping_price' => $object->getShippingAmount(),
             'currency'       => $object->getBaseCurrencyCode(),
             'order_currency' => $object->getOrderCurrencyCode(),
+            'is_utc'         => true,
             'created_at'     => $this->formatDate($object->getCreatedAt()),
             'updated_at'     => $this->formatDate($object->getUpdatedAt()),
             'timezone'       => $this->_localeDate->getConfigTimezone(
@@ -627,7 +639,6 @@ class EmailMarketing extends Data
 
         if ($isShipment || $isCreditmemo || $isInvoice) {
             $data['line_items'] = $this->getShipmentOrCreditmemoItems($object);
-
         } else {
             $data['line_items'] = $this->getCartItems($object);
         }
@@ -654,7 +665,7 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param $object
+     * @param Object $object
      *
      * @return array
      */
@@ -688,17 +699,18 @@ class EmailMarketing extends Data
      */
     public function sendOrderRequest($object, $url = '')
     {
-        if (!$url) {
-            $url = self::ORDER_URL;
-        }
+        $data = $this->getOrderData($object);
 
-        $data          = $this->getOrderData($object);
+        if (!$url) {
+            $data['checkout_id'] = $object->getQuoteId();
+            $url                 = self::ORDER_URL;
+        }
         $this->storeId = $object->getStoreId();
         $this->sendRequest($data, $url);
     }
 
     /**
-     * @param $data
+     * @param array $data
      *
      * @return mixed
      * @throws LocalizedException
@@ -766,11 +778,12 @@ class EmailMarketing extends Data
             'line_items'             => $this->getCartItems($quote),
             'currency'               => $quote->getStoreCurrencyCode(),
             'presentment_currency'   => $quote->getStoreCurrencyCode(),
+            'is_utc'                 => true,
             'created_at'             => $createdAt,
             'updated_at'             => $updatedAt,
             'abandoned_checkout_url' => $this->getRecoveryUrl($quote),
-            'subtotal_price'         => (float)$quote->getBaseSubtotal(),
-            'total_price'            => (float)$quote->getData('base_grand_total'),
+            'subtotal_price'         => (float) $quote->getBaseSubtotal(),
+            'total_price'            => (float) $quote->getData('base_grand_total'),
             'total_tax'              => !$quote->isVirtual() ? $quote->getShippingAddress()->getBaseTaxAmount() : 0,
             'customer_locale'        => null,
             'shipping_address'       => $this->getShippingAddress($quote, $address),
@@ -820,7 +833,7 @@ class EmailMarketing extends Data
      *
      * @return array
      */
-    public function getAddress(Quote $quote, Address $addressObject, array $addr = null, string $field)
+    public function getAddress(Quote $quote, Address $addressObject, $addr, $field)
     {
         $result = [];
 
@@ -850,9 +863,10 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param Shipment | Creditmemo $object
+     * @param Shipment|Creditmemo $object
      *
      * @return array
+     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function getShipmentOrCreditmemoItems($object)
@@ -869,7 +883,11 @@ class EmailMarketing extends Data
                     'product_id' => $orderItem->getProductId(),
                     'sku'        => $orderItem->getSku(),
                     'quantity'   => $item->getQty(),
-                    'price'      => (float) $item->getBasePrice()
+                    'price'      => (float) $item->getBasePrice(),
+                    'is_utc'     => true,
+                    'created_at' => $this->formatDate($product->getCreatedAt()),
+                    'updated_at' => $this->formatDate($product->getUpdatedAt()),
+                    'categories' => $product->getCategoryIds()
                 ];
 
                 continue;
@@ -895,7 +913,11 @@ class EmailMarketing extends Data
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
                 'image'         => $this->getProductImage($product),
-                'frontend_link' => $product->getProductUrl()
+                'frontend_link' => $product->getProductUrl(),
+                'is_utc'        => true,
+                'created_at'    => $this->formatDate($item->getProduct()->getCreatedAt()),
+                'updated_at'    => $this->formatDate($item->getProduct()->getUpdatedAt()),
+                'categories'    => $item->getProduct()->getCategoryIds()
             ];
 
             if ($productType === 'bundle') {
@@ -915,7 +937,7 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param $item
+     * @param Item $item
      *
      * @return string
      */
@@ -927,8 +949,8 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param $item
-     * @param $options
+     * @param Item $item
+     * @param array $options
      *
      * @return string
      */
@@ -943,7 +965,7 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param $orderItem
+     * @param Item $orderItem
      *
      * @return string
      */
@@ -980,6 +1002,7 @@ class EmailMarketing extends Data
      * @param Quote|Shipment|Creditmemo|Order $object
      *
      * @return array
+     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
     public function getCartItems($object)
@@ -1010,8 +1033,10 @@ class EmailMarketing extends Data
                 }
             }
 
-            $products = $this->productRepository->get($item->getData('sku'));
-            if(is_object($products->getCustomAttribute($this->getDefineVendor()))){
+            $sku      = $isBundle ? $item->getProduct()->getSku() : $item->getData('sku');
+            $products = $this->productRepository->get($sku);
+
+            if (is_object($products->getCustomAttribute($this->getDefineVendor()))) {
                 $vendorValue = $products->getAttributeText($this->getDefineVendor());
             } else {
                 $vendorValue = '';
@@ -1028,17 +1053,20 @@ class EmailMarketing extends Data
                 'product_id'    => $item->getProductId(),
                 'image'         => $this->getProductImage($product),
                 'frontend_link' => $product->getProductUrl() ?: '#',
-                'vendor'        => $vendorValue
+                'vendor'        => $vendorValue,
+                'is_utc'        => true,
+                'created_at'    => $this->formatDate($item->getProduct()->getCreatedAt()),
+                'updated_at'    => $this->formatDate($item->getProduct()->getUpdatedAt()),
+                'categories'    => $item->getProduct()->getCategoryIds()
             ];
 
             if ($isQuote) {
-                $itemRequest['line_price'] = (float)$item->getBaseRowTotal();
+                $itemRequest['line_price'] = (float) $item->getBaseRowTotal();
             }
 
             if ($item->getHasChildren()) {
                 $children = $isQuote ? $item->getChildren() : $item->getChildrenItems();
                 foreach ($children as $child) {
-
                     $product = $this->getProductFromItem($child);
                     if ($hasVariant) {
                         $itemRequest['variant_title'] = $child->getName();
@@ -1055,7 +1083,11 @@ class EmailMarketing extends Data
                             'product_id' => $child->getProductId(),
                             'sku'        => $child->getSku(),
                             'quantity'   => (int) ($isQuote ? $child->getQty() : $child->getQtyOrdered()),
-                            'price'      => (float) $child->getBasePrice()
+                            'price'      => (float) $child->getBasePrice(),
+                            'is_utc'     => true,
+                            'created_at' => $this->formatDate($product->getCreatedAt()),
+                            'updated_at' => $this->formatDate($product->getUpdatedAt()),
+                            'categories' => $product->getCategoryIds()
                         ];
                     }
                 }
@@ -1182,6 +1214,7 @@ class EmailMarketing extends Data
             $this->_curl->setOption(CURLOPT_TIMEOUT_MS, 500);
             $this->_curl->post($this->url, $body);
         } catch (Exception $e) {
+            $this->_logger->critical($e->getMessage());
             // Ignore exception timeout
         }
     }
@@ -1241,12 +1274,18 @@ class EmailMarketing extends Data
      * @param Customer $customer
      * @param bool $isLoadSubscriber
      * @param bool $isUpdateOrder
+     * @param null $address
      *
      * @return array
      * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
-    public function getCustomerData(Customer $customer, $isLoadSubscriber = false, $isUpdateOrder = false)
-    {
+    public function getCustomerData(
+        Customer $customer,
+        $isLoadSubscriber = false,
+        $isUpdateOrder = false,
+        $address = null
+    ) {
 
         if ($isLoadSubscriber) {
             $subscriber   = $this->_subscriberFactory->create()->loadByEmail($customer->getEmail());
@@ -1261,7 +1300,7 @@ class EmailMarketing extends Data
             'email'         => $customer->getEmail(),
             'firstName'     => $customer->getFirstname(),
             'lastName'      => $customer->getLastname(),
-            'phoneNumber'   => '',
+            'phoneNumber'   => $address ? $address->getTelephone() : '',
             'description'   => '',
             'isSubscriber'  => $isSubscriber,
             'tags'          => $this->getTags($customer),
@@ -1270,19 +1309,23 @@ class EmailMarketing extends Data
                 ScopeInterface::SCOPE_STORE,
                 $customer->getStoreId()
             ),
-            'customer_type' => 'new_customer'
+            'customer_type' => 'new_customer',
+            'dob'           => $customer->getDob() ? $this->formatDate($customer->getDob()) : '',
+            'is_utc'        => true,
+            'created_at'    => $this->formatDate($customer->getCreatedAt()),
+            'updated_at'    => $this->formatDate($customer->getUpdatedAt())
         ];
 
         $defaultBillingAddress = $customer->getDefaultBillingAddress();
         if ($defaultBillingAddress) {
             $data['countryCode'] = $defaultBillingAddress->getCountryId();
-            $country              = $this->countryFactory->create()->loadByCode($data['countryCode']);
-            $data['country']      = $country->getName();
-            $data['city']         = $defaultBillingAddress->getCity();
-            $renderer             = $this->_addressConfig->getFormatByCode(ElementFactory::OUTPUT_FORMAT_ONELINE)
+            $country             = $this->countryFactory->create()->loadByCode($data['countryCode']);
+            $data['country']     = $country->getName();
+            $data['city']        = $defaultBillingAddress->getCity();
+            $renderer            = $this->_addressConfig->getFormatByCode(ElementFactory::OUTPUT_FORMAT_ONELINE)
                 ->getRenderer();
-            $data['address']      = $renderer->renderArray($defaultBillingAddress->getData());
-            $data['phoneNumber']  = $defaultBillingAddress->getTelephone();
+            $data['address']     = $renderer->renderArray($defaultBillingAddress->getData());
+            $data['phoneNumber'] = $defaultBillingAddress->getTelephone();
         }
 
         if ($isUpdateOrder) {
@@ -1304,7 +1347,7 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param $customerId
+     * @param int $customerId
      *
      * @return mixed
      */
@@ -1333,7 +1376,7 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param $connection
+     * @param AdapterInterface $connection
      *
      * @return string|null
      */
@@ -1406,6 +1449,7 @@ class EmailMarketing extends Data
      *
      * @return mixed
      * @throws LocalizedException
+     * @throws Zend_Db_Select_Exception
      */
     public function testConnection($appID, $secretKey)
     {
@@ -1418,6 +1462,7 @@ class EmailMarketing extends Data
 
     /**
      * @return array
+     * @throws Zend_Db_Select_Exception
      */
     public function getStoreInformation()
     {
@@ -1444,7 +1489,9 @@ class EmailMarketing extends Data
             'address1'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE1, $scope, $scopeCode),
             'address2'      => $this->getConfigData(Information::XML_PATH_STORE_INFO_STREET_LINE2, $scope, $scopeCode),
             'email'         => $this->getConfigData('trans_email/ident_general/email'),
-            'contact_count' => $this->getContactCount() ?: 0
+            'contact_count' => $this->getContactCount() ?: 0,
+            'order_count'   => $this->orderCollection->getSize(),
+            'ace_count'     => $this->abandonedCartCollection->getSize()
         ];
 
         if ($info['countryCode']) {
@@ -1623,14 +1670,6 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @return mixed
-     */
-    public function isOnlyNotSync()
-    {
-        return $this->getEmailMarketingConfig('synchronization/sync_options') === SyncOptions::NOT_SYNC;
-    }
-
-    /**
      * @param string|null $storeId
      *
      * @return mixed
@@ -1638,5 +1677,35 @@ class EmailMarketing extends Data
     public function isTracking($storeId = null)
     {
         return $this->getEmailMarketingConfig('is_tracking', $storeId);
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return mixed
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function sendRequestProxy($data)
+    {
+        $url = self::PROXY_URL;
+        if (isset($data['path'])) {
+            $url = self::PROXY_URL . $data['path'];
+        }
+
+        $this->initCurl();
+
+        if ($this->_request->getMethod() === 'POST') {
+            $body = $this->setHeaders($data, $url);
+            $this->_curl->post($this->url, $body);
+        } else {
+            $this->_curl->get($this->url);
+        }
+
+        $body        = $this->_curl->getBody();
+        $bodyData    = self::jsonDecode($body);
+        $this->_curl = '';
+
+        return $bodyData;
     }
 }

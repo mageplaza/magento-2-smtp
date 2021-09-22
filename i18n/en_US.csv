@@ -199,3 +199,5 @@ ID,ID
 Recipient,Recipient
 Cc,Cc
 Bcc,Bcc
+"Order synchronization has been completed.","Order synchronization has been completed."
+"Subscriber synchronization has been completed.","Subscriber synchronization has been completed."

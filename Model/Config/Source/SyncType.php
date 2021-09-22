@@ -24,13 +24,15 @@ namespace Mageplaza\Smtp\Model\Config\Source;
 use Magento\Framework\Option\ArrayInterface;
 
 /**
- * Class SyncOptions
+ * Class SyncType
  * @package Mageplaza\Smtp\Model\Config\Source
  */
-class SyncOptions implements ArrayInterface
+class SyncType implements ArrayInterface
 {
-    const ALL      = 'all';
-    const NOT_SYNC = 'not_sync';
+    const ALL         = 'all';
+    const CUSTOMERS   = 1;
+    const ORDERS      = 2;
+    const SUBSCRIBERS = 3;
 
     /**
      * to option array
@@ -41,12 +43,20 @@ class SyncOptions implements ArrayInterface
     {
         $options = [
             [
-                'value' => self::ALL,
-                'label' => __('All')
+                'value' => self::CUSTOMERS,
+                'label' => __('Customers')
             ],
             [
-                'value' => self::NOT_SYNC,
-                'label' => __('New Object Only')
+                'value' => self::ORDERS,
+                'label' => __('Orders')
+            ],
+            [
+                'value' => self::SUBSCRIBERS,
+                'label' => __('Subscribers')
+            ],
+            [
+                'value' => self::ALL,
+                'label' => __('Every Thing')
             ]
         ];
 

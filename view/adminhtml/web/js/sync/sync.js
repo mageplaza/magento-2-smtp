@@ -23,18 +23,17 @@ define([
 ], function ($, Sync) {
     'use strict';
 
-    $.widget('mageplaza.syncorder', {
+    $.widget('mageplaza.sync', {
         options: {
             ajaxUrl: '',
             websiteId: '',
             storeId: '',
             estimateUrl: '',
-            buttonElement: '#email_marketing_general_synchronization_sync_order',
-            saveLog: '#email_marketing_general_synchronization_sync_order_log',
-            prefix: '#mp-sync-order',
-            console: '.email_marketing_general_synchronization_sync_order_console'
+            buttonElement: '#email_marketing_general_synchronization_sync',
+            saveLog: '#email_marketing_general_synchronization_sync_log',
+            prefix: '#mp-synchronize',
+            console: '.email_marketing_general_synchronization_sync_console'
         },
-
         _create: function () {
             var self = this;
 
@@ -50,5 +49,5 @@ define([
         },
     });
 
-    return $.mageplaza.syncorder;
+    return $.mageplaza.sync;
 });
