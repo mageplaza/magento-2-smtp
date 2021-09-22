@@ -52,11 +52,11 @@ class DaysRange implements ArrayInterface
     public function toArray()
     {
         return [
-            '30'         => __('30'),
-            '60'         => __('60'),
+            'lifetime'   => __('Lifetime'),
             '90'         => __('90'),
-            '365'        => __('365'),
-            self::CUSTOM => __('Custom')
+            '365'        => __('1 Year'),
+            '730'        => __('2 Years'),
+            self::CUSTOM => __('Choose Date Range')
         ];
     }
 }

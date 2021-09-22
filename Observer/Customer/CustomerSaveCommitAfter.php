@@ -63,8 +63,8 @@ class CustomerSaveCommitAfter implements ObserverInterface
         ResourceCustomer $resourceCustomer
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->logger = $logger;
-        $this->resourceCustomer = $resourceCustomer;
+        $this->logger               = $logger;
+        $this->resourceCustomer     = $resourceCustomer;
     }
 
     /**
@@ -82,19 +82,19 @@ class CustomerSaveCommitAfter implements ObserverInterface
         ) {
             try {
                 $isLoadSubscriber = !$customer->getIsNewRecord();
-                $data = $this->helperEmailMarketing->getCustomerData($customer, $isLoadSubscriber);
+                $data             = $this->helperEmailMarketing->getCustomerData($customer, $isLoadSubscriber);
 
                 if ($customer->getIsNewRecord()) {
                     $result = $this->helperEmailMarketing->syncCustomer($data);
                     if (!empty($result['success'])) {
                         $this->helperEmailMarketing->setIsSyncedCustomer(true);
-                        $table = $this->resourceCustomer->getTable('customer_entity_int');
+                        $table      = $this->resourceCustomer->getTable('customer_entity_int');
                         $connection = $this->resourceCustomer->getConnection();
-                        $attribute = $this->helperEmailMarketing->getSyncedAttribute();
-                        $data = [
+                        $attribute  = $this->helperEmailMarketing->getSyncedAttribute();
+                        $data       = [
                             'attribute_id' => $attribute->getId(),
-                            'entity_id' => $customer->getId(),
-                            'value' => 1
+                            'entity_id'    => $customer->getId(),
+                            'value'        => 1
                         ];
                         $connection->insert($table, $data);
                     }

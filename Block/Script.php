@@ -22,10 +22,15 @@
 namespace Mageplaza\Smtp\Block;
 
 use Magento\Catalog\Block\Product\Context;
+use Magento\Customer\Model\Context as CustomerContext;
+use Magento\Catalog\Helper\Data;
+use Magento\Catalog\Model\Product;
 use Magento\Customer\Model\SessionFactory as CustomerSession;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Http\Context as HttpContext;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\Template;
 use Magento\Sales\Model\Order;
@@ -64,6 +69,16 @@ class Script extends Template
     protected $httpContext;
 
     /**
+     * @var Data
+     */
+    protected $taxHelper;
+
+    /**
+     * @var PriceCurrencyInterface
+     */
+    protected $priceCurrency;
+
+    /**
      * Script constructor.
      *
      * @param Context $context
@@ -72,6 +87,8 @@ class Script extends Template
      * @param CustomerSession $customerSession
      * @param Registry $registry
      * @param HttpContext $httpContext
+     * @param Data $taxHelper
+     * @param PriceCurrencyInterface $priceCurrency
      * @param array $data
      */
     public function __construct(
@@ -81,6 +98,8 @@ class Script extends Template
         CustomerSession $customerSession,
         Registry $registry,
         HttpContext $httpContext,
+        Data $taxHelper,
+        PriceCurrencyInterface $priceCurrency,
         array $data = []
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
@@ -88,6 +107,9 @@ class Script extends Template
         $this->customerSession      = $customerSession;
         $this->registry             = $registry;
         $this->httpContext          = $httpContext;
+        $this->taxHelper            = $taxHelper;
+        $this->priceCurrency        = $priceCurrency;
+
         parent::__construct($context, $data);
     }
 
@@ -141,33 +163,37 @@ class Script extends Template
 
     /**
      * @return array
+     * @throws LocalizedException
      * @throws NoSuchEntityException
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getCustomerData()
     {
-        $isLoggedIn = $this->httpContext->getValue(\Magento\Customer\Model\Context::CONTEXT_AUTH);
+        $isLoggedIn = $this->httpContext->getValue(CustomerContext::CONTEXT_AUTH);
         if (!$isLoggedIn) {
             $shippingAddress = $this->checkoutSession->getQuote()->getShippingAddress();
-            $data = [
-                'email' => $shippingAddress->getData('email') === null ? '' : $shippingAddress->getData('email'),
-                'firstname' => $shippingAddress->getData('firstname') === null ? '' : $shippingAddress->getData('firstname'),
-                'lastname' => $shippingAddress->getData('lastname') === null ? '' : $shippingAddress->getData('lastname')
+            $data            = [
+                'email'     => $shippingAddress->getData('email') === null ? '' : $shippingAddress->getData('email'),
+                'firstname' => $shippingAddress->getData('firstname') === null ?
+                    '' : $shippingAddress->getData('firstname'),
+                'lastname'  => $shippingAddress->getData('lastname') === null ?
+                    '' : $shippingAddress->getData('lastname')
             ];
+
             return $data;
         } else {
             $customer = $this->customerSession->create()->getCustomer();
-            $data = [
-                'email' => $customer->getData('email') === null ? '' : $customer->getData('email'),
+            $data     = [
+                'email'     => $customer->getData('email') === null ? '' : $customer->getData('email'),
                 'firstname' => $customer->getData('firstname') === null ? '' : $customer->getData('firstname'),
-                'lastname' => $customer->getData('lastname') === null ? '' : $customer->getData('lastname')
+                'lastname'  => $customer->getData('lastname') === null ? '' : $customer->getData('lastname')
             ];
+
             return $data;
         }
     }
 
     /**
-     * @return array|false
+     * @return array|bool
      * @throws NoSuchEntityException
      */
     public function productAbandoned()
@@ -181,7 +207,8 @@ class Script extends Template
                 'collections' => [],
                 'id'          => $product->getId(),
                 'image'       => $imageUrl,
-                'price'       => $product->getFinalPrice(),
+                'price'       => $this->getPrice($product),
+                'priceTax'    => $this->getPrice($product, true),
                 'productType' => $product->getTypeId(),
                 'tags'        => [],
                 'title'       => $product->getName(),
@@ -191,5 +218,24 @@ class Script extends Template
         }
 
         return false;
+    }
+
+    /**
+     * @param Product $product
+     * @param bool $includeTax
+     *
+     * @return float
+     */
+    public function getPrice($product, $includeTax = false)
+    {
+        $price = number_format($this->priceCurrency->convert($product->getFinalPrice()), 2);
+
+        if ($includeTax) {
+            $price = number_format($this->priceCurrency->convert(
+                $this->taxHelper->getTaxPrice($product, $product->getFinalPrice(), true)
+            ), 2);
+        }
+
+        return $price;
     }
 }
