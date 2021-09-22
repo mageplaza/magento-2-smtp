@@ -87,7 +87,7 @@ class OrderComplete implements ObserverInterface
                         'status'     => $order->getStatus(),
                         'state'      => $order->getState(),
                         'email'      => $order->getCustomerEmail(),
-                        'isUTC'      => true,
+                        'is_utc'     => true,
                         'created_at' => $this->helperEmailMarketing->formatDate($order->getCreatedAt()),
                         'updated_at' => $this->helperEmailMarketing->formatDate($order->getUpdatedAt())
                     ];
