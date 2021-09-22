@@ -1690,7 +1690,7 @@ class EmailMarketing extends Data
     {
         $url = self::PROXY_URL;
         if (isset($data['path'])) {
-            $url = 'self::PROXY_URL' . $data['path'];
+            $url = self::PROXY_URL . $data['path'];
         }
 
         $this->initCurl();
