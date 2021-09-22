@@ -114,7 +114,7 @@ define([
                                 self.showMessage('message-success', self.options.successMessage[type]);
                             }
                             if (i !== null) {
-                                self.estimateSyncAll(i + 1);
+                                self.estimateSyncAll(i + 1, syncOptions, createdFrom, createdTo, daysRange);
                             }
                         }
                     } else {
@@ -288,7 +288,7 @@ define([
                                 self.showMultiMessages('message message-notice', result.message);
                                 $(self.options.buttonElement).removeClass('disabled');
                                 self.getElement('#progress-content').hide();
-                                self.estimateSyncAll(i + 1, syncOptions);
+                                self.estimateSyncAll(i + 1, syncOptions, createdFrom, createdTo, daysRange);
                             }
                         } else {
                             self.showMultiMessages('message message-error', result.message);
