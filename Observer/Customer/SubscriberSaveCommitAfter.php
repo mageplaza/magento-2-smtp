@@ -92,7 +92,7 @@ class SubscriberSaveCommitAfter implements ObserverInterface
                     'source'        => 'Magento',
                     'isSubscriber'  => $subscriber->getSubscriberStatus() === Subscriber::STATUS_SUBSCRIBED,
                     'customer_type' => 'new_subscriber',
-                    'isUtc'         => true,
+                    'isUTC'         => true,
                     'updated_at'    => $this->helperEmailMarketing->formatDate($subscriber->getChangeStatusAt())
                 ];
 
