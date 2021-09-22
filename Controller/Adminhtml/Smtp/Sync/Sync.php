@@ -32,6 +32,7 @@ use Magento\Newsletter\Model\ResourceModel\Subscriber\CollectionFactory as Subsc
 use Magento\Newsletter\Model\Subscriber as ModelSubscriber;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 use Magento\Store\Model\ScopeInterface;
+use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 use Mageplaza\Smtp\Model\Config\Source\Newsletter;
 use Mageplaza\Smtp\Model\Config\Source\SyncOptions;
@@ -81,6 +82,11 @@ class Sync extends Action
     protected $localeDate;
 
     /**
+     * @var Data
+     */
+    protected $helperData;
+
+    /**
      * Sync constructor.
      *
      * @param Context $context
@@ -89,6 +95,7 @@ class Sync extends Action
      * @param OrderCollectionFactory $orderCollectionFactory
      * @param SubscriberCollectionFactory $subscriberCollectionFactory
      * @param TimezoneInterface $localeDate
+     * @param Data $helperData
      */
     public function __construct(
         Context $context,
@@ -96,13 +103,15 @@ class Sync extends Action
         CustomerCollectionFactory $customerCollectionFactory,
         OrderCollectionFactory $orderCollectionFactory,
         SubscriberCollectionFactory $subscriberCollectionFactory,
-        TimezoneInterface $localeDate
+        TimezoneInterface $localeDate,
+        Data $helperData
     ) {
         $this->helperEmailMarketing        = $helperEmailMarketing;
         $this->customerCollectionFactory   = $customerCollectionFactory;
         $this->orderCollectionFactory      = $orderCollectionFactory;
         $this->subscriberCollectionFactory = $subscriberCollectionFactory;
         $this->localeDate                  = $localeDate;
+        $this->helperData                  = $helperData;
 
         parent::__construct($context);
     }
@@ -161,12 +170,16 @@ class Sync extends Action
             $customers = $customerCollection->addFieldToFilter('entity_id', ['in' => $ids]);
 
             if ($syncOptions === SyncOptions::NOT_SYNC) {
-                $customers->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
+                if ($this->helperData->versionCompare('2.4.0')) {
+                    $customers->getSelect()->where('mp_smtp_email_marketing_synced = ?', 0);
+                } else {
+                    $customers->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
+                }
             }
 
             if ($daysRange !== 'lifetime'
                 && $query = $this->helperEmailMarketing->queryExpr($daysRange, $from, $to, 'e')) {
-                $customerCollection->getSelect()->where($query);
+                $customers->getSelect()->where($query);
             }
 
             $data          = [];
@@ -220,11 +233,15 @@ class Sync extends Action
             $orders          = $orderCollection->addFieldToFilter('entity_id', ['in' => $ids]);
 
             if ($syncOptions === SyncOptions::NOT_SYNC) {
-                $orderCollection->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
+                if ($this->helperData->versionCompare('2.4.0')) {
+                    $orders->getSelect()->where('mp_smtp_email_marketing_synced = ?', 0);
+                } else {
+                    $orders->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
+                }
             }
 
             if ($query = $this->helperEmailMarketing->queryExpr($daysRange, $from, $to)) {
-                $orderCollection->getSelect()->where($query);
+                $orders->getSelect()->where($query);
             }
 
             $data     = [];
@@ -275,7 +292,11 @@ class Sync extends Action
             $subscribers = $collection->addFieldToFilter('subscriber_id', ['in' => $ids]);
 
             if ($syncOptions === SyncOptions::NOT_SYNC) {
-                $subscribers->addFieldToFilter('mp_smtp_email_marketing_synced', 1);
+                if ($this->helperData->versionCompare('2.4.0')) {
+                    $subscribers->getSelect()->where('mp_smtp_email_marketing_synced = ?', 0);
+                } else {
+                    $subscribers->addFieldToFilter('mp_smtp_email_marketing_synced', 0);
+                }
             }
 
             $idUpdate = [];
