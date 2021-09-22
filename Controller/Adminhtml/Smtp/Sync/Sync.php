@@ -330,7 +330,7 @@ class Sync extends Action
                         $customerData['tags']         = 'newsletter';
                         $customerData['isSubscriber'] = true;
                         $customerData['isSubscriber'] = true;
-                        $customerData['isUtc']        = true;
+                        $customerData['isUTC']        = true;
                         $customerData['updated_at']   = $updatedAt;
                         $data[]                       = $customerData;
                     }
@@ -347,7 +347,7 @@ class Sync extends Action
                             ScopeInterface::SCOPE_STORE,
                             $subscriber->getStoreId()
                         ),
-                        'isUtc'        => true,
+                        'isUTC'        => true,
                         'updated_at'   => $updatedAt
                     ];
 
