@@ -1697,9 +1697,9 @@ class EmailMarketing extends Data
 
         if ($this->_request->getMethod() === 'POST') {
             $body = $this->setHeaders($data, $url);
-            $this->_curl->post($this->url, $body);
+            $this->_curl->post($url, $body);
         } else {
-            $this->_curl->get($this->url);
+            $this->_curl->get($url);
         }
 
         $body        = $this->_curl->getBody();
