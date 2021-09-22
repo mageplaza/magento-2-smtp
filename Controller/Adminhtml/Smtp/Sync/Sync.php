@@ -240,7 +240,7 @@ class Sync extends Action
                 }
             }
 
-            if ($query = $this->helperEmailMarketing->queryExpr($daysRange, $from, $to)) {
+            if ($daysRange !== 'lifetime' && $query = $this->helperEmailMarketing->queryExpr($daysRange, $from, $to)) {
                 $orders->getSelect()->where($query);
             }
 
