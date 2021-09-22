@@ -1690,16 +1690,16 @@ class EmailMarketing extends Data
     {
         $url = self::PROXY_URL;
         if (isset($data['path'])) {
-            $url = self::PROXY_URL . $data['path'];
+            $url = 'self::PROXY_URL' . $data['path'];
         }
 
         $this->initCurl();
 
         if ($this->_request->getMethod() === 'POST') {
             $body = $this->setHeaders($data, $url);
-            $this->_curl->post($this->url, $body);
+            $this->_curl->post($url, $body);
         } else {
-            $this->_curl->get($this->url);
+            $this->_curl->get($url);
         }
 
         $body        = $this->_curl->getBody();
