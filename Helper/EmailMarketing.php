@@ -548,6 +548,7 @@ class EmailMarketing extends Data
             'shipping_price' => $object->getShippingAmount(),
             'currency'       => $object->getBaseCurrencyCode(),
             'order_currency' => $object->getOrderCurrencyCode(),
+            'isUtc'          => true,
             'created_at'     => $this->formatDate($object->getCreatedAt()),
             'updated_at'     => $this->formatDate($object->getUpdatedAt()),
             'timezone'       => $this->_localeDate->getConfigTimezone(
@@ -777,6 +778,7 @@ class EmailMarketing extends Data
             'line_items'             => $this->getCartItems($quote),
             'currency'               => $quote->getStoreCurrencyCode(),
             'presentment_currency'   => $quote->getStoreCurrencyCode(),
+            'isUtc'                  => true,
             'created_at'             => $createdAt,
             'updated_at'             => $updatedAt,
             'abandoned_checkout_url' => $this->getRecoveryUrl($quote),
@@ -882,6 +884,7 @@ class EmailMarketing extends Data
                     'sku'        => $orderItem->getSku(),
                     'quantity'   => $item->getQty(),
                     'price'      => (float) $item->getBasePrice(),
+                    'isUtc'      => true,
                     'created_at' => $this->formatDate($product->getCreatedAt()),
                     'updated_at' => $this->formatDate($product->getUpdatedAt()),
                     'categories' => $product->getCategoryIds()
@@ -911,6 +914,7 @@ class EmailMarketing extends Data
                 'product_id'    => $item->getProductId(),
                 'image'         => $this->getProductImage($product),
                 'frontend_link' => $product->getProductUrl(),
+                'isUtc'         => true,
                 'created_at'    => $this->formatDate($item->getProduct()->getCreatedAt()),
                 'updated_at'    => $this->formatDate($item->getProduct()->getUpdatedAt()),
                 'categories'    => $item->getProduct()->getCategoryIds()
@@ -1050,6 +1054,7 @@ class EmailMarketing extends Data
                 'image'         => $this->getProductImage($product),
                 'frontend_link' => $product->getProductUrl() ?: '#',
                 'vendor'        => $vendorValue,
+                'isUtc'         => true,
                 'created_at'    => $this->formatDate($item->getProduct()->getCreatedAt()),
                 'updated_at'    => $this->formatDate($item->getProduct()->getUpdatedAt()),
                 'categories'    => $item->getProduct()->getCategoryIds()
@@ -1079,6 +1084,7 @@ class EmailMarketing extends Data
                             'sku'        => $child->getSku(),
                             'quantity'   => (int) ($isQuote ? $child->getQty() : $child->getQtyOrdered()),
                             'price'      => (float) $child->getBasePrice(),
+                            'isUtc'      => true,
                             'created_at' => $this->formatDate($product->getCreatedAt()),
                             'updated_at' => $this->formatDate($product->getUpdatedAt()),
                             'categories' => $product->getCategoryIds()
@@ -1305,6 +1311,7 @@ class EmailMarketing extends Data
             ),
             'customer_type' => 'new_customer',
             'dob'           => $customer->getDob() ? $this->formatDate($customer->getDob()) : '',
+            'isUtc'         => true,
             'created_at'    => $this->formatDate($customer->getCreatedAt()),
             'updated_at'    => $this->formatDate($customer->getUpdatedAt())
         ];
