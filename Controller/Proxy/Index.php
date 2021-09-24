@@ -61,8 +61,17 @@ class Index extends Action
     public function execute()
     {
         try {
-            $params   = $this->getRequest()->getParams();
-            $response = $this->helperEmailMarketing->sendRequestProxy($params);
+            $params = $this->getRequest()->getParams();
+            $url    = EmailMarketing::PROXY_URL;
+            if (isset($params['path'])) {
+                $url = EmailMarketing::PROXY_URL . $params['path'];
+            }
+
+            if ($this->_request->getMethod() === 'GET') {
+                return $this->_redirect($url);
+            }
+
+            $response = $this->helperEmailMarketing->sendRequestProxy($url, $params);
         } catch (Exception $e) {
             $response = [];
         }

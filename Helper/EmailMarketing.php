@@ -1680,27 +1680,18 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param array $data
+     * @param string $url
+     * @param array|null $data
      *
      * @return mixed
-     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function sendRequestProxy($data)
+    public function sendRequestProxy($url, $data)
     {
-        $url = self::PROXY_URL;
-        if (isset($data['path'])) {
-            $url = self::PROXY_URL . $data['path'];
-        }
-
         $this->initCurl();
 
-        if ($this->_request->getMethod() === 'POST') {
-            $body = $this->setHeaders($data, $url);
-            $this->_curl->post($url, $body);
-        } else {
-            $this->_curl->get($url);
-        }
+        $body = $this->setHeaders($data, $url);
+        $this->_curl->post($url, $body);
 
         $body        = $this->_curl->getBody();
         $bodyData    = self::jsonDecode($body);
