@@ -26,12 +26,9 @@ use Mageplaza\Smtp\Helper\Data;
 ?>
 <div class="actions actions-test-email" id="<?= /* @noEscape */ $block->getElementId() ?>">
     <div id="mp-sync">
-        <div id="progress-content" style="display: none">
+        <div id="progress-content" class="progress-content" style="display: none">
             <p class="text-right">
                 <span id="syncing" class="syncing"><?= $block->escapeHtml(__('Syncing...')) ?></span>
-                <span id="syncing-1" class="syncing"><?= $block->escapeHtml(__('Syncing Customers...')) ?></span>
-                <span id="syncing-2" class="syncing"><?= $block->escapeHtml(__('Syncing Orders...')) ?></span>
-                <span id="syncing-3" class="syncing"><?= $block->escapeHtml(__('Syncing Subscribers...')) ?></span>
                 <span id="sync-percent">0%</span>
             </p>
             <div class="progress">
@@ -39,7 +36,38 @@ use Mageplaza\Smtp\Helper\Data;
                 </div>
             </div>
         </div>
+        <div id="progress-content-1" class="progress-content" style="display: none">
+            <p class="text-right">
+                <span id="syncing-1" class="syncing"><?= $block->escapeHtml(__('Syncing Customers...')) ?></span>
+                <span id="sync-percent-1">0%</span>
+            </p>
+            <div class="progress">
+                <div class="progress-bar-1 progress-bar-sync">
+                </div>
+            </div>
+        </div>
 
+        <div id="progress-content-2" class="progress-content" style="display: none">
+            <p class="text-right">
+                <span id="syncing-2" class="syncing"><?= $block->escapeHtml(__('Syncing Orders...')) ?></span>
+                <span id="sync-percent-2">0%</span>
+            </p>
+            <div class="progress">
+                <div class="progress-bar-2 progress-bar-sync">
+                </div>
+            </div>
+        </div>
+
+        <div id="progress-content-3" class="progress-content" style="display: none">
+            <p class="text-right">
+                <span id="syncing-3" class="syncing"><?= $block->escapeHtml(__('Syncing Subscribers...')) ?></span>
+                <span id="sync-percent-3">0%</span>
+            </p>
+            <div class="progress">
+                <div class="progress-bar-3 progress-bar-sync">
+                </div>
+            </div>
+        </div>
         <div id="console-log" style="display: none">
             <textarea name="console-log" id="mp-console-log" cols="30" rows="10" disabled></textarea>
             <input type="hidden" value="" id="mp-log-data"
@@ -91,7 +119,7 @@ use Mageplaza\Smtp\Helper\Data;
         overflow: hidden;
     }
 
-    .progress-bar {
+    .progress-bar, .progress-bar-sync {
         background-color: #79a22e;
         color: #fff;
         float: left;
