@@ -1690,11 +1690,19 @@ class EmailMarketing extends Data
     {
         $this->initCurl();
 
-        $body = $this->setHeaders($data, $url);
-        $this->_curl->post($url, $body);
+        if ($this->_request->getMethod() === 'POST') {
+            $body = $this->setHeaders($data, $url);
+            $this->_curl->post($url, $body);
+        } else {
+            $this->_curl->get($url);
+        }
 
         $body        = $this->_curl->getBody();
         $bodyData    = self::jsonDecode($body);
+        if ($this->_request->getParam('type') === 'raw') {
+            $bodyData = $body;
+        }
+
         $this->_curl = '';
 
         return $bodyData;
