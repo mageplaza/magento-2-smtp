@@ -77,8 +77,9 @@ class Index extends Action
             }
 
             $response = $this->helperEmailMarketing->sendRequestProxy($url, $params);
-            if ($this->_request->getParam('type') === 'raw') {
+            if (isset($params['type'])) {
                 $result = $this->resultRawFactory->create();
+                $result->setHeader('content-type', $params['type']);
                 $result->setContents($response);
 
                 return $result;
