@@ -1688,6 +1688,8 @@ class EmailMarketing extends Data
      */
     public function sendRequestProxy($url, $data)
     {
+        $params = $this->_request->getParams();
+
         $this->initCurl();
 
         if ($this->_request->getMethod() === 'POST') {
@@ -1697,9 +1699,9 @@ class EmailMarketing extends Data
             $this->_curl->get($url);
         }
 
-        $body        = $this->_curl->getBody();
-        $bodyData    = self::jsonDecode($body);
-        if ($this->_request->getParam('type') === 'raw') {
+        $body     = $this->_curl->getBody();
+        $bodyData = self::jsonDecode($body);
+        if (isset($params['type'])) {
             $bodyData = $body;
         }
 
