@@ -25,6 +25,7 @@ use Exception;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Helper\EmailMarketing;
@@ -41,16 +42,24 @@ class Index extends Action
     protected $helperEmailMarketing;
 
     /**
+     * @var RawFactory
+     */
+    protected $resultRawFactory;
+
+    /**
      * Index constructor.
      *
      * @param Context $context
      * @param EmailMarketing $helperEmailMarketing
+     * @param RawFactory $resultRawFactory
      */
     public function __construct(
         Context $context,
-        EmailMarketing $helperEmailMarketing
+        EmailMarketing $helperEmailMarketing,
+        RawFactory $resultRawFactory
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
+        $this->resultRawFactory     = $resultRawFactory;
 
         parent::__construct($context);
     }
@@ -67,11 +76,13 @@ class Index extends Action
                 $url = EmailMarketing::PROXY_URL . $params['path'];
             }
 
-            if ($this->_request->getMethod() === 'GET') {
-                return $this->_redirect($url);
-            }
-
             $response = $this->helperEmailMarketing->sendRequestProxy($url, $params);
+            if ($this->_request->getParam('type') === 'raw') {
+                $result = $this->resultRawFactory->create();
+                $result->setContents($response);
+
+                return $result;
+            }
         } catch (Exception $e) {
             $response = [];
         }
