@@ -44,6 +44,11 @@ use Magento\Framework\Registry;
 class Script extends Template
 {
     /**
+     * @var bool
+     */
+    protected $_isScopePrivate = true;
+
+    /**
      * @var EmailMarketing
      */
     protected $helperEmailMarketing;
