@@ -28,6 +28,7 @@ use Magento\Catalog\Model\Product;
 use Magento\Customer\Model\SessionFactory as CustomerSession;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Http\Context as HttpContext;
+use Magento\Framework\DataObject\IdentityInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
@@ -41,12 +42,9 @@ use Magento\Framework\Registry;
  * Class Script
  * @package Mageplaza\Smtp\Block
  */
-class Script extends Template
+class Script extends Template implements IdentityInterface
 {
-    /**
-     * @var bool
-     */
-    protected $_isScopePrivate = true;
+    const CACHE_TAG = 'mp_smtp_script';
 
     /**
      * @var EmailMarketing
@@ -242,5 +240,13 @@ class Script extends Template
         }
 
         return $price;
+    }
+
+    /**
+     * @return array|string[]
+     */
+    public function getIdentities()
+    {
+        return [self::CACHE_TAG];
     }
 }
