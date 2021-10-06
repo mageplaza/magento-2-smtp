@@ -44,8 +44,6 @@ use Magento\Framework\Registry;
  */
 class Script extends Template implements IdentityInterface
 {
-    const CACHE_TAG = 'mp_smtp_script';
-
     /**
      * @var EmailMarketing
      */
@@ -247,6 +245,6 @@ class Script extends Template implements IdentityInterface
      */
     public function getIdentities()
     {
-        return [self::CACHE_TAG];
+        return [EmailMarketing::CACHE_TAG];
     }
 }
