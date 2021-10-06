@@ -61,4 +61,7 @@
     <event name="sales_order_shipment_save_commit_after">
         <observer name="mp_smtp_sales_creditmemo_create" instance="Mageplaza\Smtp\Observer\Order\ShipmentCreate"/>
     </event>
+    <event name="customer_login">
+        <observer name="customer_login_success" instance="Mageplaza\Smtp\Observer\Customer\LoginSuccess" />
+    </event>
 </config>
