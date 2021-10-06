@@ -83,6 +83,7 @@ use Magento\Directory\Model\Region;
  */
 class EmailMarketing extends Data
 {
+    const CACHE_TAG           = 'mp_smtp_script';
     const IS_SYNCED_ATTRIBUTE = 'mp_smtp_is_synced';
     const API_URL             = 'https://app.avada.io';
     const APP_URL             = self::API_URL . '/app/api/v1/connects';
