@@ -231,10 +231,21 @@ class Script extends Template implements IdentityInterface
     {
         $price = number_format($this->priceCurrency->convert($product->getFinalPrice()), 2);
 
+        if ($product->getTypeId() === 'configurable') {
+            $price = number_format($product->getFinalPrice(), 2);
+        }
+
         if ($includeTax) {
             $price = number_format($this->priceCurrency->convert(
                 $this->taxHelper->getTaxPrice($product, $product->getFinalPrice(), true)
             ), 2);
+
+            if ($product->getTypeId() === 'configurable') {
+                $price = number_format(
+                    $this->taxHelper->getTaxPrice($product, $product->getFinalPrice(), true),
+                    2
+                );
+            }
         }
 
         return $price;
