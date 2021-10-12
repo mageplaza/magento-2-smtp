@@ -83,6 +83,7 @@ use Magento\Directory\Model\Region;
  */
 class EmailMarketing extends Data
 {
+    const CACHE_TAG           = 'mp_smtp_script';
     const IS_SYNCED_ATTRIBUTE = 'mp_smtp_is_synced';
     const API_URL             = 'https://app.avada.io';
     const APP_URL             = self::API_URL . '/app/api/v1/connects';
@@ -1680,30 +1681,31 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param array $data
+     * @param string $url
+     * @param array|null $data
      *
      * @return mixed
-     * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function sendRequestProxy($data)
+    public function sendRequestProxy($url, $data)
     {
-        $url = self::PROXY_URL;
-        if (isset($data['path'])) {
-            $url = self::PROXY_URL . $data['path'];
-        }
+        $params = $this->_request->getParams();
 
         $this->initCurl();
 
         if ($this->_request->getMethod() === 'POST') {
             $body = $this->setHeaders($data, $url);
-            $this->_curl->post($this->url, $body);
+            $this->_curl->post($url, $body);
         } else {
-            $this->_curl->get($this->url);
+            $this->_curl->get($url);
         }
 
-        $body        = $this->_curl->getBody();
-        $bodyData    = self::jsonDecode($body);
+        $body     = $this->_curl->getBody();
+        $bodyData = self::jsonDecode($body);
+        if (isset($params['type'])) {
+            $bodyData = $body;
+        }
+
         $this->_curl = '';
 
         return $bodyData;
