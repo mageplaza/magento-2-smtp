@@ -56,7 +56,7 @@ class SyncType implements ArrayInterface
             ],
             [
                 'value' => self::ALL,
-                'label' => __('Every Thing')
+                'label' => __('Everything')
             ]
         ];
 

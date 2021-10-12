@@ -28,6 +28,7 @@ use Magento\Catalog\Model\Product;
 use Magento\Customer\Model\SessionFactory as CustomerSession;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Http\Context as HttpContext;
+use Magento\Framework\DataObject\IdentityInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
@@ -41,7 +42,7 @@ use Magento\Framework\Registry;
  * Class Script
  * @package Mageplaza\Smtp\Block
  */
-class Script extends Template
+class Script extends Template implements IdentityInterface
 {
     /**
      * @var EmailMarketing
@@ -230,12 +231,31 @@ class Script extends Template
     {
         $price = number_format($this->priceCurrency->convert($product->getFinalPrice()), 2);
 
+        if ($product->getTypeId() === 'configurable') {
+            $price = number_format($product->getFinalPrice(), 2);
+        }
+
         if ($includeTax) {
             $price = number_format($this->priceCurrency->convert(
                 $this->taxHelper->getTaxPrice($product, $product->getFinalPrice(), true)
             ), 2);
+
+            if ($product->getTypeId() === 'configurable') {
+                $price = number_format(
+                    $this->taxHelper->getTaxPrice($product, $product->getFinalPrice(), true),
+                    2
+                );
+            }
         }
 
         return $price;
+    }
+
+    /**
+     * @return array|string[]
+     */
+    public function getIdentities()
+    {
+        return [EmailMarketing::CACHE_TAG];
     }
 }

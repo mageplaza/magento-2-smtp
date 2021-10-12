@@ -104,6 +104,13 @@ define([
                             percentText + ' (' + self.totalSync + '/' + self.currentResult.total + ')'
                         );
 
+                        if (i && i >= 1 && i <= 3) {
+                            self.getElement('.progress-bar-' + i).css('width', percentText);
+                            self.getElement('#sync-percent-' + i).text(
+                                percentText + ' (' + self.totalSync + '/' + self.currentResult.total + ')'
+                            );
+                        }
+
                         if (end < self.currentResult.total) {
                             self.syncData(end, i);
                         } else {
@@ -170,6 +177,8 @@ define([
             options.buttonElement = '#email_marketing_general_synchronization button';
             this.options          = options;
             this.currentResult    = {};
+
+            self.getElement('.progress-content').hide();
 
             if (type !== 'all') {
                 self.estimateSync(type, syncOptions, createdFrom, createdTo, daysRange);
@@ -275,10 +284,10 @@ define([
                             }
 
                             if (self.currentResult.total > 0) {
-                                self.getElement('#sync-percent').text('0%');
-                                self.getElement('.progress-bar').removeAttr('style');
+                                self.getElement('#sync-percent-' + i).text('0%');
+                                self.getElement('.progress-bar-' + i).removeAttr('style');
                                 self.currentResult.percent = 0;
-                                self.getElement('#progress-content').show();
+                                self.getElement('#progress-content-' + i).show();
                                 self.totalSync = 0;
                                 self.getElement('.syncing').hide();
                                 self.getElement('#syncing-' + i).show();
@@ -287,13 +296,13 @@ define([
                             } else {
                                 self.showMultiMessages('message message-notice', result.message);
                                 $(self.options.buttonElement).removeClass('disabled');
-                                self.getElement('#progress-content').hide();
+                                self.getElement('#progress-content-' + i).hide();
                                 self.estimateSyncAll(i + 1, syncOptions, createdFrom, createdTo, daysRange);
                             }
                         } else {
                             self.showMultiMessages('message message-error', result.message);
                             $(self.options.buttonElement).removeClass('disabled');
-                            self.getElement('#progress-content').hide();
+                            self.getElement('#progress-content-' + i).hide();
                         }
                     }
                 });
