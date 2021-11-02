@@ -24,6 +24,7 @@ namespace Mageplaza\Smtp\Helper;
 use Exception;
 use IntlDateFormatter;
 use Magento\Bundle\Helper\Catalog\Product\Configuration as BundleConfiguration;
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Helper\Data as CatalogHelper;
 use Magento\Catalog\Helper\Product\Configuration as CatalogConfiguration;
 use Magento\Catalog\Model\Product;
@@ -54,6 +55,7 @@ use Magento\Newsletter\Model\SubscriberFactory;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\Quote\Item;
+use Magento\Quote\Model\Quote\ItemFactory;
 use Magento\Sales\Model\Order\Item as OrderItem;
 use Magento\Quote\Model\ResourceModel\Quote as ResourceQuote;
 use Magento\Reports\Model\ResourceModel\Order\CollectionFactory as ReportOrderCollectionFactory;
@@ -261,6 +263,11 @@ class EmailMarketing extends Data
     protected $abandonedCartCollection;
 
     /**
+     * @var ItemFactory
+     */
+    protected $quoteItemFactory;
+
+    /**
      * EmailMarketing constructor.
      *
      * @param Context $context
@@ -292,6 +299,7 @@ class EmailMarketing extends Data
      * @param ResourceConnection $resourceConnection
      * @param Region $region
      * @param Collection $abandonedCartCollection
+     * @param ItemFactory $quoteItemFactory
      */
     public function __construct(
         Context $context,
@@ -322,7 +330,8 @@ class EmailMarketing extends Data
         CountryFactory $countryFactory,
         ResourceConnection $resourceConnection,
         Region $region,
-        Collection $abandonedCartCollection
+        Collection $abandonedCartCollection,
+        ItemFactory $quoteItemFactory
     ) {
         $this->frontendUrl                = $frontendUrl;
         $this->escaper                    = $escaper;
@@ -350,6 +359,7 @@ class EmailMarketing extends Data
         $this->resourceConnection         = $resourceConnection;
         $this->region                     = $region;
         $this->abandonedCartCollection    = $abandonedCartCollection;
+        $this->quoteItemFactory           = $quoteItemFactory;
 
         parent::__construct($context, $objectManager, $storeManager);
     }
@@ -876,6 +886,17 @@ class EmailMarketing extends Data
         foreach ($object->getItems() as $item) {
             $orderItem = $item->getOrderItem();
             $product   = $this->getProductFromItem($orderItem);
+            $createdAt = $item->getCreatedAt();
+            $updatedAt = $item->getUpdatedAt();
+
+            if (!$createdAt) {
+                $createdAt = $object->getCreatedAt();
+            }
+
+            if (!$updatedAt) {
+                $updatedAt = $object->getUpdatedAt();
+            }
+
             if ($orderItem->getParentItemId() && isset($items[$orderItem->getParentItemId()]['bundle_items'])) {
                 $items[$orderItem->getParentItemId()]['bundle_items'][] = [
                     'title'      => $item->getName(),
@@ -886,8 +907,8 @@ class EmailMarketing extends Data
                     'quantity'   => $item->getQty(),
                     'price'      => (float) $item->getBasePrice(),
                     'is_utc'     => true,
-                    'created_at' => $this->formatDate($product->getCreatedAt()),
-                    'updated_at' => $this->formatDate($product->getUpdatedAt()),
+                    'created_at' => $this->formatDate($createdAt),
+                    'updated_at' => $this->formatDate($updatedAt),
                     'categories' => $product->getCategoryIds()
                 ];
 
@@ -916,9 +937,9 @@ class EmailMarketing extends Data
                 'image'         => $this->getProductImage($product),
                 'frontend_link' => $product->getProductUrl(),
                 'is_utc'        => true,
-                'created_at'    => $this->formatDate($item->getProduct()->getCreatedAt()),
-                'updated_at'    => $this->formatDate($item->getProduct()->getUpdatedAt()),
-                'categories'    => $item->getProduct()->getCategoryIds()
+                'created_at'    => $this->formatDate($createdAt),
+                'updated_at'    => $this->formatDate($updatedAt),
+                'categories'    => $product->getCategoryIds()
             ];
 
             if ($productType === 'bundle') {
@@ -996,7 +1017,22 @@ class EmailMarketing extends Data
      */
     public function getProductFromItem($item)
     {
-        return $item->getProduct() ?: new DataObject([]);
+        return $item->getProduct() ?: ($this->getProductById($item->getProductId()) ?: new DataObject([]));
+    }
+
+    /**
+     * @param int $productId
+     *
+     * @return ProductInterface|mixed|null
+     */
+    public function getProductById($productId)
+    {
+        try {
+            /** @var Product $product */
+            return $this->productRepository->getById($productId);
+        } catch (Exception $e) {
+            return null;
+        }
     }
 
     /**
@@ -1014,6 +1050,14 @@ class EmailMarketing extends Data
         foreach ($object->getAllItems() as $item) {
             if ($item->getParentItemId()) {
                 continue;
+            }
+
+            $createdAt = $item->getCreatedAt();
+            $updatedAt = $item->getUpdatedAt();
+            if ($isQuote && (!$createdAt || !$updatedAt)) {
+                $quoteItem = $this->quoteItemFactory->create()->load($item->getItemId(), 'item_id');
+                $createdAt = $quoteItem->getCreatedAt();
+                $updatedAt = $quoteItem->getUpdatedAt();
             }
 
             /**
@@ -1056,9 +1100,9 @@ class EmailMarketing extends Data
                 'frontend_link' => $product->getProductUrl() ?: '#',
                 'vendor'        => $vendorValue,
                 'is_utc'        => true,
-                'created_at'    => $this->formatDate($item->getProduct()->getCreatedAt()),
-                'updated_at'    => $this->formatDate($item->getProduct()->getUpdatedAt()),
-                'categories'    => $item->getProduct()->getCategoryIds()
+                'created_at'    => $this->formatDate($createdAt),
+                'updated_at'    => $this->formatDate($updatedAt),
+                'categories'    => $product->getCategoryIds()
             ];
 
             if ($isQuote) {
@@ -1086,8 +1130,8 @@ class EmailMarketing extends Data
                             'quantity'   => (int) ($isQuote ? $child->getQty() : $child->getQtyOrdered()),
                             'price'      => (float) $child->getBasePrice(),
                             'is_utc'     => true,
-                            'created_at' => $this->formatDate($product->getCreatedAt()),
-                            'updated_at' => $this->formatDate($product->getUpdatedAt()),
+                            'created_at' => $this->formatDate($createdAt),
+                            'updated_at' => $this->formatDate($updatedAt),
                             'categories' => $product->getCategoryIds()
                         ];
                     }
