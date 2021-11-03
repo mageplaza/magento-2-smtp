@@ -46,9 +46,6 @@
     <event name="sales_quote_save_before">
         <observer name="mp_smtp_quote_save_before" instance="Mageplaza\Smtp\Observer\Quote\SetToken"/>
     </event>
-    <event name="checkout_submit_all_after">
-        <observer name="mp_smtp_sales_order_create" instance="Mageplaza\Smtp\Observer\Order\OrderCreate"/>
-    </event>
     <event name="sales_order_save_commit_after">
         <observer name="mp_smtp_sales_order_complete" instance="Mageplaza\Smtp\Observer\Order\OrderComplete"/>
     </event>
