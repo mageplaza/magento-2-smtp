@@ -242,6 +242,17 @@ class UpgradeSchema implements UpgradeSchemaInterface
             );
         }
 
+        if (version_compare($context->getVersion(), '1.2.5', '<')) {
+            $salesOrderConnection = $this->orderResource->getConnection();
+            $salesOrderConnection->addColumn($setup->getTable('sales_order'), 'mp_smtp_email_marketing_order_created', [
+                'type'     => Table::TYPE_SMALLINT,
+                'nullable' => true,
+                'length'   => null,
+                'default'  => 0,
+                'comment'  => 'Mp SMTP Email Marketing order created'
+            ]);
+        }
+
         $setup->endSetup();
     }
 }

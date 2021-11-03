@@ -268,6 +268,11 @@ class EmailMarketing extends Data
     protected $quoteItemFactory;
 
     /**
+     * @var bool
+     */
+    protected $isPUT = false;
+
+    /**
      * EmailMarketing constructor.
      *
      * @param Context $context
@@ -369,8 +374,11 @@ class EmailMarketing extends Data
      */
     public function initCurl()
     {
-        if (!$this->_curl) {
-            $this->_curl = $this->curlFactory->create();
+        $this->_curl = $this->curlFactory->create();
+
+        if ($this->isPUT) {
+            $this->_curl->setOption(CURLOPT_CUSTOMREQUEST, 'PUT');
+            $this->isPUT = false;
         }
 
         return $this->_curl;
@@ -728,8 +736,7 @@ class EmailMarketing extends Data
      */
     public function updateOrderStatusRequest($data)
     {
-        $this->initCurl();
-        $this->_curl->setOption(CURLOPT_CUSTOMREQUEST, 'PUT');
+        $this->setIsUpdateRequest(true);
 
         return $this->sendRequest($data, self::ORDER_URL);
     }
@@ -1201,6 +1208,14 @@ class EmailMarketing extends Data
     }
 
     /**
+     * @param bool $flag
+     */
+    public function setIsUpdateRequest($flag)
+    {
+        $this->isPUT = $flag;
+    }
+
+    /**
      * @param array $data
      * @param string $url
      * @param string $appID
@@ -1567,10 +1582,7 @@ class EmailMarketing extends Data
      */
     public function syncCustomer($data, $isCreate = true)
     {
-        $this->initCurl();
-        if (!$isCreate) {
-            $this->_curl->setOption(CURLOPT_CUSTOMREQUEST, 'PUT');
-        }
+        $this->setIsUpdateRequest(!$isCreate);
 
         return $this->sendRequest($data, self::CUSTOMER_URL);
     }
