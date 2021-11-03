@@ -21,12 +21,14 @@
 
 namespace Mageplaza\Smtp\Observer\Order;
 
+use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Model\Order\Invoice;
 use Mageplaza\Smtp\Helper\EmailMarketing;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class InvoiceCommitAfter
@@ -40,14 +42,22 @@ class InvoiceCommitAfter implements ObserverInterface
     protected $helperEmailMarketing;
 
     /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
      * InvoiceCommitAfter constructor.
      *
      * @param EmailMarketing $helperEmailMarketing
+     * @param LoggerInterface $logger
      */
     public function __construct(
-        EmailMarketing $helperEmailMarketing
+        EmailMarketing $helperEmailMarketing,
+        LoggerInterface $logger
     ) {
         $this->helperEmailMarketing = $helperEmailMarketing;
+        $this->logger               = $logger;
     }
 
     /**
@@ -64,11 +74,24 @@ class InvoiceCommitAfter implements ObserverInterface
         ) {
             /* @var Invoice $order */
             $invoice = $observer->getEvent()->getDataObject();
+            $order   = $invoice->getOrder();
 
-            if ($invoice->getId() && $invoice->getCreatedAt() == $invoice->getUpdatedAt()) {
-                $this->helperEmailMarketing->sendOrderRequest($invoice, EmailMarketing::INVOICE_URL);
+            try {
+                if (!$order->getData('mp_em_flag_create_order') && $order->getCreatedAt() === $order->getUpdatedAt()) {
+                    $this->helperEmailMarketing->sendOrderRequest($order);
+                    $this->helperEmailMarketing->updateCustomer($order->getCustomerId());
+                    $order->setData('mp_em_flag_create_order', true);
+                }
+
+                if ($invoice->getId() && $invoice->getCreatedAt() == $invoice->getUpdatedAt()) {
+                    $this->helperEmailMarketing->sendOrderRequest($invoice, EmailMarketing::INVOICE_URL);
+                }
+
+                $this->helperEmailMarketing->updateCustomer($invoice->getOrder()->getCustomerId());
+
+            } catch (Exception $e) {
+                $this->logger->critical($e->getMessage());
             }
-            $this->helperEmailMarketing->updateCustomer($invoice->getOrder()->getCustomerId());
         }
     }
 }

@@ -80,20 +80,27 @@ class OrderComplete implements ObserverInterface
             try {
                 /* @var Order $order */
                 $order    = $observer->getEvent()->getOrder();
-                $isSynced = $order->getData('mp_smtp_email_marketing_synced');
-                if (!in_array($order->getState(), [Order::STATE_NEW, Order::STATE_COMPLETE], true)) {
-                    $data = [
-                        'id'         => $order->getId(),
-                        'status'     => $order->getStatus(),
-                        'state'      => $order->getState(),
-                        'email'      => $order->getCustomerEmail(),
-                        'is_utc'     => true,
-                        'created_at' => $this->helperEmailMarketing->formatDate($order->getCreatedAt()),
-                        'updated_at' => $this->helperEmailMarketing->formatDate($order->getUpdatedAt())
-                    ];
-                    $this->helperEmailMarketing->updateOrderStatusRequest($data);
+                if (!$order->getData('mp_em_flag_create_order') && $order->getCreatedAt() === $order->getUpdatedAt()) {
+                    $this->syncOrder($order);
+                    $this->helperEmailMarketing->updateCustomer($order->getCustomerId());
+                    $order->setData('mp_em_flag_create_order', true);
+
+                } else {
+                    if (!in_array($order->getState(), [Order::STATE_NEW, Order::STATE_COMPLETE], true)) {
+                        $data = [
+                            'id'         => $order->getId(),
+                            'status'     => $order->getStatus(),
+                            'state'      => $order->getState(),
+                            'email'      => $order->getCustomerEmail(),
+                            'is_utc'     => true,
+                            'created_at' => $this->helperEmailMarketing->formatDate($order->getCreatedAt()),
+                            'updated_at' => $this->helperEmailMarketing->formatDate($order->getUpdatedAt())
+                        ];
+                        $this->helperEmailMarketing->updateOrderStatusRequest($data);
+                    }
                 }
 
+                $isSynced = $order->getData('mp_smtp_email_marketing_synced');
                 if ($order->getState() === Order::STATE_COMPLETE &&
                     !$isSynced) {
                     $this->helperEmailMarketing->sendOrderRequest($order, EmailMarketing::ORDER_COMPLETE_URL);
@@ -107,6 +114,18 @@ class OrderComplete implements ObserverInterface
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
             }
+        }
+    }
+
+    /**
+     * @param Order $order
+     */
+    public function syncOrder($order)
+    {
+        try {
+            $this->helperEmailMarketing->sendOrderRequest($order);
+        } catch (Exception $e) {
+            $this->logger->critical($e->getMessage());
         }
     }
 }
