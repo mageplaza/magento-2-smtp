@@ -80,33 +80,67 @@ class OrderComplete implements ObserverInterface
             try {
                 /* @var Order $order */
                 $order    = $observer->getEvent()->getOrder();
-                $isSynced = $order->getData('mp_smtp_email_marketing_synced');
-                if (!in_array($order->getState(), [Order::STATE_NEW, Order::STATE_COMPLETE], true)) {
-                    $data = [
-                        'id'         => $order->getId(),
-                        'status'     => $order->getStatus(),
-                        'state'      => $order->getState(),
-                        'email'      => $order->getCustomerEmail(),
-                        'is_utc'     => true,
-                        'created_at' => $this->helperEmailMarketing->formatDate($order->getCreatedAt()),
-                        'updated_at' => $this->helperEmailMarketing->formatDate($order->getUpdatedAt())
-                    ];
-                    $this->helperEmailMarketing->updateOrderStatusRequest($data);
+                if (!$order->getData('mp_smtp_email_marketing_order_created') &&
+                    $order->getCreatedAt() === $order->getUpdatedAt()
+                ) {
+                    $this->syncOrder($order);
+                    $this->helperEmailMarketing->updateCustomer($order->getCustomerId());
+                    $order->setData('mp_smtp_email_marketing_order_created', true);
+                    $this->updateFlag($order->getId(), 'mp_smtp_email_marketing_order_created');
+
+                } else {
+                    if (!in_array($order->getState(), [Order::STATE_NEW, Order::STATE_COMPLETE], true)) {
+                        $data = [
+                            'id'         => $order->getId(),
+                            'status'     => $order->getStatus(),
+                            'state'      => $order->getState(),
+                            'email'      => $order->getCustomerEmail(),
+                            'is_utc'     => true,
+                            'created_at' => $this->helperEmailMarketing->formatDate($order->getCreatedAt()),
+                            'updated_at' => $this->helperEmailMarketing->formatDate($order->getUpdatedAt())
+                        ];
+                        $this->helperEmailMarketing->updateOrderStatusRequest($data);
+                    }
                 }
+
+                $isSynced = $order->getData('mp_smtp_email_marketing_synced');
 
                 if ($order->getState() === Order::STATE_COMPLETE &&
                     !$isSynced) {
                     $this->helperEmailMarketing->sendOrderRequest($order, EmailMarketing::ORDER_COMPLETE_URL);
-                    $resource = $this->resourceOrder;
-                    $resource->getConnection()->update(
-                        $resource->getMainTable(),
-                        ['mp_smtp_email_marketing_synced' => 1],
-                        ['entity_id = ?' => $order->getId()]
-                    );
+                    $this->updateFlag($order->getId(), 'mp_smtp_email_marketing_synced');
                 }
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
             }
+        }
+    }
+
+    /**
+     * @param int|string $orderId
+     * @param string $field
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function updateFlag($orderId, $field)
+    {
+        $resource = $this->resourceOrder;
+        $resource->getConnection()->update(
+            $resource->getMainTable(),
+            [$field => 1],
+            ['entity_id = ?' => $orderId]
+        );
+    }
+
+    /**
+     * @param Order $order
+     */
+    public function syncOrder($order)
+    {
+        try {
+            $this->helperEmailMarketing->sendOrderRequest($order);
+        } catch (Exception $e) {
+            $this->logger->critical($e->getMessage());
         }
     }
 }
