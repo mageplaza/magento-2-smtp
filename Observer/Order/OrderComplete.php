@@ -72,7 +72,6 @@ class OrderComplete implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-
         if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()
@@ -80,10 +79,13 @@ class OrderComplete implements ObserverInterface
             try {
                 /* @var Order $order */
                 $order    = $observer->getEvent()->getOrder();
-                if (!$order->getData('mp_em_flag_create_order') && $order->getCreatedAt() === $order->getUpdatedAt()) {
+                if (!$order->getData('mp_smtp_email_marketing_order_created') &&
+                    $order->getCreatedAt() === $order->getUpdatedAt()
+                ) {
                     $this->syncOrder($order);
                     $this->helperEmailMarketing->updateCustomer($order->getCustomerId());
-                    $order->setData('mp_em_flag_create_order', true);
+                    $order->setData('mp_smtp_email_marketing_order_created', true);
+                    $this->updateFlag($order->getId(), 'mp_smtp_email_marketing_order_created');
 
                 } else {
                     if (!in_array($order->getState(), [Order::STATE_NEW, Order::STATE_COMPLETE], true)) {
@@ -101,15 +103,11 @@ class OrderComplete implements ObserverInterface
                 }
 
                 $isSynced = $order->getData('mp_smtp_email_marketing_synced');
+
                 if ($order->getState() === Order::STATE_COMPLETE &&
                     !$isSynced) {
                     $this->helperEmailMarketing->sendOrderRequest($order, EmailMarketing::ORDER_COMPLETE_URL);
-                    $resource = $this->resourceOrder;
-                    $resource->getConnection()->update(
-                        $resource->getMainTable(),
-                        ['mp_smtp_email_marketing_synced' => 1],
-                        ['entity_id = ?' => $order->getId()]
-                    );
+                    $this->updateFlag($order->getId(), 'mp_smtp_email_marketing_synced');
                 }
             } catch (Exception $e) {
                 $this->logger->critical($e->getMessage());
@@ -127,5 +125,21 @@ class OrderComplete implements ObserverInterface
         } catch (Exception $e) {
             $this->logger->critical($e->getMessage());
         }
+    }
+
+    /**
+     * @param int|string $orderId
+     * @param string $field
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function updateFlag($orderId, $field)
+    {
+        $resource = $this->resourceOrder;
+        $resource->getConnection()->update(
+            $resource->getMainTable(),
+            [$field => 1],
+            ['entity_id = ?' => $orderId]
+        );
     }
 }
