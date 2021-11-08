@@ -28,6 +28,12 @@
                 <value id="avada" type="host">*.avada.io</value>
             </values>
         </policy>
+        <policy id="connect-src">
+            <values>
+                <value id="geojs" type="host">https://get.geojs.io</value>
+                <value id="avada" type="host">*.avada.io</value>
+            </values>
+        </policy>
     </policies>
 </csp_whitelist>
 
