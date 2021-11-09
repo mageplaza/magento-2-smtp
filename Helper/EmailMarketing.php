@@ -38,12 +38,16 @@ use Magento\Customer\Model\Metadata\ElementFactory;
 use Magento\Directory\Model\Currency;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Component\ComponentRegistrar;
+use Magento\Framework\Component\ComponentRegistrarInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Escaper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Filesystem\Directory\ReadFactory;
 use Magento\Framework\HTTP\Client\CurlFactory;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\ObjectManagerInterface;
@@ -268,9 +272,24 @@ class EmailMarketing extends Data
     protected $quoteItemFactory;
 
     /**
+     * @var ComponentRegistrarInterface
+     */
+    protected $componentRegistrar;
+
+    /**
+     * @var ReadFactory
+     */
+    protected $readFactory;
+
+    /**
      * @var bool
      */
     protected $isPUT = false;
+
+    /**
+     * @var string
+     */
+    protected $smtpVersion = '';
 
     /**
      * EmailMarketing constructor.
@@ -336,7 +355,9 @@ class EmailMarketing extends Data
         ResourceConnection $resourceConnection,
         Region $region,
         Collection $abandonedCartCollection,
-        ItemFactory $quoteItemFactory
+        ItemFactory $quoteItemFactory,
+        ComponentRegistrarInterface $componentRegistrar,
+        ReadFactory $readFactory
     ) {
         $this->frontendUrl                = $frontendUrl;
         $this->escaper                    = $escaper;
@@ -365,6 +386,8 @@ class EmailMarketing extends Data
         $this->region                     = $region;
         $this->abandonedCartCollection    = $abandonedCartCollection;
         $this->quoteItemFactory           = $quoteItemFactory;
+        $this->componentRegistrar = $componentRegistrar;
+        $this->readFactory = $readFactory;
 
         parent::__construct($context, $objectManager, $storeManager);
     }
@@ -1243,8 +1266,54 @@ class EmailMarketing extends Data
         $this->_curl->addHeader('X-EmailMarketing-App-Id', $appID);
         $this->_curl->addHeader('X-EmailMarketing-Connection-Test', $isTest);
         $this->_curl->addHeader('X-EmailMarketing-Integration-Key', $this->getConnectToken($storeId));
+        $this->_curl->addHeader('X-EmailMarketing-M2-Version', $this->getMagentoVersion());
+        $this->_curl->addHeader('X-EmailMarketing-SMTP-Version', $this->getSMTPVersion());
 
         return $body;
+    }
+
+    /**
+     * @return \Magento\Framework\Phrase|string|void
+     */
+    public function getSMTPVersion()
+    {
+        if (!$this->smtpVersion) {
+            $this->smtpVersion = $this->getModuleVersion('Mageplaza_Smtp');
+        }
+
+        return $this->smtpVersion;
+    }
+
+    /**
+     * Get module composer version
+     *
+     * @param string $moduleName
+     * @return \Magento\Framework\Phrase|string|void
+     */
+    public function getModuleVersion($moduleName)
+    {
+        try {
+            $path             = $this->componentRegistrar->getPath(ComponentRegistrar::MODULE, $moduleName);
+            $directoryRead    = $this->readFactory->create($path);
+            $composerJsonData = $directoryRead->readFile('composer.json');
+            $data             = json_decode($composerJsonData);
+
+            return !empty($data->version) ? $data->version : __('UNKNOWN');
+        } catch (Exception $e) {
+            return 'error';
+        }
+    }
+
+    /**
+     * Get Product version
+     *
+     * @return string
+     */
+    public function getMagentoVersion()
+    {
+        $productMetadata = $this->objectManager->get(ProductMetadataInterface::class);
+
+        return $productMetadata->getVersion();
     }
 
     /**
