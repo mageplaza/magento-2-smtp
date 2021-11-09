@@ -212,7 +212,7 @@ class Script extends Template implements IdentityInterface
                 'priceTax'    => $this->getPrice($product, true),
                 'productType' => $product->getTypeId(),
                 'tags'        => [],
-                'title'       => $product->getName(),
+                'title'       => $this->escapeHtml($product->getName()),
                 'url'         => $product->getProductUrl(),
                 'vendor'      => 'magento'
             ];
