@@ -38,15 +38,20 @@ use Magento\Customer\Model\Metadata\ElementFactory;
 use Magento\Directory\Model\Currency;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Component\ComponentRegistrar;
+use Magento\Framework\Component\ComponentRegistrarInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Escaper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Filesystem\Directory\ReadFactory;
 use Magento\Framework\HTTP\Client\CurlFactory;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\Phrase;
 use Magento\Framework\Stdlib\DateTime;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Framework\UrlInterface;
@@ -78,10 +83,6 @@ use Magento\Framework\App\ResourceConnection;
 use Mageplaza\Smtp\Model\Config\Source\DaysRange;
 use Zend_Db_Select_Exception;
 use Magento\Directory\Model\Region;
-use Magento\Framework\App\ProductMetadataInterface;
-use Magento\Framework\Component\ComponentRegistrar;
-use Magento\Framework\Component\ComponentRegistrarInterface;
-use Magento\Framework\Filesystem\Directory\ReadFactory;
 
 /**
  * Class EmailMarketing
@@ -292,6 +293,11 @@ class EmailMarketing extends Data
     protected $smtpVersion = '';
 
     /**
+     * @var CategoryFactory
+     */
+    protected $categoryFactory;
+
+    /**
      * EmailMarketing constructor.
      *
      * @param Context $context
@@ -324,6 +330,9 @@ class EmailMarketing extends Data
      * @param Region $region
      * @param Collection $abandonedCartCollection
      * @param ItemFactory $quoteItemFactory
+     * @param ComponentRegistrarInterface $componentRegistrar
+     * @param ReadFactory $readFactory
+     * @param CategoryFactory $categoryFactory
      */
     public function __construct(
         Context $context,
@@ -357,7 +366,8 @@ class EmailMarketing extends Data
         Collection $abandonedCartCollection,
         ItemFactory $quoteItemFactory,
         ComponentRegistrarInterface $componentRegistrar,
-        ReadFactory $readFactory
+        ReadFactory $readFactory,
+        CategoryFactory $categoryFactory
     ) {
         $this->frontendUrl                = $frontendUrl;
         $this->escaper                    = $escaper;
@@ -388,6 +398,7 @@ class EmailMarketing extends Data
         $this->quoteItemFactory           = $quoteItemFactory;
         $this->componentRegistrar         = $componentRegistrar;
         $this->readFactory                = $readFactory;
+        $this->categoryFactory            = $categoryFactory;
 
         parent::__construct($context, $objectManager, $storeManager);
     }
@@ -405,6 +416,14 @@ class EmailMarketing extends Data
         }
 
         return $this->_curl;
+    }
+
+    /**
+     * @param bool $flag
+     */
+    public function setIsUpdateRequest($flag)
+    {
+        $this->isPUT = $flag;
     }
 
     /**
@@ -939,7 +958,7 @@ class EmailMarketing extends Data
                     'is_utc'     => true,
                     'created_at' => $this->formatDate($createdAt),
                     'updated_at' => $this->formatDate($updatedAt),
-                    'categories' => $product->getCategoryIds()
+                    'categories' => $this->getCategories($product->getCategoryIds())
                 ];
 
                 continue;
@@ -969,7 +988,7 @@ class EmailMarketing extends Data
                 'is_utc'        => true,
                 'created_at'    => $this->formatDate($createdAt),
                 'updated_at'    => $this->formatDate($updatedAt),
-                'categories'    => $product->getCategoryIds()
+                'categories'    => $this->getCategories($product->getCategoryIds())
             ];
 
             if ($productType === 'bundle') {
@@ -1132,7 +1151,7 @@ class EmailMarketing extends Data
                 'is_utc'        => true,
                 'created_at'    => $this->formatDate($createdAt),
                 'updated_at'    => $this->formatDate($updatedAt),
-                'categories'    => $product->getCategoryIds()
+                'categories'    => $this->getCategories($product->getCategoryIds())
             ];
 
             if ($isQuote) {
@@ -1162,7 +1181,7 @@ class EmailMarketing extends Data
                             'is_utc'     => true,
                             'created_at' => $this->formatDate($createdAt),
                             'updated_at' => $this->formatDate($updatedAt),
-                            'categories' => $product->getCategoryIds()
+                            'categories' => $this->getCategories($product->getCategoryIds())
                         ];
                     }
                 }
@@ -1231,14 +1250,6 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param bool $flag
-     */
-    public function setIsUpdateRequest($flag)
-    {
-        $this->isPUT = $flag;
-    }
-
-    /**
      * @param array $data
      * @param string $url
      * @param string $appID
@@ -1273,7 +1284,7 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @return \Magento\Framework\Phrase|string|void
+     * @return Phrase|string|void
      */
     public function getSMTPVersion()
     {
@@ -1288,7 +1299,8 @@ class EmailMarketing extends Data
      * Get module composer version
      *
      * @param string $moduleName
-     * @return \Magento\Framework\Phrase|string|void
+     *
+     * @return Phrase|string|void
      */
     public function getModuleVersion($moduleName)
     {
@@ -1834,5 +1846,28 @@ class EmailMarketing extends Data
         $this->_curl = '';
 
         return $bodyData;
+    }
+
+    /**
+     * @param array|null $categoryIds
+     *
+     * @return array
+     */
+    public function getCategories($categoryIds)
+    {
+        $categories = [];
+
+        if ($categoryIds) {
+            foreach ($categoryIds as $categoryId) {
+                /** @var Category $category */
+                $category     = $this->categoryFactory->create()->load($categoryId);
+                $categories[] = [
+                    'category_id'   => $category->getId(),
+                    'category_name' => $category->getName()
+                ];
+            }
+        }
+
+        return $categories;
     }
 }
