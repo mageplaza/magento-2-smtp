@@ -27,6 +27,8 @@ use Magento\Bundle\Helper\Catalog\Product\Configuration as BundleConfiguration;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Helper\Data as CatalogHelper;
 use Magento\Catalog\Helper\Product\Configuration as CatalogConfiguration;
+use Magento\Catalog\Model\Category;
+use Magento\Catalog\Model\CategoryFactory;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Customer\Model\Address\Config;
@@ -51,6 +53,7 @@ use Magento\Framework\Filesystem\Directory\ReadFactory;
 use Magento\Framework\HTTP\Client\CurlFactory;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\Phrase;
 use Magento\Framework\Stdlib\DateTime;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Framework\UrlInterface;
@@ -292,6 +295,11 @@ class EmailMarketing extends Data
     protected $smtpVersion = '';
 
     /**
+     * @var CategoryFactory
+     */
+    protected $categoryFactory;
+
+    /**
      * EmailMarketing constructor.
      *
      * @param Context $context
@@ -324,6 +332,9 @@ class EmailMarketing extends Data
      * @param Region $region
      * @param Collection $abandonedCartCollection
      * @param ItemFactory $quoteItemFactory
+     * @param ComponentRegistrarInterface $componentRegistrar
+     * @param ReadFactory $readFactory
+     * @param CategoryFactory $categoryFactory
      */
     public function __construct(
         Context $context,
@@ -357,7 +368,8 @@ class EmailMarketing extends Data
         Collection $abandonedCartCollection,
         ItemFactory $quoteItemFactory,
         ComponentRegistrarInterface $componentRegistrar,
-        ReadFactory $readFactory
+        ReadFactory $readFactory,
+        CategoryFactory $categoryFactory
     ) {
         $this->frontendUrl                = $frontendUrl;
         $this->escaper                    = $escaper;
@@ -386,8 +398,9 @@ class EmailMarketing extends Data
         $this->region                     = $region;
         $this->abandonedCartCollection    = $abandonedCartCollection;
         $this->quoteItemFactory           = $quoteItemFactory;
-        $this->componentRegistrar = $componentRegistrar;
-        $this->readFactory = $readFactory;
+        $this->componentRegistrar         = $componentRegistrar;
+        $this->readFactory                = $readFactory;
+        $this->categoryFactory            = $categoryFactory;
 
         parent::__construct($context, $objectManager, $storeManager);
     }
@@ -947,7 +960,7 @@ class EmailMarketing extends Data
                     'is_utc'     => true,
                     'created_at' => $this->formatDate($createdAt),
                     'updated_at' => $this->formatDate($updatedAt),
-                    'categories' => $product->getCategoryIds()
+                    'categories' => $this->getCategories($product->getCategoryIds())
                 ];
 
                 continue;
@@ -977,7 +990,7 @@ class EmailMarketing extends Data
                 'is_utc'        => true,
                 'created_at'    => $this->formatDate($createdAt),
                 'updated_at'    => $this->formatDate($updatedAt),
-                'categories'    => $product->getCategoryIds()
+                'categories'    => $this->getCategories($product->getCategoryIds())
             ];
 
             if ($productType === 'bundle') {
@@ -1140,7 +1153,7 @@ class EmailMarketing extends Data
                 'is_utc'        => true,
                 'created_at'    => $this->formatDate($createdAt),
                 'updated_at'    => $this->formatDate($updatedAt),
-                'categories'    => $product->getCategoryIds()
+                'categories'    => $this->getCategories($product->getCategoryIds())
             ];
 
             if ($isQuote) {
@@ -1170,7 +1183,7 @@ class EmailMarketing extends Data
                             'is_utc'     => true,
                             'created_at' => $this->formatDate($createdAt),
                             'updated_at' => $this->formatDate($updatedAt),
-                            'categories' => $product->getCategoryIds()
+                            'categories' => $this->getCategories($product->getCategoryIds())
                         ];
                     }
                 }
@@ -1273,7 +1286,7 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @return \Magento\Framework\Phrase|string|void
+     * @return Phrase|string|void
      */
     public function getSMTPVersion()
     {
@@ -1288,7 +1301,8 @@ class EmailMarketing extends Data
      * Get module composer version
      *
      * @param string $moduleName
-     * @return \Magento\Framework\Phrase|string|void
+     *
+     * @return Phrase|string|void
      */
     public function getModuleVersion($moduleName)
     {
@@ -1834,5 +1848,28 @@ class EmailMarketing extends Data
         $this->_curl = '';
 
         return $bodyData;
+    }
+
+    /**
+     * @param array|null $categoryIds
+     *
+     * @return array
+     */
+    public function getCategories($categoryIds)
+    {
+        $categories = [];
+
+        if ($categoryIds) {
+            foreach ($categoryIds as $categoryId) {
+                /** @var Category $category */
+                $category     = $this->categoryFactory->create()->load($categoryId);
+                $categories[] = [
+                    'category_id'   => $category->getId(),
+                    'category_name' => $category->getName()
+                ];
+            }
+        }
+
+        return $categories;
     }
 }

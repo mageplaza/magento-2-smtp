@@ -201,3 +201,5 @@ Cc,Cc
 Bcc,Bcc
 "Order synchronization has been completed.","Order synchronization has been completed."
 "Subscriber synchronization has been completed.","Subscriber synchronization has been completed."
+"Smtp is disabled.","Smtp is disabled."
+"From and To fields are required.","From and To fields are required."
