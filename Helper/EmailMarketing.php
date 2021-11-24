@@ -1141,7 +1141,7 @@ class EmailMarketing extends Data
                 'title'         => $item->getName(),
                 'name'          => $name,
                 'price'         => (float) $item->getBasePrice(),
-                'tax_price'     => (float) $item->getBaseTaxAmount(),
+                'tax_price'     => (float) ($isQuote ? $item->getBaseTaxAmount() / $item->getQty() : $item->getBaseTaxAmount() / $item->getQtyOrdered()),
                 'quantity'      => (int) ($isQuote ? $item->getQty() : $item->getQtyOrdered()),
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
