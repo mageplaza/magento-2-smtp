@@ -27,6 +27,8 @@ use Magento\Bundle\Helper\Catalog\Product\Configuration as BundleConfiguration;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Helper\Data as CatalogHelper;
 use Magento\Catalog\Helper\Product\Configuration as CatalogConfiguration;
+use Magento\Catalog\Model\Category;
+use Magento\Catalog\Model\CategoryFactory;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Customer\Model\Address\Config;
@@ -974,6 +976,9 @@ class EmailMarketing extends Data
             }
 
             $productType                = $orderItem->getData('product_type');
+            $isBundle                   = $productType === 'bundle';
+            $sku                        = $isBundle ? $orderItem->getSku() : $item->getData('sku');
+            $products                   = $this->productRepository->get($sku);
             $items[$orderItem->getId()] = [
                 'type'          => $productType,
                 'name'          => $productType === 'configurable' ?
@@ -988,7 +993,7 @@ class EmailMarketing extends Data
                 'is_utc'        => true,
                 'created_at'    => $this->formatDate($createdAt),
                 'updated_at'    => $this->formatDate($updatedAt),
-                'categories'    => $this->getCategories($product->getCategoryIds())
+                'categories'    => $this->getCategories($products->getCategoryIds())
             ];
 
             if ($productType === 'bundle') {
@@ -1141,7 +1146,8 @@ class EmailMarketing extends Data
                 'title'         => $item->getName(),
                 'name'          => $name,
                 'price'         => (float) $item->getBasePrice(),
-                'tax_price'     => (float) ($isQuote ? $item->getBaseTaxAmount() / $item->getQty() : $item->getBaseTaxAmount() / $item->getQtyOrdered()),
+                'tax_price'     => (float) ($isQuote ?
+                    $item->getBaseTaxAmount() / $item->getQty() : $item->getBaseTaxAmount() / $item->getQtyOrdered()),
                 'quantity'      => (int) ($isQuote ? $item->getQty() : $item->getQtyOrdered()),
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
@@ -1151,7 +1157,7 @@ class EmailMarketing extends Data
                 'is_utc'        => true,
                 'created_at'    => $this->formatDate($createdAt),
                 'updated_at'    => $this->formatDate($updatedAt),
-                'categories'    => $this->getCategories($product->getCategoryIds())
+                'categories'    => $this->getCategories($products->getCategoryIds())
             ];
 
             if ($isQuote) {
