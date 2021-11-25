@@ -84,6 +84,7 @@ class Bestsellers implements ResolverInterface
      */
     public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
     {
+        throw new GraphQlInputException(__('Feature not available yet.'));
         if (!$this->helperData->isEnabled()) {
             throw new GraphQlInputException(__('Smtp is disabled.'));
         }
