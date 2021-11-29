@@ -30,7 +30,11 @@ use Magento\Catalog\Helper\Product\Configuration as CatalogConfiguration;
 use Magento\Catalog\Model\Category;
 use Magento\Catalog\Model\CategoryFactory;
 use Magento\Catalog\Model\Product;
+use Magento\Catalog\Model\Product\Type;
+use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ProductRepository;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Bundle\Model\Product\Type as Bundle;
 use Magento\Customer\Model\Address\Config;
 use Magento\Customer\Model\Attribute;
 use Magento\Customer\Model\Customer;
@@ -57,6 +61,7 @@ use Magento\Framework\Phrase;
 use Magento\Framework\Stdlib\DateTime;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Framework\UrlInterface;
+use Magento\GroupedProduct\Model\Product\Type\Grouped;
 use Magento\Newsletter\Model\Subscriber;
 use Magento\Newsletter\Model\SubscriberFactory;
 use Magento\Quote\Model\Quote;
@@ -300,6 +305,21 @@ class EmailMarketing extends Data
     protected $categoryFactory;
 
     /**
+     * @var Configurable
+     */
+    protected $configurable;
+
+    /**
+     * @var Grouped
+     */
+    protected $grouped;
+
+    /**
+     * @var Bundle
+     */
+    protected $bundle;
+
+    /**
      * EmailMarketing constructor.
      *
      * @param Context $context
@@ -335,6 +355,9 @@ class EmailMarketing extends Data
      * @param ComponentRegistrarInterface $componentRegistrar
      * @param ReadFactory $readFactory
      * @param CategoryFactory $categoryFactory
+     * @param Configurable $configurable
+     * @param Grouped $grouped
+     * @param Bundle $bundle
      */
     public function __construct(
         Context $context,
@@ -369,7 +392,10 @@ class EmailMarketing extends Data
         ItemFactory $quoteItemFactory,
         ComponentRegistrarInterface $componentRegistrar,
         ReadFactory $readFactory,
-        CategoryFactory $categoryFactory
+        CategoryFactory $categoryFactory,
+        Configurable $configurable,
+        Grouped $grouped,
+        Bundle $bundle
     ) {
         $this->frontendUrl                = $frontendUrl;
         $this->escaper                    = $escaper;
@@ -401,6 +427,9 @@ class EmailMarketing extends Data
         $this->componentRegistrar         = $componentRegistrar;
         $this->readFactory                = $readFactory;
         $this->categoryFactory            = $categoryFactory;
+        $this->configurable               = $configurable;
+        $this->grouped                    = $grouped;
+        $this->bundle                     = $bundle;
 
         parent::__construct($context, $objectManager, $storeManager);
     }
@@ -443,7 +472,7 @@ class EmailMarketing extends Data
      */
     public function getProductOptions(Item $item)
     {
-        if ($item->getProductType() === 'bundle') {
+        if ($item->getProductType() === Type::TYPE_BUNDLE) {
             return $this->bundleProductConfiguration->getOptions($item);
         }
 
@@ -935,6 +964,7 @@ class EmailMarketing extends Data
     {
         $items = [];
         foreach ($object->getItems() as $item) {
+            /** @var OrderItem $orderItem */
             $orderItem = $item->getOrderItem();
             $product   = $this->getProductFromItem($orderItem);
             $createdAt = $item->getCreatedAt();
@@ -975,13 +1005,14 @@ class EmailMarketing extends Data
                 continue;
             }
 
-            $productType                = $orderItem->getData('product_type');
-            $isBundle                   = $productType === 'bundle';
-            $sku                        = $isBundle ? $orderItem->getSku() : $item->getData('sku');
-            $products                   = $this->productRepository->get($sku);
+            $productType = $orderItem->getData('product_type');
+            $isBundle    = $productType === Type::TYPE_BUNDLE;
+            $sku         = $isBundle ? $product->getSku() : $item->getData('sku');
+            $products    = $this->getProductBySku($orderItem, $sku);
+
             $items[$orderItem->getId()] = [
                 'type'          => $productType,
-                'name'          => $productType === 'configurable' ?
+                'name'          => $productType === Configurable::TYPE_CODE ?
                     $this->getItemOptions($orderItem) : $item->getName(),
                 'title'         => $item->getName(),
                 'price'         => (float) $item->getBasePrice(),
@@ -989,14 +1020,14 @@ class EmailMarketing extends Data
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
                 'image'         => $this->getProductImage($product),
-                'frontend_link' => $product->getProductUrl(),
+                'frontend_link' => $products->getProductUrl() ?: ($product->getProductUrl() ?: '#'),
                 'is_utc'        => true,
                 'created_at'    => $this->formatDate($createdAt),
                 'updated_at'    => $this->formatDate($updatedAt),
                 'categories'    => $this->getCategories($products->getCategoryIds())
             ];
 
-            if ($productType === 'bundle') {
+            if ($productType === Type::TYPE_BUNDLE) {
                 $items[$orderItem->getId()]['bundle_items'] = [];
             }
         }
@@ -1041,7 +1072,7 @@ class EmailMarketing extends Data
     }
 
     /**
-     * @param Item $orderItem
+     * @param OrderItem|Item $orderItem
      *
      * @return string
      */
@@ -1121,8 +1152,8 @@ class EmailMarketing extends Data
             $productType = $item->getData('product_type');
 
             $bundleItems = [];
-            $hasVariant  = $productType === 'configurable';
-            $isBundle    = $productType === 'bundle';
+            $hasVariant  = $productType === Configurable::TYPE_CODE;
+            $isBundle    = $productType === Type::TYPE_BUNDLE;
             $name        = $item->getName();
             if ($hasVariant) {
                 if ($isQuote) {
@@ -1132,8 +1163,8 @@ class EmailMarketing extends Data
                 }
             }
 
-            $sku      = $isBundle ? $item->getProduct()->getSku() : $item->getData('sku');
-            $products = $this->productRepository->get($sku);
+            $sku      = $isBundle ? $product->getSku() : $item->getData('sku');
+            $products = $this->getProductBySku($item, $sku);
 
             if (is_object($products->getCustomAttribute($this->getDefineVendor()))) {
                 $vendorValue = $products->getAttributeText($this->getDefineVendor());
@@ -1152,7 +1183,7 @@ class EmailMarketing extends Data
                 'sku'           => $item->getSku(),
                 'product_id'    => $item->getProductId(),
                 'image'         => $this->getProductImage($product),
-                'frontend_link' => $product->getProductUrl() ?: '#',
+                'frontend_link' => $products->getProductUrl() ?: ($product->getProductUrl() ?: '#'),
                 'vendor'        => $vendorValue,
                 'is_utc'        => true,
                 'created_at'    => $this->formatDate($createdAt),
@@ -1875,5 +1906,65 @@ class EmailMarketing extends Data
         }
 
         return $categories;
+    }
+
+    /**
+     * @param int $childId
+     *
+     * @return mixed|null
+     */
+    public function getParentId($childId)
+    {
+        $productId = null;
+        /* for simple product of configurable product */
+        $parentIds = $this->configurable->getParentIdsByChild($childId);
+
+        if (isset($parentIds[0])) {
+            return $parentIds[0];
+        }
+
+        /* for simple product of Group product */
+        $parentIds = $this->grouped->getParentIdsByChild($childId);
+
+        if (isset($parentIds[0])) {
+            return $parentIds[0];
+        }
+
+        $parentIds = $this->bundle->getParentIdsByChild($childId);
+
+        if (isset($parentIds[0])) {
+            return $parentIds[0];
+        }
+
+        return $productId;
+    }
+
+    /**
+     * @param OrderItem $item
+     * @param string $sku
+     *
+     * @return ProductInterface|Product|DataObject|mixed|null
+     */
+    public function getProductBySku($item, $sku)
+    {
+        try {
+            $products   = $this->productRepository->get($sku);
+            $buyRequest = $item->getBuyRequest();
+            if ($buyRequest && (int) $products->getVisibility() === Visibility::VISIBILITY_NOT_VISIBLE) {
+                if ($buyRequest->getData('super_product_config')) {
+                    $productId = $buyRequest->getData('super_product_config')['product_id'];
+                } elseif ($buyRequest->getData('super_attribute')) {
+                    $productId = $buyRequest->getData('product');
+                } else {
+                    $productId = $this->getParentId($products->getId());
+                }
+
+                $products = $this->productRepository->getById($productId);
+            }
+        } catch (Exception $e) {
+            $products = new DataObject([]);
+        }
+
+        return $products;
     }
 }

@@ -25,7 +25,7 @@ input MpFilters {
     from: String! @doc(description: "Filter From Date.")
     to: String! @doc(description: "Filter To Date.")
     store_id: Int @doc(description: "Filter Store Id.")
-    show_empty_rows: Int @doc(description: "Show Empty Rows.")
+    show_empty_rows: Boolean @doc(description: "Show Empty Rows.")
 }
 
 type SmtpBestsellersOutput {
