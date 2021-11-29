@@ -203,3 +203,4 @@ Bcc,Bcc
 "Subscriber synchronization has been completed.","Subscriber synchronization has been completed."
 "Smtp is disabled.","Smtp is disabled."
 "From and To fields are required.","From and To fields are required."
+"The store with store ID is %d doesn't exist.","The store with store ID is %d doesn't exist."

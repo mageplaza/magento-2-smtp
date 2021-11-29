@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace Mageplaza\Smtp\Model\Resolver\Bestsellers;
 
+use Exception;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
@@ -31,6 +32,7 @@ use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Reports\Helper\Data as ReportsData;
 use Magento\Reports\Model\Item;
 use Magento\Sales\Model\ResourceModel\Report\Bestsellers\Collection;
+use Magento\Store\Model\StoreManagerInterface;
 use Mageplaza\Smtp\Helper\Data;
 
 /**
@@ -60,23 +62,31 @@ class Bestsellers implements ResolverInterface
     protected $reportData;
 
     /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
+
+    /**
      * Bestsellers constructor.
      *
      * @param DateTime $dateTime
      * @param ReportsData $reportData
      * @param Data $helperData
      * @param Collection $bestsellersCollection
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         DateTime $dateTime,
         ReportsData $reportData,
         Data $helperData,
-        Collection $bestsellersCollection
+        Collection $bestsellersCollection,
+        StoreManagerInterface $storeManager
     ) {
         $this->dateTime              = $dateTime;
         $this->reportData            = $reportData;
         $this->helperData            = $helperData;
         $this->bestsellersCollection = $bestsellersCollection;
+        $this->storeManager          = $storeManager;
     }
 
     /**
@@ -84,7 +94,6 @@ class Bestsellers implements ResolverInterface
      */
     public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
     {
-        throw new GraphQlInputException(__('Feature not available yet.'));
         if (!$this->helperData->isEnabled()) {
             throw new GraphQlInputException(__('Smtp is disabled.'));
         }
@@ -94,7 +103,7 @@ class Bestsellers implements ResolverInterface
         $from          = isset($filters['from']) ? $this->dateTime->date('Y-m-d', $filters['from']) : null;
         $to            = isset($filters['to']) ? $this->dateTime->date('Y-m-d', $filters['to']) : null;
         $storeId       = isset($filters['store_id']) ? $filters['store_id'] : 0;
-        $showEmptyRows = isset($filters['show_empty_rows']) ? (int) $filters['show_empty_rows'] : 0;
+        $showEmptyRows = isset($filters['show_empty_rows']) ? $filters['show_empty_rows'] : false;
         $periods       = [
             ReportsData::REPORT_PERIOD_TYPE_DAY,
             ReportsData::REPORT_PERIOD_TYPE_MONTH,
@@ -130,7 +139,7 @@ class Bestsellers implements ResolverInterface
                     'period'        => $item->getPeriod(),
                     'product_id'    => $item->getProductId(),
                     'product_name'  => $item->getProductName(),
-                    'product_price' => $item->getProductPrice(),
+                    'product_price' => number_format((float) $item->getProductPrice(), 2),
                     'qty_ordered'   => $item->getQtyOrdered()
                 ];
             } elseif (!$key) {
@@ -160,6 +169,14 @@ class Bestsellers implements ResolverInterface
     {
         if (!isset($filters['from']) || !$filters['from'] || !isset($filters['to']) || !$filters['to']) {
             throw new GraphQlInputException(__('From and To fields are required.'));
+        }
+
+        if (isset($filters['store_id'])) {
+            try {
+                $this->storeManager->getStore($filters['store_id']);
+            } catch (Exception $e) {
+                throw new GraphQlInputException(__(sprintf("The store with store ID is %d doesn't exist.", $filters['store_id'])));
+            }
         }
     }
 }
