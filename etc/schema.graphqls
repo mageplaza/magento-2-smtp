@@ -36,6 +36,10 @@ type BestsellersProductOutput {
     period: String @doc(description: "Period.")
     qty_ordered: Int @doc(description: "Order Quantity.")
     product_id: String @doc(description: "Product ID")
+    product_sku: String @doc(description: "Product SKU")
+    product_url: String @doc(description: "Product URL")
+    product_image_url: String @doc(description: "Product Image URL")
     product_name: String @doc(description: "Product Name")
     product_price: String @doc(description: "Product Price")
+    currency: String @doc(description: "Currency")
 }

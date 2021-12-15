@@ -24,16 +24,21 @@ declare(strict_types=1);
 namespace Mageplaza\Smtp\Model\Resolver\Bestsellers;
 
 use Exception;
+use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Framework\Url as UrlAbstract;
 use Magento\Reports\Helper\Data as ReportsData;
 use Magento\Reports\Model\Item;
 use Magento\Sales\Model\ResourceModel\Report\Bestsellers\Collection;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Mageplaza\Smtp\Helper\Data;
+use Mageplaza\Smtp\Helper\EmailMarketing;
 
 /**
  * Class Bestsellers
@@ -67,6 +72,16 @@ class Bestsellers implements ResolverInterface
     protected $storeManager;
 
     /**
+     * @var ProductRepositoryInterface
+     */
+    protected $productRepository;
+
+    /**
+     * @var EmailMarketing
+     */
+    protected $helperEmailMarketing;
+
+    /**
      * Bestsellers constructor.
      *
      * @param DateTime $dateTime
@@ -74,19 +89,25 @@ class Bestsellers implements ResolverInterface
      * @param Data $helperData
      * @param Collection $bestsellersCollection
      * @param StoreManagerInterface $storeManager
+     * @param ProductRepositoryInterface $productRepository
+     * @param EmailMarketing $helperEmailMarketing
      */
     public function __construct(
         DateTime $dateTime,
         ReportsData $reportData,
         Data $helperData,
         Collection $bestsellersCollection,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        ProductRepositoryInterface $productRepository,
+        EmailMarketing $helperEmailMarketing
     ) {
         $this->dateTime              = $dateTime;
         $this->reportData            = $reportData;
         $this->helperData            = $helperData;
         $this->bestsellersCollection = $bestsellersCollection;
         $this->storeManager          = $storeManager;
+        $this->productRepository     = $productRepository;
+        $this->helperEmailMarketing  = $helperEmailMarketing;
     }
 
     /**
@@ -129,26 +150,41 @@ class Bestsellers implements ResolverInterface
         $data = [];
         /** @var Item $item */
         foreach ($collection->getItems() as $item) {
-            $key = array_search($item->getPeriod(), array_column($data, 'period'));
+            $productId  = $this->helperEmailMarketing->getParentId($item->getProductId()) ?: $item->getProductId();
+            $oriProduct = $this->getProductById($item->getProductId());
+            $product    = $this->getProductById($productId);
+            $imageLink  = ($oriProduct && $oriProduct->getImage())
+                ? $this->storeManager->getStore($oriProduct->getStoreId())->getBaseUrl(UrlAbstract::URL_TYPE_MEDIA)
+                . 'catalog/product' . $oriProduct->getImage() : '';
+            $code       = $this->storeManager->getStore(Store::DEFAULT_STORE_ID)->getBaseCurrencyCode();
+            $key        = array_search($item->getPeriod(), array_column($data, 'period'));
             if ($key === 0) {
                 $key = true;
             }
 
             if ($item->getProductId()) {
                 $data[] = [
-                    'period'        => $item->getPeriod(),
-                    'product_id'    => $item->getProductId(),
-                    'product_name'  => $item->getProductName(),
-                    'product_price' => number_format((float) $item->getProductPrice(), 2),
-                    'qty_ordered'   => $item->getQtyOrdered()
+                    'period'            => $item->getPeriod(),
+                    'product_id'        => $item->getProductId(),
+                    'product_sku'       => $product ? $product->getSku() : '',
+                    'product_url'       => $product ? $product->getProductUrl() : '',
+                    'product_image_url' => $imageLink,
+                    'product_name'      => $item->getProductName(),
+                    'product_price'     => number_format((float) $item->getProductPrice(), 2),
+                    'qty_ordered'       => $item->getQtyOrdered(),
+                    'currency'          => $code
                 ];
             } elseif (!$key) {
                 $data[] = [
-                    'period'        => $item->getPeriod(),
-                    'product_id'    => null,
-                    'product_name'  => null,
-                    'product_price' => null,
-                    'qty_ordered'   => null
+                    'period'            => $item->getPeriod(),
+                    'product_id'        => null,
+                    'product_sku'       => null,
+                    'product_url'       => null,
+                    'product_image_url' => null,
+                    'product_name'      => null,
+                    'product_price'     => null,
+                    'qty_ordered'       => null,
+                    'currency'          => null
                 ];
             }
         }
@@ -175,8 +211,27 @@ class Bestsellers implements ResolverInterface
             try {
                 $this->storeManager->getStore($filters['store_id']);
             } catch (Exception $e) {
-                throw new GraphQlInputException(__(sprintf("The store with store ID is %d doesn't exist.", $filters['store_id'])));
+                throw new GraphQlInputException(
+                    __(sprintf(
+                        "The store with store ID is %d doesn't exist.",
+                        $filters['store_id']
+                    ))
+                );
             }
+        }
+    }
+
+    /**
+     * @param int $id
+     *
+     * @return ProductInterface|null
+     */
+    protected function getProductById($id)
+    {
+        try {
+            return $this->productRepository->getById($id);
+        } catch (Exception $e) {
+            return null;
         }
     }
 }
