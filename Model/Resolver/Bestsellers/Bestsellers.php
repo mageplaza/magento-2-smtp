@@ -166,7 +166,7 @@ class Bestsellers implements ResolverInterface
                 $data[] = [
                     'period'            => $item->getPeriod(),
                     'product_id'        => $item->getProductId(),
-                    'product_sku'       => $product ? $product->getSku() : '',
+                    'product_sku'       => $oriProduct ? $oriProduct->getSku() : '',
                     'product_url'       => $product ? $product->getProductUrl() : '',
                     'product_image_url' => $imageLink,
                     'product_name'      => $item->getProductName(),
