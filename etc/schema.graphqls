@@ -43,3 +43,9 @@ type BestsellersProductOutput {
     product_price: String @doc(description: "Product Price")
     currency: String @doc(description: "Currency")
 }
+
+input ProductAttributeFilterInput @doc(description: "ProductAttributeFilterInput defines the filters to be used in the search. A filter contains at least one attribute, a comparison operator, and the value that is being searched for.") {
+    created_at: FilterTypeInput @deprecated(description: "Filter product by created_at.")
+    news_from_date: FilterTypeInput @doc(description: "Filter product by news_from_date.")
+    news_to_date: FilterTypeInput @doc(description: "Filter product by news_to_date.")
+}
