@@ -5,7 +5,7 @@
     "mageplaza/module-core": "^1.4.11"
   },
   "type": "magento2-module",
-  "version": "1.10.3",
+  "version": "1.11.0",
   "license": "proprietary",
   "authors": [
     {
