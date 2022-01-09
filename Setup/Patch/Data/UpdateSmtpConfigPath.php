@@ -9,7 +9,7 @@ use Magento\Customer\Setup\CustomerSetup;
 use Magento\Customer\Setup\Patch\Data\DefaultCustomerGroupsAndAttributes;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
-use Magento\Config\Model\ResourceModel\Config\Data\Collection;
+use Magento\Config\Model\ResourceModel\Config\Data\Collection as ConfigCollection;
 use Magento\Framework\App\Cache\TypeListInterface;
 
 class UpdateSmtpConfigPath implements DataPatchInterface
@@ -20,7 +20,7 @@ class UpdateSmtpConfigPath implements DataPatchInterface
     private $moduleDataSetup;
 
     /**
-     * @var Collection
+     * @var ConfigCollection
      */
     private $configCollection;
 
