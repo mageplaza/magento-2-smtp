@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Mageplaza\Smtp\Setup\Patch\Data;
 
 use Magento\Customer\Model\Customer;
-use Magento\Customer\Setup\CustomerSetup;
 use Magento\Customer\Setup\Patch\Data\DefaultCustomerGroupsAndAttributes;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
