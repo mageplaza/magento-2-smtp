@@ -27,8 +27,6 @@ use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
-use Magento\Customer\Model\ResourceModel\Customer as CustomerResource;
-use Magento\Newsletter\Model\ResourceModel\Subscriber as SubscriberResource;
 use Zend_Db_Exception;
 
 /**
@@ -48,33 +46,17 @@ class UpgradeSchema implements UpgradeSchemaInterface
     protected $orderResource;
 
     /**
-     * @var CustomerResource
-     */
-    protected $customerResource;
-
-    /**
-     * @var SubscriberResource
-     */
-    protected $subscriberResource;
-
-    /**
      * UpgradeSchema constructor.
      *
      * @param QuoteResource $quoteResource
      * @param OrderResource $orderResource
-     * @param CustomerResource $customerResource
-     * @param SubscriberResource $subscriberResource
      */
     public function __construct(
         QuoteResource $quoteResource,
-        OrderResource $orderResource,
-        CustomerResource $customerResource,
-        SubscriberResource $subscriberResource
+        OrderResource $orderResource
     ) {
         $this->quoteResource      = $quoteResource;
         $this->orderResource      = $orderResource;
-        $this->customerResource   = $customerResource;
-        $this->subscriberResource = $subscriberResource;
     }
 
     /**
@@ -215,41 +197,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'length'   => null,
                 'default'  => 0,
                 'comment'  => 'Mp SMTP Email Marketing synced'
-            ]);
-        }
-
-        if (version_compare($context->getVersion(), '1.2.4', '<')) {
-            $column = [
-                'type'     => Table::TYPE_SMALLINT,
-                'nullable' => true,
-                'length'   => null,
-                'default'  => 0,
-                'comment'  => 'Mp SMTP Email Marketing synced'
-            ];
-
-            $customerConnection = $this->customerResource->getConnection();
-            $customerConnection->addColumn(
-                $setup->getTable('customer_entity'),
-                'mp_smtp_email_marketing_synced',
-                $column
-            );
-
-            $subscriberConnection = $this->subscriberResource->getConnection();
-            $subscriberConnection->addColumn(
-                $setup->getTable('newsletter_subscriber'),
-                'mp_smtp_email_marketing_synced',
-                $column
-            );
-        }
-
-        if (version_compare($context->getVersion(), '1.2.5', '<')) {
-            $salesOrderConnection = $this->orderResource->getConnection();
-            $salesOrderConnection->addColumn($setup->getTable('sales_order'), 'mp_smtp_email_marketing_order_created', [
-                'type'     => Table::TYPE_SMALLINT,
-                'nullable' => true,
-                'length'   => null,
-                'default'  => 0,
-                'comment'  => 'Mp SMTP Email Marketing order created'
             ]);
         }
 
