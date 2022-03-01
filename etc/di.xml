@@ -69,4 +69,12 @@
     </type>
 
     <preference for="Mageplaza\Smtp\Api\CheckoutManagementInterface" type="Mageplaza\Smtp\Model\CheckoutManagement"/>
+
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="delete_smtp_log" xsi:type="object">Mageplaza\Smtp\Console\ClearLog</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
