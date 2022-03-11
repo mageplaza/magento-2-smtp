@@ -86,7 +86,7 @@ class AccountManagement
 
             return $result;
         } catch (Exception $e) {
-            return false;
+            return $result;
         }
     }
 }
