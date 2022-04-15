@@ -115,8 +115,15 @@ class Bestsellers implements ResolverInterface
      */
     public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
     {
-        if (!$this->helperData->isEnabled()) {
-            throw new GraphQlInputException(__('Smtp is disabled.'));
+        if (!$this->helperEmailMarketing->isEnableEmailMarketing()) {
+            throw new GraphQlInputException(__('Marketing automation is disabled.'));
+        }
+
+        $appId     = $args['app_id'];
+        $secretKey = $args['secret_key'];
+        if (!($this->helperEmailMarketing->getAppID() === $appId &&
+            $this->helperEmailMarketing->getSecretKey() === $secretKey)) {
+            throw new GraphQlInputException(__('Invalid app id or secret key.'));
         }
 
         $filters       = $args['filters'];

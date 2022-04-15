@@ -204,3 +204,5 @@ Bcc,Bcc
 "Smtp is disabled.","Smtp is disabled."
 "From and To fields are required.","From and To fields are required."
 "The store with store ID is %d doesn't exist.","The store with store ID is %d doesn't exist."
+"Marketing automation is disabled.","Marketing automation is disabled."
+"Invalid app id or secret key.","Invalid app id or secret key."
