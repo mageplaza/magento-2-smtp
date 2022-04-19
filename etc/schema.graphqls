@@ -17,7 +17,7 @@
 # @license     https://www.mageplaza.com/LICENSE.txt
 
 type Query {
-    mpSmtpBestsellers (filters: MpFilters): SmtpBestsellersOutput @resolver(class: "Mageplaza\\Smtp\\Model\\Resolver\\Bestsellers\\Bestsellers") @doc(description: "Searches for Best Sellers information matches the filter.")
+    mpSmtpBestsellers (app_id: String!,secret_key: String!,filters: MpFilters): SmtpBestsellersOutput @resolver(class: "Mageplaza\\Smtp\\Model\\Resolver\\Bestsellers\\Bestsellers") @doc(description: "Searches for Best Sellers information matches the filter.")
 }
 
 input MpFilters {
