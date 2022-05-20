@@ -253,6 +253,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ]);
         }
 
+        if (version_compare($context->getVersion(), '1.2.6', '<')) {
+            $connection->addIndex($setup->getTable("mageplaza_smtp_log"), "idx_created_at", "created_at");
+        }
+
         $setup->endSetup();
     }
 }
