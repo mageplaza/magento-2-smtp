@@ -183,8 +183,8 @@
                         <field id="email_marketing/general/enabled">1</field>
                     </depends>
                 </field>
-                <field id="is_push" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                    <label>Push Enable</label>
+                <field id="push_notification" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Push Notification</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="email_marketing/general/enabled">1</field>

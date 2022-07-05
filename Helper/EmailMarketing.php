@@ -1859,9 +1859,9 @@ class EmailMarketing extends Data
      *
      * @return mixed
      */
-    public function isPush($storeId = null)
+    public function isPushNotification($storeId = null)
     {
-        return $this->getEmailMarketingConfig('is_push', $storeId);
+        return $this->getEmailMarketingConfig('push_notification', $storeId);
     }
 
     /**
