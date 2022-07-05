@@ -1855,6 +1855,16 @@ class EmailMarketing extends Data
     }
 
     /**
+     * @param string|null $storeId
+     *
+     * @return mixed
+     */
+    public function isPush($storeId = null)
+    {
+        return $this->getEmailMarketingConfig('is_push', $storeId);
+    }
+
+    /**
      * @param string $url
      * @param array|null $data
      *
