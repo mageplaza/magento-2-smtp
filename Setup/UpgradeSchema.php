@@ -27,7 +27,6 @@ use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
-use Magento\Customer\Model\ResourceModel\Customer as CustomerResource;
 use Magento\Newsletter\Model\ResourceModel\Subscriber as SubscriberResource;
 use Zend_Db_Exception;
 
@@ -48,11 +47,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
     protected $orderResource;
 
     /**
-     * @var CustomerResource
-     */
-    protected $customerResource;
-
-    /**
      * @var SubscriberResource
      */
     protected $subscriberResource;
@@ -62,18 +56,15 @@ class UpgradeSchema implements UpgradeSchemaInterface
      *
      * @param QuoteResource $quoteResource
      * @param OrderResource $orderResource
-     * @param CustomerResource $customerResource
      * @param SubscriberResource $subscriberResource
      */
     public function __construct(
         QuoteResource $quoteResource,
         OrderResource $orderResource,
-        CustomerResource $customerResource,
         SubscriberResource $subscriberResource
     ) {
         $this->quoteResource      = $quoteResource;
         $this->orderResource      = $orderResource;
-        $this->customerResource   = $customerResource;
         $this->subscriberResource = $subscriberResource;
     }
 
@@ -227,8 +218,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'comment'  => 'Mp SMTP Email Marketing synced'
             ];
 
-            $customerConnection = $this->customerResource->getConnection();
-            $customerConnection->addColumn(
+            $setup->getConnection()->addColumn(
                 $setup->getTable('customer_entity'),
                 'mp_smtp_email_marketing_synced',
                 $column
