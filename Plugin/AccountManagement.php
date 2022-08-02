@@ -77,16 +77,15 @@ class AccountManagement
             return $result;
         }
 
-        /** @var Quote $quote */
-        $quote = $this->cartRepository->get($cartId);
-        $quote->setCustomerEmail($customerEmail);
-
         try {
+            /** @var Quote $quote */
+            $quote = $this->cartRepository->get($cartId);
+            $quote->setCustomerEmail($customerEmail);
+            
             $this->cartRepository->save($quote);
-
-            return $result;
         } catch (Exception $e) {
-            return false;
         }
+        
+        return $result;
     }
 }
