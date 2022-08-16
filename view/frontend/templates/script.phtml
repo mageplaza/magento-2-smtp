@@ -28,6 +28,7 @@ $customerData  = $block->getCustomerData();
 ?>
 <script>
     window.AVADA_EM                   = window.AVADA_EM || {};
+    window.AVADA_EM_PUSH_ENABLED      = Boolean(<?= /* @noEscape */ $block->getHelperEmailMarketing()->isPushNotification() ?>);
     window.AVADA_EM.shopId            = "<?= /* @noEscape */ $shopId ?>";
     window.AVADA_EM.isTrackingEnabled = Boolean(<?= /* @noEscape */ $block->getHelperEmailMarketing()->isTracking() ?>);
     window.AVADA_EM.template          = "<?= /* @noEscape */ "" ?>";

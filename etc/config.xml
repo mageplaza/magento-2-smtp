@@ -35,6 +35,7 @@
             <general>
                 <enabled>0</enabled>
                 <is_tracking>0</is_tracking>
+                <push_notification>0</push_notification>
                 <newsletter_subscriber>0</newsletter_subscriber>
                 <synchronization>
                     <sync_type>1</sync_type>
