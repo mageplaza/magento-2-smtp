@@ -93,12 +93,18 @@ class ClearLog
             $logs = $this->collectionLog->create()
                 ->addFieldToFilter('created_at', ['lteq' => date('Y-m-d H:i:s', $timeEnd)]);
 
-            foreach ($logs as $log) {
-                try {
-                    $log->delete();
-                } catch (Exception $e) {
-                    $this->logger->critical($e);
+            $logs->setPageSize(50);
+            $pages = $logs->getLastPageNumber();
+            for ($pageNum = 1; $pageNum<=$pages; $pageNum++) {
+                $logs->setCurPage($pageNum);
+                foreach ($logs as $log) {
+                    try {
+                        $log->delete();
+                    } catch (Exception $e) {
+                        $this->logger->critical($e);
+                    }
                 }
+                $logs->clear();
             }
         }
 
