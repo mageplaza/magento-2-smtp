@@ -91,7 +91,8 @@ class ClearLog
 
             /** @var Collection $logs */
             $logs = $this->collectionLog->create()
-                ->addFieldToFilter('created_at', ['lteq' => date('Y-m-d H:i:s', $timeEnd)]);
+                ->addFieldToFilter('created_at', ['lteq' => date('Y-m-d H:i:s', $timeEnd)])
+                ->addFieldToSelect([]);
 
             foreach ($logs as $log) {
                 try {
