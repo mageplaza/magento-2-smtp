@@ -28,6 +28,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
+use Mageplaza\Smtp\Helper\EmailMarketing;
 
 /**
  * Class AccountManagement
@@ -46,17 +47,26 @@ class AccountManagement
     protected $cartRepository;
 
     /**
+     * @var EmailMarketing
+     */
+    protected $helperEmailMarketing;
+
+    /**
      * AccountManagement constructor.
      *
      * @param CheckoutSession $checkoutSession
      * @param CartRepositoryInterface $cartRepository
+     * @param EmailMarketing $helperEmailMarketing
      */
     public function __construct(
         CheckoutSession $checkoutSession,
-        CartRepositoryInterface $cartRepository
-    ) {
+        CartRepositoryInterface $cartRepository,
+        EmailMarketing $helperEmailMarketing
+    )
+    {
         $this->checkoutSession = $checkoutSession;
-        $this->cartRepository  = $cartRepository;
+        $this->cartRepository = $cartRepository;
+        $this->helperEmailMarketing = $helperEmailMarketing;
     }
 
     /**
@@ -71,22 +81,26 @@ class AccountManagement
      */
     public function afterIsEmailAvailable(CustomerAccountManagement $subject, $result, $customerEmail)
     {
-        $cartId = $this->checkoutSession->getQuote()->getId();
+        if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
+            $this->helperEmailMarketing->getSecretKey() &&
+            $this->helperEmailMarketing->getAppID()
+        ) {
+            $cartId = $this->checkoutSession->getQuote()->getId();
+            if (!$cartId) {
+                return $result;
+            }
 
-        if (!$cartId) {
-            return $result;
+            /** @var Quote $quote */
+            $quote = $this->cartRepository->get($cartId);
+            $quote->setCustomerEmail($customerEmail);
+
+            try {
+                $this->cartRepository->save($quote);
+            } catch (Exception $e) {
+                return $result;
+            }
         }
 
-        /** @var Quote $quote */
-        $quote = $this->cartRepository->getActive($cartId);
-        $quote->setCustomerEmail($customerEmail);
-
-        try {
-            $this->cartRepository->save($quote);
-
-            return $result;
-        } catch (Exception $e) {
-            return false;
-        }
+        return $result;
     }
 }
