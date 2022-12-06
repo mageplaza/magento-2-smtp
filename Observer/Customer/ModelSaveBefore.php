@@ -25,6 +25,7 @@ use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Mageplaza\Smtp\Helper\EmailMarketing;
 
 /**
  * Class ModelSaveBefore
@@ -38,13 +39,22 @@ class ModelSaveBefore implements ObserverInterface
     protected $customerFactory;
 
     /**
+     * @var EmailMarketing
+     */
+    protected $helperEmailMarketing;
+
+    /**
      * ModelSaveBefore constructor.
      *
      * @param CustomerFactory $customerFactory
+     * @param EmailMarketing $helperEmailMarketing
      */
-    public function __construct(CustomerFactory $customerFactory)
-    {
+    public function __construct(
+        CustomerFactory $customerFactory,
+        EmailMarketing $helperEmailMarketing
+    ) {
         $this->customerFactory = $customerFactory;
+        $this->helperEmailMarketing = $helperEmailMarketing;
     }
 
     /**
@@ -52,14 +62,19 @@ class ModelSaveBefore implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        $dataObject = $observer->getEvent()->getDataObject();
+        if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
+            $this->helperEmailMarketing->getSecretKey() &&
+            $this->helperEmailMarketing->getAppID()
+        ) {
+            $dataObject = $observer->getEvent()->getDataObject();
 
-        if (!$dataObject->getId()) {
-            //isObjectNew can't use on this case
-            $dataObject->setIsNewRecord(true);
-        } elseif ($dataObject instanceof Customer) {
-            $customOrigObject = $this->customerFactory->create()->load($dataObject->getId());
-            $dataObject->setCustomOrigObject($customOrigObject);
+            if (!$dataObject->getId()) {
+                //isObjectNew can't use on this case
+                $dataObject->setIsNewRecord(true);
+            } elseif ($dataObject instanceof Customer) {
+                $customOrigObject = $this->customerFactory->create()->load($dataObject->getId());
+                $dataObject->setCustomOrigObject($customOrigObject);
+            }
         }
     }
 }

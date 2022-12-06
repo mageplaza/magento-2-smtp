@@ -26,7 +26,7 @@
         <add id="Mageplaza_Smtp::configuration" title="Configuration" module="Mageplaza_Smtp" sortOrder="100" action="adminhtml/system_config/edit/section/smtp" resource="Mageplaza_Smtp::configuration" parent="Mageplaza_Smtp::smtp"/>
         <add id="Mageplaza_Smtp::abandoned_cart" title="Abandoned Carts" module="Mageplaza_Smtp" sortOrder="80" parent="Mageplaza_Smtp::smtp" action="adminhtml/smtp/abandonedcart" resource="Mageplaza_Smtp::abandoned_cart"/>
 
-        <add id="Avada_Smtp::email_marketing" title="Marketing Automation" module="Mageplaza_Smtp" sortOrder="50" parent="Magento_Backend::marketing" resource="Mageplaza_Smtp::email_marketing_menu"/>
+        <add id="Avada_Smtp::email_marketing" title="Marketing Automation" module="Mageplaza_Smtp" sortOrder="50" parent="Magento_Backend::marketing" resource="Mageplaza_Smtp::email_marketing_menu" dependsOnConfig="email_marketing/general/enabled"/>
         <add id="Avada_Smtp::email_marketing_automation" title="Automation" module="Mageplaza_Smtp" sortOrder="10" action="adminhtml/smtp/marketing/type/automation" resource="Mageplaza_Smtp::email_marketing_menu" parent="Avada_Smtp::email_marketing" />
         <add id="Avada_Smtp::email_marketing_newsletters" title="Campaign" module="Mageplaza_Smtp" sortOrder="20" action="adminhtml/smtp/marketing/type/newsletters" resource="Mageplaza_Smtp::email_marketing_menu" parent="Avada_Smtp::email_marketing" />
         <add id="Avada_Smtp::email_marketing_sms" title="SMS" module="Mageplaza_Smtp" sortOrder="30" action="adminhtml/smtp/marketing/type/sms" resource="Mageplaza_Smtp::email_marketing_menu" parent="Avada_Smtp::email_marketing" />
