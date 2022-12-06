@@ -85,22 +85,20 @@ class AccountManagement
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()
         ) {
-            return $result;
-        }
+            $cartId = $this->checkoutSession->getQuote()->getId();
+            if (!$cartId) {
+                return $result;
+            }
 
-        $cartId = $this->checkoutSession->getQuote()->getId();
-        if (!$cartId) {
-            return $result;
-        }
+            /** @var Quote $quote */
+            $quote = $this->cartRepository->get($cartId);
+            $quote->setCustomerEmail($customerEmail);
 
-        /** @var Quote $quote */
-        $quote = $this->cartRepository->get($cartId);
-        $quote->setCustomerEmail($customerEmail);
-
-        try {
-            $this->cartRepository->save($quote);
-        } catch (Exception $e) {
-            return $result;
+            try {
+                $this->cartRepository->save($quote);
+            } catch (Exception $e) {
+                return $result;
+            }
         }
 
         return $result;
