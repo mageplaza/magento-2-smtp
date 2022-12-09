@@ -1479,6 +1479,7 @@ class EmailMarketing extends Data
             'firstName'     => $customer->getFirstname(),
             'lastName'      => $customer->getLastname(),
             'phoneNumber'   => $address ? $address->getTelephone() : '',
+            'gender'        => $customer->getGender(),
             'description'   => '',
             'isSubscriber'  => $isSubscriber,
             'tags'          => $this->getTags($customer),
