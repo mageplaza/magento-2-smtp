@@ -13,6 +13,7 @@ None,None
 "US West (Oregon)","US West (Oregon)"
 "EU (Ireland)","EU (Ireland)"
 Mailgun,Mailgun
+Migomail,Migomail
 Mandrill,Mandrill
 Sendinblue,Sendinblue
 Sendgrid,Sendgrid
@@ -43,6 +44,8 @@ Verizon,Verizon
 OVH,OVH
 SMTP2GO,SMTP2GO
 "Customer synchronization has been completed.","Customer synchronization has been completed."
+"Order synchronization has been completed.","Order synchronization has been completed."
+"Subscriber synchronization has been completed.","Subscriber synchronization has been completed."
 "The recovery succeeded.","The recovery succeeded."
 "Marketing Automation is disabled.","Marketing Automation is disabled."
 "The link is not available for your use","The link is not available for your use"
@@ -69,19 +72,37 @@ Success,Success
 "A total of %1 record(s) have been sent.","A total of %1 record(s) have been sent."
 "App ID or Secret Key is empty","App ID or Secret Key is empty"
 "No customers to synchronize.","No customers to synchronize."
+"No Orders to synchronize.","No Orders to synchronize."
+"No subscriber to synchronize.","No subscriber to synchronize."
 "Sent successfully! Please check your email box.","Sent successfully! Please check your email box."
 "Test Error","Test Error"
 "Email marketing connection is working properly.","Email marketing connection is working properly."
-"Can't connect to the email marketing app. Please check the app id and secret key.","Can't connect to the email marketing app. Please check the app id and secret key."
+"Can't connect to the email marketing app. %1","Can't connect to the email marketing app. %1"
 "Error : %1","Error : %1"
+UNKNOWN,UNKNOWN
 "%1 not found.","%1 not found."
 "A host is necessary for smtp transport, but none was given","A host is necessary for smtp transport, but none was given"
 NONE,NONE
 PLAIN,PLAIN
 LOGIN,LOGIN
 CRAM-MD5,CRAM-MD5
+Lifetime,Lifetime
+90,90
+"1 Year","1 Year"
+"2 Years","2 Years"
+"Choose Date Range","Choose Date Range"
+All,All
+"Only Subscribed","Only Subscribed"
 SSL,SSL
 TLS,TLS
+"New Object Only","New Object Only"
+Customers,Customers
+Orders,Orders
+Subscribers,Subscribers
+Everything,Everything
+"Marketing automation is disabled.","Marketing automation is disabled."
+"Invalid app id or secret key.","Invalid app id or secret key."
+"From and To fields are required.","From and To fields are required."
 Sent,Sent
 "Wait for send","Wait for send"
 Error,Error
@@ -92,8 +113,15 @@ Resend,Resend
 Delete,Delete
 "Delete Log","Delete Log"
 "Are you sure you want to delete this log?","Are you sure you want to delete this log?"
+"Created From","Created From"
+"Select Date","Select Date"
+To,To
 "Load Settings","Load Settings"
 Syncing...,Syncing...
+"Syncing Customers...","Syncing Customers..."
+"Syncing Orders...","Syncing Orders..."
+"Syncing Subscribers...","Syncing Subscribers..."
+"Download log","Download log"
 "Cart Recovery Information","Cart Recovery Information"
 "Cart Recovery Link","Cart Recovery Link"
 "Copy link","Copy link"
@@ -126,7 +154,6 @@ Send,Send
 Preview,Preview
 Back,Back
 Sender,Sender
-To,To
 "Email Template","Email Template"
 "You can go to  <strong>Marketing > Communications > Email Template</strong> to create new template or edit available template","You can go to  <strong>Marketing > Communications > Email Template</strong> to create new template or edit available template"
 "Additional Message","Additional Message"
@@ -146,6 +173,10 @@ Image,Image
 "<a href=""%cart_recovery_link"">Go to your cart</a>","<a href=""%cart_recovery_link"">Go to your cart</a>"
 "TEST EMAIL from Custom SMTP","TEST EMAIL from Custom SMTP"
 "Your store has been connected with a custom SMTP successfully. Now you can Save Config and use this connection.","Your store has been connected with a custom SMTP successfully. Now you can Save Config and use this connection."
+"Success: ","Success: "
+"Error: ","Error: "
+"Item ID: ","Item ID: "
+"Changes you made may not be saved.","Changes you made may not be saved."
 "Mageplaza Smtp","Mageplaza Smtp"
 "Emails Log","Emails Log"
 "Abandoned Cart","Abandoned Cart"
@@ -181,12 +212,25 @@ Developer,Developer
 "Developer Mode","Developer Mode"
 "If Enable, Magento will not delivery any email to receiver. This is useful for developers.","If Enable, Magento will not delivery any email to receiver. This is useful for developers."
 "Marketing Automation","Marketing Automation"
+Configuration,Configuration
 Enable,Enable
-"By enable AVADA Email Marketing, it means that you agree with the <a href=""https://avada.io/tos.html"" target=""_blank"">Terms & Conditions</a> and <a href=""https://avada.io/dpa.html"" target=""_blank"">Data processing agreement</a>.","By enable AVADA Email Marketing, it means that you agree with the <a href=""https://avada.io/tos.html"" target=""_blank"">Terms & Conditions</a> and <a href=""https://avada.io/dpa.html"" target=""_blank"">Data processing agreement</a>."
+"By enabling <a href=""https://avada.io/platform/magento/?utm_source=m2-smtp"" target=""_blank"">Marketing Automation</a>, you agree to the <a href=""https://avada.io/tos.html"" target=""_blank"">Terms & Conditions</a> and <a href=""https://avada.io/dpa.html"" target=""_blank"">Data processing agreement</a>.","By enabling <a href=""https://avada.io/platform/magento/?utm_source=m2-smtp"" target=""_blank"">Marketing Automation</a>, you agree to the <a href=""https://avada.io/tos.html"" target=""_blank"">Terms & Conditions</a> and <a href=""https://avada.io/dpa.html"" target=""_blank"">Data processing agreement</a>."
+"Attribute Code for Vendor","Attribute Code for Vendor"
+"Only applicable with an attribute code </br>
+                    Go to <strong>Stores>Attributes>Product</strong> to get field information Attribute Code of <strong>Vendor</strong> attribute","Only applicable with an attribute code </br>
+                    Go to <strong>Stores>Attributes>Product</strong> to get field information Attribute Code of <strong>Vendor</strong> attribute"
+"Sync Newsletter Subscribers","Sync Newsletter Subscribers"
 "App ID","App ID"
 "Create API key <a href=""https://app.avada.io/manage/keys"" target=""_blank"">here</a>.","Create API key <a href=""https://app.avada.io/manage/keys"" target=""_blank"">here</a>."
 "Secret key","Secret key"
+"Tracking Enable","Tracking Enable"
+"Push Notification","Push Notification"
 Synchronization,Synchronization
+"Sync type","Sync type"
+"Choose what to sync","Choose what to sync"
+"If ""New Object Only"" is selected, only sync objects that have never been synced to Marketing Automation App","If ""New Object Only"" is selected, only sync objects that have never been synced to Marketing Automation App"
+Days,Days
+"If ""Choose Date Range"" is selected, all the records will be sync if the ""Created From - To"" is empty.","If ""Choose Date Range"" is selected, all the records will be sync if the ""Created From - To"" is empty."
 "All Store Views","All Store Views"
 Customer,Customer
 Status,Status
@@ -199,10 +243,3 @@ ID,ID
 Recipient,Recipient
 Cc,Cc
 Bcc,Bcc
-"Order synchronization has been completed.","Order synchronization has been completed."
-"Subscriber synchronization has been completed.","Subscriber synchronization has been completed."
-"Smtp is disabled.","Smtp is disabled."
-"From and To fields are required.","From and To fields are required."
-"The store with store ID is %d doesn't exist.","The store with store ID is %d doesn't exist."
-"Marketing automation is disabled.","Marketing automation is disabled."
-"Invalid app id or secret key.","Invalid app id or secret key."
