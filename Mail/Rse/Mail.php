@@ -127,7 +127,7 @@ class Mail
      */
     public function getTransport($storeId)
     {
-        if ($this->_transport[$storeId] === null) {
+        if (!isset($this->_transport[$storeId])) {
             if (!isset($this->_smtpOptions[$storeId])) {
                 $configData = $this->smtpHelper->getSmtpConfig('', $storeId);
                 $options    = [
