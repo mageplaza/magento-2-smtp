@@ -24,6 +24,7 @@ namespace Mageplaza\Smtp\Helper;
 use Exception;
 use IntlDateFormatter;
 use Magento\Bundle\Helper\Catalog\Product\Configuration as BundleConfiguration;
+use Magento\Bundle\Model\Product\Type as Bundle;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Helper\Data as CatalogHelper;
 use Magento\Catalog\Helper\Product\Configuration as CatalogConfiguration;
@@ -34,17 +35,19 @@ use Magento\Catalog\Model\Product\Type;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
-use Magento\Bundle\Model\Product\Type as Bundle;
 use Magento\Customer\Model\Address\Config;
 use Magento\Customer\Model\Attribute;
 use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\GroupFactory;
 use Magento\Customer\Model\Metadata\ElementFactory;
+use Magento\Directory\Model\CountryFactory;
 use Magento\Directory\Model\Currency;
+use Magento\Directory\Model\Region;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Component\ComponentRegistrarInterface;
 use Magento\Framework\DataObject;
@@ -54,8 +57,8 @@ use Magento\Framework\Escaper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filesystem\Directory\ReadFactory;
-use Magento\Framework\HTTP\Client\CurlFactory;
 use Magento\Framework\HTTP\Client\Curl;
+use Magento\Framework\HTTP\Client\CurlFactory;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Phrase;
 use Magento\Framework\Stdlib\DateTime;
@@ -68,28 +71,25 @@ use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Quote\Model\Quote\ItemFactory;
-use Magento\Sales\Model\Order\Item as OrderItem;
 use Magento\Quote\Model\ResourceModel\Quote as ResourceQuote;
 use Magento\Reports\Model\ResourceModel\Order\CollectionFactory as ReportOrderCollectionFactory;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Config as OrderConfig;
 use Magento\Sales\Model\Order\Creditmemo;
-use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Model\Order\Item as OrderItem;
+use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 use Magento\Shipping\Helper\Data as ShippingHelper;
+use Magento\Store\Model\Information;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreFactory;
 use Magento\Store\Model\StoreManagerInterface;
+use Mageplaza\Smtp\Model\Config\Source\DaysRange;
 use Mageplaza\Smtp\Model\ResourceModel\AbandonedCart\Grid\Collection;
 use Psr\Log\LoggerInterface;
-use Magento\Sales\Model\Order\Config as OrderConfig;
-use Magento\Store\Model\Information;
-use Magento\Store\Model\StoreFactory;
-use Magento\Directory\Model\CountryFactory;
 use Zend_Db_Expr;
-use Magento\Framework\App\ResourceConnection;
-use Mageplaza\Smtp\Model\Config\Source\DaysRange;
 use Zend_Db_Select_Exception;
-use Magento\Directory\Model\Region;
 
 /**
  * Class EmailMarketing
@@ -695,7 +695,10 @@ class EmailMarketing extends Data
         }
 
         if (!$isInvoice) {
-            $data['order_status_url'] = $this->getOrderViewUrl($object->getStoreId(), $object->getId(), $path);
+            $urlOrderView             = $path
+                ? $this->getOrderViewUrl($object->getStoreId(), $object->getId(), $path)
+                : $this->getOrderViewUrl($object->getStoreId(), $object->getId());
+            $data['order_status_url'] = $urlOrderView;
         }
 
         if ($isShipment) {
