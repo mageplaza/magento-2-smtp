@@ -695,10 +695,7 @@ class EmailMarketing extends Data
         }
 
         if (!$isInvoice) {
-            $urlOrderView             = $path
-                ? $this->getOrderViewUrl($object->getStoreId(), $object->getId(), $path)
-                : $this->getOrderViewUrl($object->getStoreId(), $object->getId());
-            $data['order_status_url'] = $urlOrderView;
+            $data['order_status_url'] = $this->getOrderViewUrl($object->getStoreId(), $object->getId(), $path);
         }
 
         if ($isShipment) {
@@ -820,15 +817,15 @@ class EmailMarketing extends Data
     /**
      * @param int $storeId
      * @param int $orderId
-     * @param string $path
+     * @param string|null $path
      *
      * @return string
      */
-    public function getOrderViewUrl($storeId, $orderId, $path = 'sales/order/view')
+    public function getOrderViewUrl($storeId, $orderId, $path = null)
     {
         $this->frontendUrl->setScope($storeId);
 
-        return $this->frontendUrl->getUrl($path, ['order_id' => $orderId]);
+        return $this->frontendUrl->getUrl($path ?? 'sales/order/view', ['order_id' => $orderId]);
     }
 
     /**
