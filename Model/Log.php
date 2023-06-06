@@ -227,7 +227,7 @@ class Log extends AbstractModel
             }
         }
 
-        $this->mailResource->setSmtpOptions(Store::DEFAULT_STORE_ID, ['ignore_log' => true]);
+        $this->mailResource->setSmtpOptions(Store::DEFAULT_STORE_ID, ['force_sent' => true]);
 
         try {
             $this->_transportBuilder
