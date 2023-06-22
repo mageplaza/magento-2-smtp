@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+  <table name="mageplaza_smtp_log" resource="default" engine="innodb" comment="mageplaza_smtp_log">
+    <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="Log ID"/>
+    <column xsi:type="varchar" name="subject" nullable="true" length="255" comment="Email Subject"/>
+    <column xsi:type="text" name="email_content" nullable="true" comment="Email Content"/>
+    <column xsi:type="smallint" name="status" padding="6" unsigned="false" nullable="false" identity="false" comment="Status"/>
+    <column xsi:type="timestamp" name="created_at" on_update="false" nullable="true" comment="Created At"/>
+    <column xsi:type="varchar" name="from" nullable="true" length="255" comment="Sender" disabled="true"/>
+    <column xsi:type="varchar" name="to" nullable="true" length="255" comment="Recipient" disabled="true"/>
+    <column xsi:type="varchar" name="cc" nullable="true" length="255" comment="Cc"/>
+    <column xsi:type="varchar" name="bcc" nullable="true" length="255" comment="Bcc"/>
+    <column xsi:type="varchar" name="sender" nullable="true" length="255" comment="Sender" onCreate="migrateDataFrom(from)"/>
+    <column xsi:type="varchar" name="recipient" nullable="true" length="255" comment="Recipient" onCreate="migrateDataFrom(to)"/>
+    <constraint xsi:type="primary" referenceId="PRIMARY">
+      <column name="id"/>
+    </constraint>
+    <index referenceId="MAGEPLAZA_SMTP_LOG_STATUS" indexType="btree">
+      <column name="status"/>
+    </index>
+  </table>
+  <table name="mageplaza_smtp_abandonedcart" resource="default" engine="innodb" comment="SMTP Abandoned Cart">
+    <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="Log Id"/>
+    <column xsi:type="varchar" name="log_ids" nullable="true" length="255" comment="Log Ids"/>
+    <column xsi:type="varchar" name="token" nullable="true" length="255" comment="Token"/>
+    <column xsi:type="int" name="quote_id" padding="10" unsigned="true" nullable="false" identity="false" default="0" comment="Quote Id"/>
+    <column xsi:type="smallint" name="status" padding="6" unsigned="false" nullable="false" identity="false" comment="Status"/>
+    <column xsi:type="timestamp" name="created_at" on_update="false" nullable="true" default="CURRENT_TIMESTAMP" comment="Created At"/>
+    <constraint xsi:type="primary" referenceId="PRIMARY">
+      <column name="id"/>
+    </constraint>
+    <constraint xsi:type="foreign" referenceId="MAGEPLAZA_SMTP_ABANDONEDCART_QUOTE_ID_QUOTE_ENTITY_ID" table="mageplaza_smtp_abandonedcart" column="quote_id" referenceTable="quote" referenceColumn="entity_id" onDelete="CASCADE"/>
+  </table>
+  <table name="quote" resource="default" engine="innodb" comment="quote">
+    <column xsi:type="smallint" name="mp_smtp_ace_token" nullable="true" comment="ACE Token"/>
+    <column xsi:type="smallint" name="mp_smtp_ace_sent" nullable="true" default="0" comment="ACE Sent"/>
+    <column xsi:type="text" name="mp_smtp_ace_log_ids" nullable="true" comment="ACE Log Ids"/>
+    <column xsi:type="text" name="mp_smtp_ace_log_data" nullable="true" comment="ACE Log Data"/>
+  </table>
+  <table name="sales_order" resource="default" engine="innodb" comment="sales_order">
+    <column xsi:type="smallint" name="mp_smtp_email_marketing_synced" nullable="true" default="0" comment="Mp SMTP Email Marketing synced"/>
+    <column xsi:type="smallint" name="mp_smtp_email_marketing_order_created" nullable="true" default="0" comment="Mp SMTP Email Marketing order created"/>
+  </table>
+  <table name="customer_entity" resource="default" engine="innodb" comment="customer_entity">
+    <column xsi:type="smallint" name="mp_smtp_email_marketing_synced" nullable="true" default="0" comment="Mp SMTP Email Marketing synced"/>
+  </table>
+  <table name="newsletter_subscriber" resource="default" engine="innodb" comment="newsletter_subscriber">
+    <column xsi:type="smallint" name="mp_smtp_email_marketing_synced" nullable="true" default="0" comment="Mp SMTP Email Marketing synced"/>
+  </table>
+</schema>
