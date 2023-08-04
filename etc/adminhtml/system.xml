@@ -32,8 +32,7 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Mageplaza SMTP is compatible with default Magento SMTP and other email modules.<br />
                         1. It helps to reduce abandonment cart with <a href="https://www.mageplaza.com/magento-2-one-step-checkout-extension/" target="_blank">One Step Checkout</a>. <br />
-                        2. Fully compatible with <a href="https://www.mageplaza.com/magento-2-abandoned-cart-email/" target="_blank">Abandoned Cart Email</a><br />
-                        3. <a href="https://avada.io/?utm_source=configuration&utm_campaign=m2-smtp" target="_blank">Top rated Marketing Automation for Magento</a>]]>
+                        2. Magento stores see upwards of 30% revenue 💰 with AVADA. <a href="https://go.avada.io/mageplaza">Learn more</a>.]]>
                     </comment>
                 </field>
                 <field id="log_email" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -123,16 +122,29 @@
                 </field>
             </group>
         </section>
-        <section id="email_marketing" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+        <tab id="avada" translate="label" sortOrder="401" class="avada-extensions">
             <label>Marketing Automation</label>
-            <tab>mageplaza</tab>
+        </tab>
+        <section id="email_marketing" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Configuration</label>
+            <tab>avada</tab>
             <resource>Mageplaza_Smtp::email_marketing</resource>
             <group id="general" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>General Configuration</label>
                 <field id="enabled" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[By enabling Marketing Automation, you agree to the <a href="https://avada.io/tos.html" target="_blank">Terms & Conditions</a> and <a href="https://avada.io/dpa.html" target="_blank">Data processing agreement</a>.]]></comment>
+                    <comment><![CDATA[By enabling <a href="https://avada.io/platform/magento/?utm_source=m2-smtp" target="_blank">Marketing Automation</a>, you agree to the <a href="https://avada.io/tos.html" target="_blank">Terms & Conditions</a> and <a href="https://avada.io/dpa.html" target="_blank">Data processing agreement</a>.]]></comment>
+                </field>
+                <field id="define_vendor" translate="label comment" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Attribute Code for Vendor</label>
+                    <comment><![CDATA[
+                    Only applicable with an attribute code </br>
+                    Go to <strong>Stores>Attributes>Product</strong> to get field information Attribute Code of <strong>Vendor</strong> attribute
+                    ]]></comment>
+                    <depends>
+                        <field id="email_marketing/general/enabled">1</field>
+                    </depends>
                 </field>
                 <field id="newsletter_subscriber" translate="label comment" type="select" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Sync Newsletter Subscribers</label>
@@ -164,16 +176,35 @@
                         <field id="email_marketing/general/enabled">1</field>
                     </depends>
                 </field>
+                <field id="is_tracking" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Tracking Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="email_marketing/general/enabled">1</field>
+                    </depends>
+                </field>
+                <field id="push_notification" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Push Notification</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="email_marketing/general/enabled">1</field>
+                    </depends>
+                </field>
                 <group id="synchronization" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Synchronization</label>
+                    <field id="sync_type" translate="label comment" sortOrder="3" type="select" showInDefault="1" showInStore="1" canRestore="1">
+                        <label>Sync type</label>
+                        <source_model>Mageplaza\Smtp\Model\Config\Source\SyncType</source_model>
+                    </field>
                     <field id="sync_options" translate="label comment" sortOrder="4" type="select" showInDefault="1" showInStore="1" canRestore="1">
                         <label>Choose what to sync</label>
                         <source_model>Mageplaza\Smtp\Model\Config\Source\SyncOptions</source_model>
-                        <comment>If "New Object" is selected, only sync objects that have never been synced to Marketing Automation App</comment>
+                        <comment>If "New Object Only" is selected, only sync objects that have never been synced to Marketing Automation App</comment>
                     </field>
-                    <field id="days_range" translate="label comment" sortOrder="4" type="select" showInDefault="1" showInStore="1" >
-                        <label>Days Range</label>
+                    <field id="days_range" translate="label comment" sortOrder="4" type="select" showInDefault="1" showInStore="1" canRestore="1">
+                        <label>Days</label>
                         <source_model>Mageplaza\Smtp\Model\Config\Source\DaysRange</source_model>
+                        <comment>If "Choose Date Range" is selected, all the records will be sync if the "Created From - To" is empty.</comment>
                     </field>
                     <field id="created_from" translate="label comment" sortOrder="5" type="text" showInDefault="1" showInStore="1" >
                         <label>Created From</label>
@@ -182,23 +213,11 @@
                             <field id="email_marketing/general/synchronization/days_range">custom</field>
                         </depends>
                     </field>
-                    <field id="sync_customer" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <field id="sync" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label></label>
-                        <button_label>Synchronize Customers</button_label>
-                        <button_url>adminhtml/smtp_sync/customer</button_url>
-                        <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncCustomer</frontend_model>
-                    </field>
-                    <field id="sync_order" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label></label>
-                        <button_label>Synchronize Orders</button_label>
-                        <button_url>adminhtml/smtp_sync/order</button_url>
-                        <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncOrder</frontend_model>
-                    </field>
-                    <field id="sync_subscriber" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label></label>
-                        <button_label>Synchronize Subscribers</button_label>
-                        <button_url>adminhtml/smtp_sync/subscriber</button_url>
-                        <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\SyncSubscriber</frontend_model>
+                        <button_label>Synchronize Now</button_label>
+                        <button_url>adminhtml/smtp_sync/sync</button_url>
+                        <frontend_model>Mageplaza\Smtp\Block\Adminhtml\System\Config\Sync</frontend_model>
                     </field>
                     <depends>
                         <field id="email_marketing/general/enabled">1</field>

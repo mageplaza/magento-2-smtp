@@ -46,7 +46,7 @@ class SyncOptions implements ArrayInterface
             ],
             [
                 'value' => self::NOT_SYNC,
-                'label' => __('New Object')
+                'label' => __('New Object Only')
             ]
         ];
 

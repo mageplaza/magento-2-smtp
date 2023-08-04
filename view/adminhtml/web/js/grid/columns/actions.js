@@ -46,7 +46,7 @@ define([
                 var row = this.rows[action.rowIndex],
                     modalHtml = '<iframe srcdoc="' + row['email_content'] + '" style="width: 100%; height: 100%"></iframe>';
 
-                this.modal[action.rowIndex] = $('<div/>')
+                this.modal[action.rowIndex] = $('<div>')
                     .html(modalHtml)
                     .modal({
                         type: 'slide',

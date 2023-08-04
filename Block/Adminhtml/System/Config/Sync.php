@@ -21,23 +21,25 @@
 
 namespace Mageplaza\Smtp\Block\Adminhtml\System\Config;
 
+use Mageplaza\Smtp\Model\Config\Source\SyncType;
+
 /**
- * Class SyncCustomer
+ * Class Sync
  * @package Mageplaza\Smtp\Block\Adminhtml\System\Config
  */
-class SyncCustomer extends Button
+class Sync extends Button
 {
     /**
      * @var string
      */
-    protected $_template = 'system/config/sync-template.phtml';
+    protected $_template = 'Mageplaza_Smtp::system/config/sync-template.phtml';
 
     /**
      * @return string
      */
     public function getEstimateUrl()
     {
-        return $this->getUrl('adminhtml/smtp_sync/estimatecustomer', ['_current' => true]);
+        return $this->getUrl('adminhtml/smtp_sync/estimate', ['_current' => true]);
     }
 
     /**
@@ -57,11 +59,15 @@ class SyncCustomer extends Button
     }
 
     /**
-     * @return mixed
+     * @return array
      */
     public function getSyncSuccessMessage()
     {
-        return __('Customer synchronization has been completed.');
+        return [
+            SyncType::CUSTOMERS   => __('Customer synchronization has been completed.'),
+            SyncType::ORDERS      => __('Order synchronization has been completed.'),
+            SyncType::SUBSCRIBERS => __('Subscriber synchronization has been completed.')
+        ];
     }
 
     /**
@@ -69,7 +75,7 @@ class SyncCustomer extends Button
      */
     public function getElementId()
     {
-        return 'mp-sync-customer';
+        return 'mp-synchronize';
     }
 
     /**
@@ -77,14 +83,6 @@ class SyncCustomer extends Button
      */
     public function getComponent()
     {
-        return 'Mageplaza_Smtp/js/sync/customer';
-    }
-
-    /**
-     * @return bool
-     */
-    public function isRenderCss()
-    {
-        return true;
+        return 'Mageplaza_Smtp/js/sync/sync';
     }
 }

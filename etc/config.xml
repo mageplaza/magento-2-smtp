@@ -34,9 +34,13 @@
         <email_marketing>
             <general>
                 <enabled>0</enabled>
+                <is_tracking>0</is_tracking>
+                <push_notification>0</push_notification>
                 <newsletter_subscriber>0</newsletter_subscriber>
                 <synchronization>
+                    <sync_type>1</sync_type>
                     <sync_options>all</sync_options>
+                    <days_range>lifetime</days_range>
                 </synchronization>
             </general>
         </email_marketing>

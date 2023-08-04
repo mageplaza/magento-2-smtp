@@ -124,18 +124,19 @@ class Transport
                             $message->getHeaders()->removeHeader("Content-Disposition");
                         }
                         $transport->send($message);
-                    }
-                    if ($this->helper->versionCompare('2.2.8')) {
-                        $messageTmp = $this->getMessage($subject);
-                        if ($messageTmp && is_object($messageTmp)) {
-                            $body = $messageTmp->getBody();
-                            if (is_object($body) && $body->isMultiPart()) {
-                                $message->setBody($body->getPartContent("0"));
+
+                        if ($this->helper->versionCompare('2.2.8')) {
+                            $messageTmp = $this->getMessage($subject);
+                            if ($messageTmp && is_object($messageTmp)) {
+                                $body = $messageTmp->getBody();
+                                if (is_object($body) && $body->isMultiPart()) {
+                                    $message->setBody($body->getPartContent("0"));
+                                }
                             }
                         }
-                    }
 
-                    $this->emailLog($message);
+                        $this->emailLog($message);
+                    }
                 } catch (Exception $e) {
                     $this->emailLog($message, false);
                     throw new MailException(new Phrase($e->getMessage()), $e);
@@ -226,7 +227,7 @@ class Transport
      */
     protected function emailLog($message, $status = true)
     {
-        if ($this->resourceMail->isEnableEmailLog($this->_storeId)) {
+        if ($this->helper->isEnabled($this->_storeId) && $this->resourceMail->isEnableEmailLog($this->_storeId)) {
             /** @var Log $log */
             $log = $this->logFactory->create();
             try {

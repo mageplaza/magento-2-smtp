@@ -93,12 +93,22 @@ class ClearLog
             $logs = $this->collectionLog->create()
                 ->addFieldToFilter('created_at', ['lteq' => date('Y-m-d H:i:s', $timeEnd)]);
 
-            foreach ($logs as $log) {
-                try {
-                    $log->delete();
-                } catch (Exception $e) {
-                    $this->logger->critical($e);
+            /**
+             * We've stumbled into a case where the module would run out of memory if the emails sent were too many like (400k) in our case. By the time the cleanup cron tried to clean them, it would run out of memory.
+             * I've used collection pagination to reduce the strain of this cleanup cron job. #394
+             */
+            $logs->setPageSize(100);
+            $pages = $logs->getLastPageNumber();
+            for ($pageNum = 1; $pageNum<=$pages; $pageNum++) {
+                $logs->setCurPage($pageNum);
+                foreach ($logs as $log) {
+                    try {
+                        $log->delete();
+                    } catch (Exception $e) {
+                        $this->logger->critical($e);
+                    }
                 }
+                $logs->clear();
             }
         }
 

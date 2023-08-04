@@ -19,16 +19,25 @@
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
-/**
- * @var \Mageplaza\Smtp\Block\Script $block
- */
+use Mageplaza\Smtp\Block\Script;
 
-$shopId = $block->getHelperEmailMarketing()->getAppID();
+/** @var Script $block */
+$shopId        = $block->getHelperEmailMarketing()->getAppID();
 $isSuccessPage = $block->isSuccessPage();
+$customerData  = $block->getCustomerData();
 ?>
 <script>
-    window.AVADA_EM = window.AVADA_EM || {};
-    window.AVADA_EM.shopId = "<?= /* @noEscape */ $shopId ?>";
+    window.AVADA_EM                   = window.AVADA_EM || {};
+    window.AVADA_EM_PUSH_ENABLED      = Boolean(<?= /* @noEscape */ $block->getHelperEmailMarketing()->isPushNotification() ?>);
+    window.AVADA_EM.shopId            = "<?= /* @noEscape */ $shopId ?>";
+    window.AVADA_EM.isTrackingEnabled = Boolean(<?= /* @noEscape */ $block->getHelperEmailMarketing()->isTracking() ?>);
+    window.AVADA_EM.template          = "<?= /* @noEscape */ "" ?>";
+    window.AVADA_EM.currency          = "<?= /* @noEscape */ $block->getCurrencyCode() ?>";
+    window.AVADA_EM.customer          = {
+        email: "<?=  /* @noEscape */ $customerData['email'] ?>",
+        firstName: "<?=  /* @noEscape */ $customerData['firstname'] ?>",
+        lastName: "<?=  /* @noEscape */ $customerData['lastname'] ?>"
+    };
 </script>
 <!-- BEGIN AVADA EMAIL MARKETING SCRIPT-->
 <?php if ($isSuccessPage && $block->getCurrentOrder()) {
@@ -40,17 +49,31 @@ $isSuccessPage = $block->isSuccessPage();
 
     ?>
     <script data-cfasync="false" type="text/javascript">
-        var AVADA_EM = {
-            shopId: "<?= /* @noEscape */ $shopId ?>",
-            vendor: "magento",
-            checkout: {
-                revenue: "<?=  /* @noEscape */ $grandTotal ?>",
-                currency: "<?=  /* @noEscape */ $currencyCode ?>",
-                checkoutId: "<?=  /* @noEscape */ $checkoutId ?>",
-                checkoutEmail: "<?=  /* @noEscape */ $email ?>"
-            }
+        window.AVADA_EM.vendor   = "magento";
+        window.AVADA_EM.checkout = {
+            revenue: "<?=  /* @noEscape */ $grandTotal ?>",
+            currency: "<?=  /* @noEscape */ $currencyCode ?>",
+            checkoutId: "<?=  /* @noEscape */ $checkoutId ?>",
+            checkoutEmail: "<?=  /* @noEscape */ $email ?>"
         };
-
     </script>
 <?php } ?>
+
+<?php if ($product = $block->productAbandoned()) : ?>
+    <script data-cfasync="false" type="text/javascript">
+        window.AVADA_EM.product  = {
+            collections: [],
+            id: "<?= /* @noEscape */ $product['id'] ?>",
+            image: "<?= /* @noEscape */ $product['image'] ?>",
+            price: "<?= /* @noEscape */ $product['price'] ?>",
+            priceTax: "<?= /* @noEscape */ $product['priceTax'] ?>",
+            productType: "<?= /* @noEscape */ $product['productType'] ?>",
+            tags: [],
+            title: "<?= /* @noEscape */ $product['title'] ?>",
+            url: "<?= /* @noEscape */ $product['url'] ?>",
+            vendor: "magento"
+        };
+        window.AVADA_EM.template = "product";
+    </script>
+<?php endif; ?>
 <script data-cfasync="false" type="text/javascript">(function(b){var s=document.createElement("script");s.type="text/javascript";s.async=true;s.src=b;var x=document.getElementsByTagName("script")[0];x.parentNode.insertBefore(s,x);})("https://app.avada.io/avada-sdk.min.js");</script>

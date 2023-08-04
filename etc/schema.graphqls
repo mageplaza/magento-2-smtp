@@ -1,0 +1,51 @@
+# Mageplaza
+#
+# NOTICE OF LICENSE
+#
+# This source file is subject to the Mageplaza.com license that is
+# available through the world-wide-web at this URL:
+# https://www.mageplaza.com/LICENSE.txt
+#
+# DISCLAIMER
+#
+# Do not edit or add to this file if you wish to upgrade this extension to newer
+# version in the future.
+#
+# @category    Mageplaza
+# @package     Mageplaza_Smtp
+# @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+# @license     https://www.mageplaza.com/LICENSE.txt
+
+type Query {
+    mpSmtpBestsellers (app_id: String!,secret_key: String!,filters: MpFilters): SmtpBestsellersOutput @resolver(class: "Mageplaza\\Smtp\\Model\\Resolver\\Bestsellers\\Bestsellers") @doc(description: "Searches for Best Sellers information matches the filter.")
+}
+
+input MpFilters {
+    period_type: String @doc(description: "Period.")
+    from: String! @doc(description: "Filter From Date.")
+    to: String! @doc(description: "Filter To Date.")
+    store_id: Int @doc(description: "Filter Store Id.")
+    show_empty_rows: Boolean @doc(description: "Show Empty Rows.")
+}
+
+type SmtpBestsellersOutput {
+    mpBestsellers: [BestsellersProductOutput] @doc(description: "Bestsellers Product Information.")
+}
+
+type BestsellersProductOutput {
+    period: String @doc(description: "Period.")
+    qty_ordered: Int @doc(description: "Order Quantity.")
+    product_id: String @doc(description: "Product ID")
+    product_sku: String @doc(description: "Product SKU")
+    product_url: String @doc(description: "Product URL")
+    product_image_url: String @doc(description: "Product Image URL")
+    product_name: String @doc(description: "Product Name")
+    product_price: String @doc(description: "Product Price")
+    currency: String @doc(description: "Currency")
+}
+
+input ProductAttributeFilterInput @doc(description: "ProductAttributeFilterInput defines the filters to be used in the search. A filter contains at least one attribute, a comparison operator, and the value that is being searched for.") {
+    created_at: FilterTypeInput @deprecated(description: "Filter product by created_at.")
+    news_from_date: FilterTypeInput @doc(description: "Filter product by news_from_date.")
+    news_to_date: FilterTypeInput @doc(description: "Filter product by news_to_date.")
+}

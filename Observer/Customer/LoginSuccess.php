@@ -19,43 +19,52 @@
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 
-namespace Mageplaza\Smtp\Observer\Order;
+namespace Mageplaza\Smtp\Observer\Customer;
 
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Sales\Model\Order;
+use Magento\PageCache\Model\Cache\Type;
+use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Helper\EmailMarketing;
-use Psr\Log\LoggerInterface;
+use Zend_Cache;
 
 /**
- * Class OrderCreate
- * @package Mageplaza\Smtp\Observer\Order
+ * Class LoginSuccess
+ * @package Mageplaza\Smtp\Observer\Customer
  */
-class OrderCreate implements ObserverInterface
+class LoginSuccess implements ObserverInterface
 {
+    /**
+     * @var Type
+     */
+    protected $fullPageCache;
+
     /**
      * @var EmailMarketing
      */
     protected $helperEmailMarketing;
 
     /**
-     * @var LoggerInterface
+     * @var Data
      */
-    protected $logger;
+    protected $helperData;
 
     /**
-     * OrderCreate constructor.
+     * LoginSuccess constructor.
      *
+     * @param Type $fullPageCache
+     * @param Data $helperData
      * @param EmailMarketing $helperEmailMarketing
-     * @param LoggerInterface $logger
      */
     public function __construct(
-        EmailMarketing $helperEmailMarketing,
-        LoggerInterface $logger
+        Type $fullPageCache,
+        Data $helperData,
+        EmailMarketing $helperEmailMarketing
     ) {
+        $this->fullPageCache        = $fullPageCache;
+        $this->helperData           = $helperData;
         $this->helperEmailMarketing = $helperEmailMarketing;
-        $this->logger = $logger;
     }
 
     /**
@@ -63,27 +72,14 @@ class OrderCreate implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-
-        if ($this->helperEmailMarketing->isEnableEmailMarketing() &&
-            $this->helperEmailMarketing->getSecretKey() &&
-            $this->helperEmailMarketing->getAppID()
-        ) {
-            /* @var Order $order */
-            $order = $observer->getEvent()->getOrder();
-            $this->syncOrder($order);
-            $this->helperEmailMarketing->updateCustomer($order->getCustomerId());
-        }
-    }
-
-    /**
-     * @param Order $order
-     */
-    public function syncOrder($order)
-    {
         try {
-            $this->helperEmailMarketing->sendOrderRequest($order);
+            $scopeId = $this->helperData->getScopeId();
         } catch (Exception $e) {
-            $this->logger->critical($e->getMessage());
+            $scopeId = null;
+        }
+
+        if ($this->helperEmailMarketing->isEnableEmailMarketing($scopeId)) {
+            $this->fullPageCache->clean(Zend_Cache::CLEANING_MODE_MATCHING_ANY_TAG, [EmailMarketing::CACHE_TAG]);
         }
     }
 }

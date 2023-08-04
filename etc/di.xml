@@ -64,4 +64,9 @@
     <type name="Magento\Customer\Model\AccountManagement">
         <plugin name="mpsmtp_account_management" type="Mageplaza\Smtp\Plugin\AccountManagement"/>
     </type>
+    <type name="Magento\CatalogGraphQl\Model\Resolver\Products\DataProvider\ProductSearch\ProductCollectionSearchCriteriaBuilder">
+        <plugin name="mpsmtp_search_criteria_builder" type="Mageplaza\Smtp\Plugin\Model\Resolver\Products\DataProvider\ProductSearch\ProductSearchCriteriaBuilder"/>
+    </type>
+
+    <preference for="Mageplaza\Smtp\Api\CheckoutManagementInterface" type="Mageplaza\Smtp\Model\CheckoutManagement"/>
 </config>
