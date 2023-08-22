@@ -70,7 +70,7 @@ class Mail
     protected $_returnPath = [];
 
     /**
-     * @var Zend_Mail_Transport_Smtp
+     * @var  array
      */
     protected $_transport;
 
