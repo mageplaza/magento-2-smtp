@@ -538,7 +538,7 @@ class EmailMarketing extends Data
             if ($customer && $customer->getId()) {
                 $customerName = trim($customer->getFirstname() . ' ' . $customer->getLastname());
             } else {
-                $customerName = explode('@', $quote->getCustomerEmail())[0];
+                $customerName = explode('@', $quote->getCustomerEmail() ?: '')[0];
             }
         }
 
