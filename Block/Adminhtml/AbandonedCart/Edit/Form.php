@@ -256,7 +256,7 @@ class Form extends Generic
      */
     public function getEmailTemplateOptions()
     {
-        $this->emailTemplate->setPath('mpsmtp_abandoned_cart_email_template');
+        $this->emailTemplate->setPath('mpsmtp_abandoned_cart_email_templates');
 
         return $this->createOptions($this->emailTemplate->toOptionArray());
     }
