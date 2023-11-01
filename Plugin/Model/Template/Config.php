@@ -37,7 +37,7 @@ class Config
      */
     public function afterGetAvailableTemplates(EmailConfig $subject, $templates)
     {
-        $key = array_search('mpsmtp_abandoned_cart_email_template', array_column($templates, 'value'));
+        $key = array_search('mpsmtp_abandoned_cart_email_templates', array_column($templates, 'value'));
         unset($templates[$key]);
 
         return $templates;
