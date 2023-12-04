@@ -42,7 +42,7 @@ define([
                 return this._super();
             }
 
-            if (typeof this.modal[action.rowIndex] === 'undefined' || typeof this.modal[action.rowIndex]==='object') {
+            if (typeof this.modal[action.rowIndex] === 'undefined' || typeof this.modal[action.rowIndex] === 'object') {
                 var row = this.rows[action.rowIndex],
                     modalHtml = '<iframe srcdoc="' + row['email_content'] + '" style="width: 100%; height: 100%"></iframe>';
 
