@@ -70,9 +70,9 @@ class Mail
     protected $_returnPath = [];
 
     /**
-     * @var Zend_Mail_Transport_Smtp
+     * @var array Zend_Mail_Transport_Smtp
      */
-    protected $_transport;
+    protected $_transport = [];
 
     /**
      * @var array
@@ -127,7 +127,7 @@ class Mail
      */
     public function getTransport($storeId)
     {
-        if ($this->_transport === null) {
+        if (!isset($this->_transport[$storeId])) {
             if (!isset($this->_smtpOptions[$storeId])) {
                 $configData = $this->smtpHelper->getSmtpConfig('', $storeId);
                 $options    = [
@@ -172,16 +172,16 @@ class Mail
 
                 $options = new SmtpOptions($options);
 
-                $this->_transport = new Smtp($options);
+                $this->_transport[$storeId] = new Smtp($options);
             } else {
-                $this->_transport = new Zend_Mail_Transport_Smtp(
+                $this->_transport[$storeId] = new Zend_Mail_Transport_Smtp(
                     $this->_smtpOptions[$storeId]['host'],
                     $this->_smtpOptions[$storeId]
                 );
             }
         }
 
-        return $this->_transport;
+        return $this->_transport[$storeId];
     }
 
     /**
