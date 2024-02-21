@@ -34,7 +34,7 @@ use Mageplaza\Smtp\Model\Log;
 use Mageplaza\Smtp\Model\LogFactory;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
-use Zend\Mail\Message;
+use Laminas\Mail\Message;
 use Zend_Exception;
 
 /**

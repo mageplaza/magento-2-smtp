@@ -22,11 +22,10 @@
 namespace Mageplaza\Smtp\Mail\Rse;
 
 use Mageplaza\Smtp\Helper\Data;
-use Zend\Mail\Message;
-use Zend\Mail\Transport\Smtp;
-use Zend\Mail\Transport\SmtpOptions;
+use Laminas\Mail\Message;
+use Laminas\Mail\Transport\Smtp;
+use Laminas\Mail\Transport\SmtpOptions;
 use Zend_Exception;
-use Zend_Mail_Transport_Smtp;
 
 /**
  * Class Mail
@@ -70,7 +69,7 @@ class Mail
     protected $_returnPath = [];
 
     /**
-     * @var Zend_Mail_Transport_Smtp
+     * @var Smtp
      */
     protected $_transport;
 
@@ -122,7 +121,7 @@ class Mail
     /**
      * @param $storeId
      *
-     * @return Zend_Mail_Transport_Smtp | Smtp
+     * @return Smtp
      * @throws Zend_Exception
      */
     public function getTransport($storeId)
@@ -174,10 +173,7 @@ class Mail
 
                 $this->_transport = new Smtp($options);
             } else {
-                $this->_transport = new Zend_Mail_Transport_Smtp(
-                    $this->_smtpOptions[$storeId]['host'],
-                    $this->_smtpOptions[$storeId]
-                );
+                $this->_transport = new Smtp();
             }
         }
 
