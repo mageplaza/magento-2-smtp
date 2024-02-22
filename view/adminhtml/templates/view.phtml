@@ -111,7 +111,7 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $quote->
                 ?>
                 <div class="admin__field field field-store_view">
                     <label class="label admin__field-label">
-                        <span><?= __('Store View') ?></span>
+                        <span><?= /* @noEscape */  __('Store View') ?></span>
                     </label>
                     <div class="admin__field-control control">
                         <div id="store_view" class="control-value admin__field-value">
@@ -124,16 +124,16 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $quote->
             ?>
             <div class="admin__field field field-created_date">
                 <label class="label admin__field-label">
-                    <span><?= __('Created Date') ?></span>
+                    <span><?= /* @noEscape */ __('Created Date') ?></span>
                 </label>
                 <div class="admin__field-control control">
-                    <div id="created_date" class="control-value admin__field-value"><?= $storeDate ?></div>
+                    <div id="created_date" class="control-value admin__field-value"><?= /* @noEscape */ $storeDate ?></div>
                 </div>
             </div>
             <div class="admin__field field field-customer_name " >
                 <label class="label admin__field-label" for="customer_name" ><span><?= /* @noEscape */ __('Customer Name') ?></span></label>
                 <div class="admin__field-control control">
-                    <div id="customer_name" class="control-value admin__field-value"><?= $customerName ?></div>
+                    <div id="customer_name" class="control-value admin__field-value"><?= /* @noEscape */ $customerName ?></div>
                 </div>
             </div>
             <div class="admin__field field field-customer_email ">
@@ -165,7 +165,7 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $quote->
                     </label>
                     <div class="admin__field-control control">
                         <div id="shipping_address" class="control-value admin__field-value">
-                            <?= $block->getFormattedAddress($quote->getShippingAddress(), $quote->getStoreId()) ?>
+                            <?= /* @noEscape */ $block->getFormattedAddress($quote->getShippingAddress(), $quote->getStoreId()) ?>
                         </div>
                     </div>
                 </div>
@@ -178,7 +178,7 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $quote->
                 </label>
                 <div class="admin__field-control control">
                     <div id="billing_address" class="control-value admin__field-value">
-                        <?= $block->getFormattedAddress($quote->getBillingAddress(), $quote->getStoreId()) ?>
+                        <?= /* @noEscape */ $block->getFormattedAddress($quote->getBillingAddress(), $quote->getStoreId()) ?>
                     </div>
                 </div>
             </div>
@@ -292,7 +292,7 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $quote->
 
 <!--       START: POPUP SEND EMAIL-->
 <div id ="popup-send-email" style="display: none">
-    <form method="post" action="<?= $sendUrl ?>" name="cart_recovery_form">
+    <form method="post" action="<?= /* @noEscape */ $sendUrl ?>" name="cart_recovery_form">
         <fieldset class="fieldset admin__fieldset">
             <legend class="admin__legend legend admin__page-section-title">
                 <span><?= $block->escapeHtml(__('Cart Recovery Email')) ?></span>
@@ -300,13 +300,13 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $quote->
         </fieldset>
         <div class="admin__field field field-to" id="action" style="height: 50px;">
             <button style="float: right;margin: 0 6px" id="popup-send-email-send" title="<?= $block->escapeHtml(__('Send')) ?>"  type="submit" class="action-default scalable primary">
-                <span><?= __('Send') ?></span>
+                <span><?= /* @noEscape */ __('Send') ?></span>
             </button>
             <button style="float: right;margin: 0 6px" id="popup-send-email-preview" title="<?= $block->escapeHtml(__('Preview')) ?>" type="button" class="action-default" >
-                <span><?= __('Preview') ?></span>
+                <span><?= /* @noEscape */ __('Preview') ?></span>
             </button>
             <button style="float: right;margin: 0 6px;display: none" id="popup-send-email-back" title="<?= $block->escapeHtml(__('Back')) ?>" type="button" class="action-default" >
-                <span><?= __('Back') ?></span>
+                <span><?= /* @noEscape */ __('Back') ?></span>
             </button>
         </div>
         <div id="messages" style="margin-bottom: 15px"></div>
@@ -334,7 +334,7 @@ $sendUrl = $block->getUrl('adminhtml/smtp_abandonedcart/send', ['id' => $quote->
                 <label class="label admin__field-label"><span><?= $block->escapeHtml(__('Email Template')) ?></span></label>
                 <div class="admin__field-control control">
                     <select id="email-template" name="email_template" title="Email Template" class="select admin__control-select" >
-                        <?= $block->getEmailTemplateOptions() ?>
+                        <?= /* @noEscape */ $block->getEmailTemplateOptions() ?>
                     </select>
                     <div class="note admin__field-note">
                         <?= /* @noEscape */ __('You can go to  <strong>Marketing > Communications > Email Template</strong> to create new template or edit available template') ?>
