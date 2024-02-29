@@ -192,7 +192,7 @@ class Form extends Generic
         $address = $quote->isVirtual() ? $quote->getBillingAddress() : $quote->getShippingAddress();
         $subtotal = $inclTax ? $address->getSubtotalInclTax() : $address->getSubtotal();
 
-        return $this->formatPrice($subtotal, $quote->getId());
+        return $this->formatPrice($subtotal, $quote->getStoreId());
     }
 
     /**
