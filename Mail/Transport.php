@@ -134,9 +134,8 @@ class Transport
                                 }
                             }
                         }
-
-                        $this->emailLog($message);
                     }
+                    $this->emailLog($message);
                 } catch (Exception $e) {
                     $this->emailLog($message, false);
                     throw new MailException(new Phrase($e->getMessage()), $e);
