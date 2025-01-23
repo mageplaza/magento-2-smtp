@@ -139,7 +139,7 @@ class Transport
                 }
                 $this->emailLog($message);
             } catch (Exception $e) {
-                $this->emailLog($message, false);
+                $this->emailLog($message, false, $e->getMessage());
                 throw new MailException(new Phrase($e->getMessage()), $e);
             }
         }
@@ -224,14 +224,15 @@ class Transport
      *
      * @param $message
      * @param bool $status
+     * @param string $error
      */
-    protected function emailLog($message, $status = true)
+    protected function emailLog($message, $status = true, $error = '')
     {
         if ($this->helper->isEnabled($this->_storeId) && $this->resourceMail->isEnableEmailLog($this->_storeId)) {
             /** @var Log $log */
             $log = $this->logFactory->create();
             try {
-                $log->saveLog($message, $status);
+                $log->saveLog($message, $status, $error);
                 if ($status) {
                     $this->saveLogIdForAbandonedCart($log);
                 }

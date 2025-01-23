@@ -46,6 +46,10 @@ define([
                 var row = this.rows[action.rowIndex],
                     modalHtml = '<iframe srcdoc="' + row['email_content'] + '" style="width: 100%; height: 100%"></iframe>';
 
+                if (row['error_message']) {
+                    modalHtml = '<div>' + row['error_message'] + '</div>' + modalHtml;
+                }
+
                 this.modal[action.rowIndex] = $('<div>')
                     .html(modalHtml)
                     .modal({
