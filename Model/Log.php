@@ -98,8 +98,9 @@ class Log extends AbstractModel
      *
      * @param $message
      * @param $status
+     * @param $error
      */
-    public function saveLog($message, $status)
+    public function saveLog($message, $status, $error)
     {
         if ($this->helper->versionCompare('2.2.8')) {
             if ($message->getSubject()) {
@@ -180,6 +181,7 @@ class Log extends AbstractModel
         }
 
         $this->setEmailContent($content)
+            ->setErrorMessage(empty($error) ? null : $error)
             ->setStatus($status)
             ->save();
     }
