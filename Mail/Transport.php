@@ -114,6 +114,10 @@ class Transport
             return;
         }
         $message = $this->getMessage($subject);
+        if(!$message) {
+            $proceed();
+            return;
+        }
         if ($this->helper->versionCompare('2.2.8')) {
             $message = Message::fromString($message->getRawMessage())->setEncoding('utf-8');
         }
