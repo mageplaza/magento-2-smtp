@@ -26,6 +26,8 @@ use Laminas\Mail\Message;
 use Laminas\Mail\Transport\Smtp;
 use Laminas\Mail\Transport\SmtpOptions;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
+use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransportFactory;
+use Symfony\Component\Mailer\Transport\Dsn;
 use Symfony\Component\Mime\Parser\MessageParser;
 use Zend_Exception;
 
@@ -35,6 +37,11 @@ use Zend_Exception;
  */
 class Mail
 {
+    /**
+     * SMTP scheme constant
+     */
+    private const SMTP_SCHEME = 'smtp';
+
     /**
      * @var Data
      */
@@ -282,7 +289,28 @@ class Mail
         $encryption = $config['protocol'] ?? null;
         $username   = $config['username'] ?? null;
         $password   = $this->smtpHelper->getPassword($storeId);
-        $transport  = new EsmtpTransport($host, $port, $encryption);
+
+        $options = [];
+        if ($encryption === 'tls') {
+            $tls = true;
+            $options['tls'] = true;
+        } elseif ($encryption === 'ssl') {
+            $options['ssl'] = true;
+            $options['verify_peer'] = true;
+            $options['verify_peer_name'] = true;
+        }
+
+        $dsn = new Dsn(
+            self::SMTP_SCHEME,
+            $host,
+            $username,
+            $password,
+            $port,
+            $options
+        );
+        $factory = new EsmtpTransportFactory();
+        $transport = $factory->create($dsn);
+
         if ($username && $password) {
             $transport->setUsername($username);
             $transport->setPassword($password);
