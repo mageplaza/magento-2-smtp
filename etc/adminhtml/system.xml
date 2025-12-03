@@ -82,7 +82,6 @@
                 </field>
                 <field id="username" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Username</label>
-                    <validate>validate-email</validate>
                 </field>
                 <field id="password" translate="label" type="obscure" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Password</label>
