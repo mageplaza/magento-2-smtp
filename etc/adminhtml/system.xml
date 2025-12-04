@@ -73,7 +73,9 @@
                 <field id="protocol" translate="label comment" type="select" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Protocol</label>
                     <source_model>Mageplaza\Smtp\Model\Config\Source\Protocol</source_model>
-                    <comment>We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols.</comment>
+                    <comment><![CDATA[We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols.<br/>
+                        For best compatibility: use port 465 for SSL and port 587 for TLS.]]>
+                    </comment>
                 </field>
                 <field id="authentication" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Authentication</label>

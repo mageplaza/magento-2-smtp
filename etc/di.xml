@@ -69,9 +69,4 @@
     </type>
 
     <preference for="Mageplaza\Smtp\Api\CheckoutManagementInterface" type="Mageplaza\Smtp\Model\CheckoutManagement"/>
-    
-    <!-- Plugin to modify SMTP config before save -->
-    <type name="Magento\Config\Model\Config">
-        <plugin name="mp_smtp_config_plugin" type="Mageplaza\Smtp\Plugin\Config\ConfigPlugin" sortOrder="1"/>
-    </type>
 </config>

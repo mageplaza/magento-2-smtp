@@ -199,7 +199,10 @@ Blacklist,Blacklist
 Host,Host
 "Support Host name and IP Address","Support Host name and IP Address"
 "Default ports: 25, 465, or 587. Port 465 (SSL required), Port 587 (TLS required)","Default ports: 25, 465, or 587. Port 465 (SSL required), Port 587 (TLS required)"
-"We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols.","We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols."
+"We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols.<br/>
+                        For best compatibility: use port 465 for SSL and port 587 for TLS.","We recommend use security connections: SSL or TLS. Secure Socket Layer (SSL), Transport Layer Security (TLS) protocols.<br/>
+                        For best compatibility: use port 465 for SSL and port 587 for TLS."
+
 Authentication,Authentication
 Username,Username
 Password,Password
@@ -243,4 +246,3 @@ ID,ID
 Recipient,Recipient
 Cc,Cc
 Bcc,Bcc
-Port automatically set to 587 for TLS protocol,Port automatically set to 587 for TLS protocol
