@@ -287,26 +287,15 @@ class Mail
         // CRITICAL: Strip ssl:// or tls:// prefix from host - Symfony adds it automatically
         $host = preg_replace('#^(ssl|tls)://#i', '', $host);
 
-        // Symfony $tls logic:
-        // - true  → adds ssl:// prefix (implicit SSL, for port 465 only)
-        // - false → plain connection, but EsmtpTransport auto-negotiates STARTTLS if available
-        // - null  → auto-detect based on port (465 → true, others → false)
-        
         $tls = false; // default: plain connection with auto STARTTLS negotiation
-        
-        if ($protocol === 'ssl' || $port === 465) {
+
+        if ($protocol === 'ssl') {
             // Implicit SSL: requires ssl:// prefix from start (Symfony adds it when $tls=true)
             $tls = true;
-            if ($port !== 465) {
-                $port = 465; // Force port 465 for implicit SSL
-            }
         } elseif ($protocol === 'tls') {
             // STARTTLS: plain connection first, then upgrade via STARTTLS command
             // Do NOT use $tls=true here, it would add ssl:// which breaks STARTTLS
-            $tls = false; // Let Symfony negotiate STARTTLS automatically
-            if ($port === 465) {
-                $port = 587; // STARTTLS uses 587, not 465
-            }
+            $tls = false;
         }
 
         $transport = new EsmtpTransport($host, $port, $tls);
