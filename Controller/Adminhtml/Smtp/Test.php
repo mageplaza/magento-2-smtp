@@ -178,6 +178,7 @@ class Test extends Action
                 }
             }
 
+            unset($config['authentication']);
             $this->mailResource->setSmtpOptions($storeId, $config);
 
             $from = $this->senderResolver->resolve(
