@@ -169,7 +169,7 @@ class Mail
                     $options['connection_config']['ssl'] = $options['ssl'];
                     unset($options['ssl']);
                 }
-                unset($options['type']);
+                unset($options['type'], $options['authentication']);
 
                 $options = new SmtpOptions($options);
 
