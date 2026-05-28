@@ -243,19 +243,19 @@ class Transport
 
         if ($laminasMessage->getCc()) {
             foreach ($laminasMessage->getCc() as $ccAddress) {
-                $email->addCc(new Address($ccAddress->getEmail(), $ccAddress->getName()));
+                $email->addCc(new Address($ccAddress->getEmail(), $ccAddress->getName() ?? ''));
             }
         }
 
         if ($laminasMessage->getBcc()) {
             foreach ($laminasMessage->getBcc() as $bccAddress) {
-                $email->addBcc(new Address($bccAddress->getEmail(), $bccAddress->getName()));
+                $email->addBcc(new Address($bccAddress->getEmail(), $bccAddress->getName() ?? ''));
             }
         }
 
         if ($laminasMessage->getReplyTo()) {
             foreach ($laminasMessage->getReplyTo() as $replyTo) {
-                $email->replyTo(new Address($replyTo->getEmail(), $replyTo->getName()));
+                $email->replyTo(new Address($replyTo->getEmail(), $replyTo->getName() ?? ''));
             }
         }
 
@@ -348,11 +348,7 @@ class Transport
             /** @var Log $log */
             $log = $this->logFactory->create();
             try {
-                if ($this->helper->versionCompare('2.4.8')) {
-                    if ($this->resourceMail->isDeveloperMode($this->_storeId)) {
-                        $message = $this->convertToSymfonyEmail($message);
-                    }
-
+                if ($message instanceof Email) {
                     $log->saveLogSymfony($message, $status, $this->_storeId);
                 } else {
                     $log->saveLog($message, $status, $this->_storeId);
