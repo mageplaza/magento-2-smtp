@@ -250,7 +250,7 @@ class Transport
 
                 //Handle attachments
                 if (isset($part->disposition) && !empty($part->getDisposition())) {
-                    $dataPart = new DataPart($part->getContent(), $part->getFileName(), $part->getEncoding());
+                    $dataPart = new DataPart($part->getContent(), isset($part->filename) ? $part->getFileName() : null, $part->getEncoding());
                     $dataPart->setDisposition($part->getDisposition());
                     $email->addPart($dataPart);
                 }
