@@ -23,7 +23,8 @@ namespace Mageplaza\Smtp\Mail;
 
 use Closure;
 use Exception;
-use Laminas\Mail\Message;
+use Laminas\Mime\Message as LaminasMimeMessage;
+use Laminas\Mime\Mime as LaminasMime;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\EmailMessage;
 use Magento\Framework\Mail\TransportInterface;
@@ -237,25 +238,42 @@ class Transport
                     $email->addPart($part);
                 }
             }
+        } elseif ($body instanceof LaminasMimeMessage) {
+            foreach ($body->getParts() as $part) {
+                $content = $part->getRawContent();
+                if ($part->getType() === LaminasMime::TYPE_HTML) {
+                    $email->html($content, $part->getCharset());
+
+                } elseif ($part->getType() === LaminasMime::TYPE_TEXT) {
+                    $email->text($content, $part->getCharset());
+                }
+
+                //Handle attachments
+                if (isset($part->disposition) && !empty($part->getDisposition())) {
+                    $dataPart = new DataPart($part->getContent(), isset($part->filename) ? $part->getFileName() : null, $part->getEncoding());
+                    $dataPart->setDisposition($part->getDisposition());
+                    $email->addPart($dataPart);
+                }
+            }
         } else {
             $email->text('No readable content.');
         }
 
         if ($laminasMessage->getCc()) {
             foreach ($laminasMessage->getCc() as $ccAddress) {
-                $email->addCc(new Address($ccAddress->getEmail(), $ccAddress->getName()));
+                $email->addCc(new Address($ccAddress->getEmail(), $ccAddress->getName() ?? ''));
             }
         }
 
         if ($laminasMessage->getBcc()) {
             foreach ($laminasMessage->getBcc() as $bccAddress) {
-                $email->addBcc(new Address($bccAddress->getEmail(), $bccAddress->getName()));
+                $email->addBcc(new Address($bccAddress->getEmail(), $bccAddress->getName() ?? ''));
             }
         }
 
         if ($laminasMessage->getReplyTo()) {
             foreach ($laminasMessage->getReplyTo() as $replyTo) {
-                $email->replyTo(new Address($replyTo->getEmail(), $replyTo->getName()));
+                $email->replyTo(new Address($replyTo->getEmail(), $replyTo->getName() ?? ''));
             }
         }
 
@@ -348,11 +366,7 @@ class Transport
             /** @var Log $log */
             $log = $this->logFactory->create();
             try {
-                if ($this->helper->versionCompare('2.4.8')) {
-                    if ($this->resourceMail->isDeveloperMode($this->_storeId)) {
-                        $message = $this->convertToSymfonyEmail($message);
-                    }
-
+                if ($message instanceof Email) {
                     $log->saveLogSymfony($message, $status, $this->_storeId);
                 } else {
                     $log->saveLog($message, $status, $this->_storeId);
