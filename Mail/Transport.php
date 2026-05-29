@@ -23,7 +23,8 @@ namespace Mageplaza\Smtp\Mail;
 
 use Closure;
 use Exception;
-use Laminas\Mail\Message;
+use Laminas\Mime\Message as LaminasMimeMessage;
+use Laminas\Mime\Mime as LaminasMime;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\EmailMessage;
 use Magento\Framework\Mail\TransportInterface;
@@ -235,6 +236,23 @@ class Transport
                 }
                 if ($part instanceof DataPart) {
                     $email->addPart($part);
+                }
+            }
+        } elseif ($body instanceof LaminasMimeMessage) {
+            foreach ($body->getParts() as $part) {
+                $content = $part->getRawContent();
+                if ($part->getType() === LaminasMime::TYPE_HTML) {
+                    $email->html($content, $part->getCharset());
+
+                } elseif ($part->getType() === LaminasMime::TYPE_TEXT) {
+                    $email->text($content, $part->getCharset());
+                }
+
+                //Handle attachments
+                if (isset($part->disposition) && !empty($part->getDisposition())) {
+                    $dataPart = new DataPart($part->getContent(), $part->getFileName(), $part->getEncoding());
+                    $dataPart->setDisposition($part->getDisposition());
+                    $email->addPart($dataPart);
                 }
             }
         } else {
