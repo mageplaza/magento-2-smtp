@@ -181,7 +181,7 @@ class Test extends Action
             $this->mailResource->setSmtpOptions($storeId, $config);
 
             $from = $this->senderResolver->resolve(
-                isset($params['from']) ? $params['from'] : $config['username'],
+                !empty($params['from']) ? $params['from'] : 'general',
                 $this->smtpDataHelper->getScopeId()
             );
 
