@@ -21,6 +21,7 @@
 
 namespace Mageplaza\Smtp\Mail\Rse;
 
+use Magento\Store\Model\StoreManagerInterface;
 use Mageplaza\Smtp\Helper\Data;
 use Laminas\Mail\Message;
 use Laminas\Mail\Transport\Smtp;
@@ -39,6 +40,11 @@ class Mail
      * @var Data
      */
     protected $smtpHelper;
+
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $_storeManager;
 
     /**
      * @var array Is module enable by store
@@ -84,10 +90,12 @@ class Mail
      * Mail constructor.
      *
      * @param Data $helper
+     * @param StoreManagerInterface $storeManager
      */
-    public function __construct(Data $helper)
+    public function __construct(Data $helper, StoreManagerInterface $storeManager)
     {
         $this->smtpHelper = $helper;
+        $this->_storeManager = $storeManager;
     }
 
     /**
@@ -175,7 +183,8 @@ class Mail
                     unset($options['ssl']);
                 }
                 unset($options['type']);
-
+                $options['name'] = parse_url($this->_storeManager->getStore()->getBaseUrl(), PHP_URL_HOST);
+                
                 $options = new SmtpOptions($options);
 
                 $this->_transport = new Smtp($options);
