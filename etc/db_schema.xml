@@ -32,7 +32,7 @@
     <constraint xsi:type="foreign" referenceId="MAGEPLAZA_SMTP_ABANDONEDCART_QUOTE_ID_QUOTE_ENTITY_ID" table="mageplaza_smtp_abandonedcart" column="quote_id" referenceTable="quote" referenceColumn="entity_id" onDelete="CASCADE"/>
   </table>
   <table name="quote" resource="default" engine="innodb" comment="quote">
-    <column xsi:type="smallint" name="mp_smtp_ace_token" nullable="true" comment="ACE Token"/>
+    <column xsi:type="varchar" name="mp_smtp_ace_token" nullable="true" length="255" comment="ACE Token"/>
     <column xsi:type="smallint" name="mp_smtp_ace_sent" nullable="true" default="0" comment="ACE Sent"/>
     <column xsi:type="text" name="mp_smtp_ace_log_ids" nullable="true" comment="ACE Log Ids"/>
     <column xsi:type="text" name="mp_smtp_ace_log_data" nullable="true" comment="ACE Log Data"/>
