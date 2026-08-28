@@ -34,6 +34,7 @@ use Magento\Framework\Registry;
 use Magento\Store\Model\Store;
 use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Mail\Rse\Mail;
+use Mageplaza\Smtp\Model\EmailSentFlagUpdater;
 use Mageplaza\Smtp\Model\Log;
 use Mageplaza\Smtp\Model\Source\Status;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -52,10 +53,12 @@ class LogTest extends TestCase
     private Data&MockObject $helper;
     private AbstractDb&MockObject $resource;
     private LoggerInterface&MockObject $logger;
+    private EmailSentFlagUpdater&MockObject $emailSentFlagUpdater;
 
     protected function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
+        $this->emailSentFlagUpdater = $this->createMock(EmailSentFlagUpdater::class);
 
         // Context has no getRegistry() — Registry is Log's own second ctor arg, not Context-supplied.
         $this->context = $this->createMock(Context::class);
@@ -80,6 +83,7 @@ class LogTest extends TestCase
             $this->transportBuilder,
             $this->mailResource,
             $this->helper,
+            $this->emailSentFlagUpdater,
             $this->resource
         );
 
@@ -693,6 +697,53 @@ class LogTest extends TestCase
         $this->assertSame('Timed out', $log->getErrorMessage());
     }
 
+    // saveLog()/saveLogSymfony() -- SMTP-4: entity_type/entity_id extra data. Transport::
+    // emailLog() supplies these from the registry SetTemplateVarsEntity populated; without
+    // them the log row (and a later Resend) can never be linked back to the order/invoice/
+    // shipment/creditmemo the email belonged to.
+
+    public function testSaveLogSetsEntityTypeAndIdWhenProvidedInExtra(): void
+    {
+        $this->helper->method('versionCompare')->willReturn(true);
+
+        $message = $this->createLegacyMessage('Hello', [], [], [], [], 'body');
+
+        $log = $this->createLog();
+        $log->saveLog($message, Status::STATUS_SUCCESS, 1, ['entity_type' => 'order', 'entity_id' => 42]);
+
+        $this->assertSame('order', $log->getEntityType());
+        $this->assertSame(42, $log->getEntityId());
+    }
+
+    public function testSaveLogLeavesEntityTypeAndIdUnsetWhenExtraOmitsThem(): void
+    {
+        $this->helper->method('versionCompare')->willReturn(true);
+
+        $message = $this->createLegacyMessage('Hello', [], [], [], [], 'body');
+
+        $log = $this->createLog();
+        $log->saveLog($message, Status::STATUS_SUCCESS, 1);
+
+        $this->assertFalse($log->hasData('entity_type'));
+        $this->assertFalse($log->hasData('entity_id'));
+    }
+
+    public function testSaveLogSymfonySetsEntityTypeAndIdWhenProvidedInExtra(): void
+    {
+        $message = $this->createSymfonyMessage('S', [], [], [], [], null, null);
+
+        $log = $this->createLog();
+        $log->saveLogSymfony(
+            $message,
+            Status::STATUS_ERROR,
+            1,
+            ['entity_type' => 'invoice', 'entity_id' => 7]
+        );
+
+        $this->assertSame('invoice', $log->getEntityType());
+        $this->assertSame(7, $log->getEntityId());
+    }
+
     // resendEmail().
 
     public function testResendEmailAddsRecipientWithoutNameWhenVersion228Available(): void
@@ -907,6 +958,88 @@ class LogTest extends TestCase
 
         $this->assertTrue($log->resendEmail());
         $this->assertSame(Status::STATUS_ERROR, $log->getStatus());
+    }
+
+    // resendEmail() -- SMTP-4: flag the linked entity's email_sent on a successful resend.
+
+    public function testResendEmailFlagsLinkedEntityOnSuccess(): void
+    {
+        $this->helper->method('versionCompare')->willReturn(true);
+        $this->stubTransportBuilderChain();
+        $this->transportBuilder->method('getTransport')->willReturn($this->createMock(TransportInterface::class));
+
+        $this->emailSentFlagUpdater->expects($this->once())->method('updateEmailSent')
+            ->with('order', 42);
+
+        $log = $this->createLog([
+            'sender'        => 'John <john@example.com>',
+            'recipient'     => 'Jane <jane@example.com>',
+            'email_content' => htmlspecialchars('<p>Hi</p>'),
+            'entity_type'   => 'order',
+            'entity_id'     => 42,
+        ]);
+
+        $this->assertTrue($log->resendEmail());
+    }
+
+    public function testResendEmailDoesNotFlagEntityWhenLinkAbsent(): void
+    {
+        $this->helper->method('versionCompare')->willReturn(true);
+        $this->stubTransportBuilderChain();
+        $this->transportBuilder->method('getTransport')->willReturn($this->createMock(TransportInterface::class));
+
+        $this->emailSentFlagUpdater->expects($this->never())->method('updateEmailSent');
+
+        $log = $this->createLog([
+            'sender'        => 'John <john@example.com>',
+            'recipient'     => 'Jane <jane@example.com>',
+            'email_content' => htmlspecialchars('<p>Hi</p>'),
+        ]);
+
+        $this->assertTrue($log->resendEmail());
+    }
+
+    public function testResendEmailDoesNotFlagEntityWhenSendFails(): void
+    {
+        $this->helper->method('versionCompare')->willReturn(true);
+        $this->stubTransportBuilderChain();
+
+        $transport = $this->createMock(TransportInterface::class);
+        $transport->method('sendMessage')->willThrowException(new Exception('smtp fail'));
+        $this->transportBuilder->method('getTransport')->willReturn($transport);
+
+        $this->emailSentFlagUpdater->expects($this->never())->method('updateEmailSent');
+
+        $log = $this->createLog([
+            'sender'        => 'John <john@example.com>',
+            'recipient'     => 'Jane <jane@example.com>',
+            'email_content' => htmlspecialchars('<p>Hi</p>'),
+            'entity_type'   => 'order',
+            'entity_id'     => 42,
+        ]);
+
+        $this->assertFalse($log->resendEmail());
+    }
+
+    public function testResendEmailSwallowsExceptionFromFlagUpdaterAndStillReturnsTrue(): void
+    {
+        $this->helper->method('versionCompare')->willReturn(true);
+        $this->stubTransportBuilderChain();
+        $this->transportBuilder->method('getTransport')->willReturn($this->createMock(TransportInterface::class));
+
+        $this->emailSentFlagUpdater->method('updateEmailSent')
+            ->willThrowException(new Exception('db down'));
+        $this->logger->expects($this->once())->method('critical')->with('db down');
+
+        $log = $this->createLog([
+            'sender'        => 'John <john@example.com>',
+            'recipient'     => 'Jane <jane@example.com>',
+            'email_content' => htmlspecialchars('<p>Hi</p>'),
+            'entity_type'   => 'order',
+            'entity_id'     => 42,
+        ]);
+
+        $this->assertTrue($log->resendEmail());
     }
 
     // extractEmailInfo() — protected, invoked via ReflectionMethod.

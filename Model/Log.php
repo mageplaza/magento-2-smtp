@@ -33,6 +33,7 @@ use Magento\Framework\Registry;
 use Magento\Store\Model\Store;
 use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Mail\Rse\Mail;
+use Mageplaza\Smtp\Model\EmailSentFlagUpdater;
 
 /**
  * Class Log
@@ -56,6 +57,11 @@ class Log extends AbstractModel
     protected $helper;
 
     /**
+     * @var EmailSentFlagUpdater
+     */
+    protected $emailSentFlagUpdater;
+
+    /**
      * Log constructor.
      *
      * @param Context $context
@@ -63,6 +69,7 @@ class Log extends AbstractModel
      * @param TransportBuilder $transportBuilder
      * @param Mail $mailResource
      * @param Data $helper
+     * @param EmailSentFlagUpdater $emailSentFlagUpdater
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
      * @param array $data
@@ -73,15 +80,17 @@ class Log extends AbstractModel
         TransportBuilder $transportBuilder,
         Mail $mailResource,
         Data $helper,
+        EmailSentFlagUpdater $emailSentFlagUpdater,
         ?AbstractResource $resource = null,
         ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
 
-        $this->_transportBuilder = $transportBuilder;
-        $this->mailResource      = $mailResource;
-        $this->helper            = $helper;
+        $this->_transportBuilder    = $transportBuilder;
+        $this->mailResource         = $mailResource;
+        $this->helper               = $helper;
+        $this->emailSentFlagUpdater = $emailSentFlagUpdater;
     }
 
     /**
@@ -255,9 +264,9 @@ class Log extends AbstractModel
     }
 
     /**
-     * Set the optional extra columns (currently: error_message) on the log row before it is
-     * saved. Only keys actually present in $extra are touched, so a caller that omits the key
-     * leaves the column untouched (NULL for a new row).
+     * Set the optional extra columns (error_message, entity_type/entity_id) on the log row
+     * before it is saved. Only keys actually present in $extra are touched, so a caller that
+     * omits a key leaves the column untouched (NULL for a new row).
      *
      * @param array $extra
      */
@@ -265,6 +274,14 @@ class Log extends AbstractModel
     {
         if (array_key_exists('error_message', $extra) && $extra['error_message'] !== null) {
             $this->setErrorMessage($extra['error_message']);
+        }
+
+        if (array_key_exists('entity_type', $extra) && $extra['entity_type'] !== null) {
+            $this->setEntityType($extra['entity_type']);
+        }
+
+        if (array_key_exists('entity_id', $extra) && $extra['entity_id'] !== null) {
+            $this->setEntityId($extra['entity_id']);
         }
     }
 
@@ -333,7 +350,32 @@ class Log extends AbstractModel
             return false;
         }
 
+        $this->flagLinkedEntityAsEmailed();
+
         return true;
+    }
+
+    /**
+     * SMTP-4: a resent email may belong to an order/invoice/shipment/creditmemo whose
+     * confirmation email originally failed -- entity_type/entity_id (set by
+     * Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity at send time) link this log row
+     * back to it. Flip its email_sent flag so admin no longer sees the "not sent" banner.
+     * A failure here must not turn an already-successful resend into a failure.
+     */
+    protected function flagLinkedEntityAsEmailed()
+    {
+        $entityType = $this->getEntityType();
+        $entityId   = $this->getEntityId();
+
+        if (!$entityType || !$entityId) {
+            return;
+        }
+
+        try {
+            $this->emailSentFlagUpdater->updateEmailSent($entityType, $entityId);
+        } catch (Exception $e) {
+            $this->_logger->critical($e->getMessage());
+        }
     }
 
     /**

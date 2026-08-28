@@ -36,6 +36,7 @@ use Mageplaza\Smtp\Mail\Rse\Mail;
 use Mageplaza\Smtp\Mail\Transport;
 use Mageplaza\Smtp\Model\Log;
 use Mageplaza\Smtp\Model\LogFactory;
+use Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -1050,6 +1051,108 @@ class TransportTest extends TestCase
         );
 
         $this->assertArrayNotHasKey('error_message', $capturedExtra);
+    }
+
+    // SMTP-4: emailLog() must pick up the entity_type/entity_id that
+    // Observer\Email\SetTemplateVarsEntity stashed in the registry while the email template
+    // was being built, persist them alongside the log row, and always clear the registry key
+    // afterwards -- even when logging itself is disabled -- so it can never leak onto the
+    // next, unrelated email sent in the same request.
+
+    public function testEmailLogPassesEntityFromRegistryAndClearsIt(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper();
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmail')->willReturn(true);
+
+        $registry = $this->createMock(Registry::class);
+        $registry->method('registry')->willReturnCallback(
+            static fn (string $key) => $key === SetTemplateVarsEntity::REGISTRY_KEY
+                ? ['entity_type' => 'order', 'entity_id' => 42]
+                : null
+        );
+        $registry->expects($this->once())->method('unregister')->with(SetTemplateVarsEntity::REGISTRY_KEY);
+        $this->registry = $registry;
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLogSymfony')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage()),
+            $this->createProceed($called)
+        );
+
+        $this->assertSame('order', $capturedExtra['entity_type']);
+        $this->assertSame(42, $capturedExtra['entity_id']);
+    }
+
+    public function testEmailLogOmitsEntityDataWhenRegistryEmpty(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper();
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmail')->willReturn(true);
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLogSymfony')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage()),
+            $this->createProceed($called)
+        );
+
+        $this->assertArrayNotHasKey('entity_type', $capturedExtra);
+        $this->assertArrayNotHasKey('entity_id', $capturedExtra);
+    }
+
+    public function testEmailLogClearsRegistryEvenWhenLoggingDisabled(): void
+    {
+        // isEnabled() false -> emailLog() no-ops before ever creating a Log row. The registry
+        // key must still be cleared, or it would leak onto the next email sent in this
+        // request. Graph path + createBasicMessage() (not createMessage()/getSymfonyMessage())
+        // to stay clear of the accepted < 2.4.8 baseline errors, same as the SMTP-2 tests above.
+        $helper = $this->createMock(Data::class);
+        $helper->method('versionCompare')->willReturn(true);
+        $helper->method('isTestEmail')->willReturn(true);
+        $helper->method('isEnabled')->willReturn(false);
+        $helper->method('shouldUseGraphApi')->willReturn(true);
+        $this->helper = $helper;
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmail')->willReturn(true);
+
+        $registry = $this->createMock(Registry::class);
+        $registry->method('registry')->willReturnCallback(
+            static fn (string $key) => $key === SetTemplateVarsEntity::REGISTRY_KEY
+                ? ['entity_type' => 'order', 'entity_id' => 42]
+                : ($key === 'mp_smtp_store_id' ? self::STORE_ID : null)
+        );
+        $registry->expects($this->once())->method('unregister')->with(SetTemplateVarsEntity::REGISTRY_KEY);
+        $this->registry = $registry;
+
+        $this->logFactory->expects($this->never())->method('create');
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage()),
+            $this->createProceed($called)
+        );
     }
 
     public function testGetRecipientJoinsAddresses(): void

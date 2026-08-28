@@ -40,6 +40,7 @@ use Mageplaza\Smtp\Helper\GraphMailer;
 use Mageplaza\Smtp\Mail\Rse\Mail;
 use Mageplaza\Smtp\Model\Log;
 use Mageplaza\Smtp\Model\LogFactory;
+use Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Symfony\Component\Mailer\Mailer;
@@ -559,10 +560,15 @@ class Transport
      */
     protected function emailLog($message, $status = true, ?\Throwable $exception = null)
     {
+        // Always consume the registry, even if logging ends up disabled below -- otherwise a
+        // captured entity would leak onto the next, unrelated email sent in this request.
+        $entityData = $this->consumeEmailEntity();
+
         if ($this->helper->isEnabled($this->_storeId) && $this->resourceMail->isEnableEmailLog($this->_storeId)) {
             /** @var Log $log */
             $log   = $this->logFactory->create();
             $extra = $exception ? ['error_message' => mb_substr($exception->getMessage(), 0, 1000)] : [];
+            $extra = array_merge($extra, $entityData);
             try {
                 if ($this->helper->versionCompare('2.4.8')) {
                     if (!$message instanceof Email) {
@@ -581,6 +587,32 @@ class Transport
                 $this->logger->critical($e->getMessage());
             }
         }
+    }
+
+    /**
+     * Read back the {entity_type, entity_id} Observer\Email\SetTemplateVarsEntity stashed in
+     * the registry for the email currently being sent, and clear the key. Returns [] when
+     * nothing was captured (e.g. non-sales email, or the observer swallowed a problem).
+     *
+     * @return array
+     */
+    protected function consumeEmailEntity(): array
+    {
+        try {
+            $entityData = $this->registry->registry(SetTemplateVarsEntity::REGISTRY_KEY);
+            if ($entityData) {
+                $this->registry->unregister(SetTemplateVarsEntity::REGISTRY_KEY);
+
+                return [
+                    'entity_type' => $entityData['entity_type'] ?? null,
+                    'entity_id'   => $entityData['entity_id'] ?? null,
+                ];
+            }
+        } catch (Exception $e) {
+            $this->logger->critical($e->getMessage());
+        }
+
+        return [];
     }
 
     /**
