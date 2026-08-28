@@ -187,6 +187,10 @@ class MailTest extends TestCase
 
     public function testResetTransportForcesNewTransportOnNextGetTransport(): void
     {
+        if (!class_exists(\Laminas\Mail\Transport\Smtp::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
         $helper = $this->createMock(Data::class);
         $helper->method('getSmtpConfig')->willReturn(['host' => 'smtp.example.com', 'port' => 25]);
         $helper->method('versionCompare')->willReturn(false);

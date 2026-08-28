@@ -459,6 +459,10 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessageLogsErrorReasonWhenSendFails(): void
     {
+        if (!class_exists(\Laminas\Mail\Message::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
         $this->helper = $this->legacyHelper();
 
         $laminasMessage = new \Laminas\Mail\Message();
@@ -495,6 +499,10 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessageLoggedReasonIsTruncatedTo1000Characters(): void
     {
+        if (!class_exists(\Laminas\Mail\Message::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
         $this->helper = $this->legacyHelper();
 
         $laminasMessage = new \Laminas\Mail\Message();
@@ -540,6 +548,10 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessageRetriesOnceWhenLegacyTransportSendThrowsRuntimeExceptionThenSucceeds(): void
     {
+        if (!class_exists(\Laminas\Mail\Message::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
         $this->helper = $this->legacyHelper();
 
         $laminasMessage = new \Laminas\Mail\Message();
@@ -571,6 +583,10 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessageRethrowsWhenLegacyTransportSendFailsTwice(): void
     {
+        if (!class_exists(\Laminas\Mail\Message::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
         $this->helper = $this->legacyHelper();
 
         $laminasMessage = new \Laminas\Mail\Message();
@@ -789,6 +805,10 @@ class TransportTest extends TestCase
 
     public function testConvertHandlesLaminasMimeMessageBodyWithHtmlAndAttachment(): void
     {
+        if (!class_exists(\Laminas\Mime\Part::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
         $htmlPart = new \Laminas\Mime\Part('<p>Hello</p>');
         $htmlPart->type = 'text/html';
         $htmlPart->charset = 'utf-8';
@@ -826,6 +846,10 @@ class TransportTest extends TestCase
     // A mock-only test using Laminas\Mime\Part alone would miss this.
     public function testConvertHandlesMagentoMimePartObjectsInsideLaminasMimeMessage(): void
     {
+        if (!class_exists(\Laminas\Mime\Message::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
         $htmlPart = new MimePart(
             '<p>Real Magento part</p>',
             MimeInterface::TYPE_HTML,
@@ -1046,7 +1070,15 @@ class TransportTest extends TestCase
     // already responsible for the accepted 43-error baseline; a manually-built EmailMessage
     // mock (no getSymfonyMessage stub) keeps these new tests out of that bucket.
 
-    private function createBasicMessage(?AbstractPart $body = null): EmailMessage&MockObject
+    // $withSymfonyMessage stubs getSymfonyMessage() so convertToSymfonyEmail() -- called from
+    // emailLog()'s saveLogSymfony branch -- gets a real Symfony\Component\Mime\Message instead
+    // of relying on PHPUnit's auto-generated return value for the unstubbed method. On Magento
+    // >= 2.4.8, EmailMessage::getSymfonyMessage() really exists, so method_exists() on the mock
+    // is true there too; without this stub, PHPUnit auto-generates a return value and then fails
+    // trying to mock the final Symfony\Component\Mime\Header\Headers class when getHeaders() is
+    // called on it -- an exception that emailLog()'s catch (Exception $e) swallows silently,
+    // so saveLogSymfony() is never reached.
+    private function createBasicMessage(?AbstractPart $body = null, bool $withSymfonyMessage = false): EmailMessage&MockObject
     {
         $message = $this->createMock(EmailMessage::class);
         $message->method('getTo')->willReturn([]);
@@ -1056,14 +1088,34 @@ class TransportTest extends TestCase
         $message->method('getReplyTo')->willReturn([]);
         $message->method('getSubject')->willReturn('Subject');
         $message->method('getBody')->willReturn($body ?? new TextPart('body'));
+        if ($withSymfonyMessage) {
+            // EmailMessage::getSymfonyMessage() only exists on Magento >= 2.4.8 -- stubbing a
+            // method the mocked class doesn't declare throws MethodCannotBeConfiguredException,
+            // so skip rather than let that surface as an error on older Magento.
+            if (!method_exists(EmailMessage::class, 'getSymfonyMessage')) {
+                $this->markTestSkipped('EmailMessage::getSymfonyMessage() is not available (Magento >= 2.4.8).');
+            }
+            $message->method('getSymfonyMessage')->willReturn(
+                new SymfonyMessage(new Headers(), $body ?? new TextPart('body'))
+            );
+        }
 
         return $message;
     }
 
-    private function enableLoggingViaGraphHelper(): Data&MockObject
+    // $useSymfonyBranch controls the mocked versionCompare('2.4.8') result, which is what
+    // emailLog() branches on to call saveLog() (legacy) vs saveLogSymfony() -- independent of
+    // which Magento version phpunit actually runs on, so both branches are covered on either
+    // version. Every other version check (e.g. getMessage()'s versionCompare('2.2.0'), which
+    // picks $transport->getMessage() vs a reflection fallback for Magento < 2.2.0) must still
+    // resolve true -- this environment is always >= 2.2.0 -- so only the '2.4.8' argument is
+    // pinned to $useSymfonyBranch.
+    private function enableLoggingViaGraphHelper(bool $useSymfonyBranch = false): Data&MockObject
     {
         $helper = $this->createMock(Data::class);
-        $helper->method('versionCompare')->willReturn(true);
+        $helper->method('versionCompare')->willReturnCallback(
+            static fn (string $version): bool => $version === '2.4.8' ? $useSymfonyBranch : true
+        );
         $helper->method('isTestEmail')->willReturn(true);
         $helper->method('isEnabled')->willReturn(true);
         $helper->method('shouldUseGraphApi')->willReturn(true);
@@ -1090,7 +1142,7 @@ class TransportTest extends TestCase
 
         $capturedExtra = null;
         $log = $this->createMock(Log::class);
-        $log->method('saveLogSymfony')->willReturnCallback(
+        $log->method('saveLog')->willReturnCallback(
             function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
                 $capturedExtra = $extra;
 
@@ -1113,6 +1165,37 @@ class TransportTest extends TestCase
         $this->assertSame('smtp exploded', $capturedExtra['error_message']);
     }
 
+    public function testEmailLogPassesErrorMessageWhenSendFailsSymfonyBranch(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper(true);
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willThrowException(new \RuntimeException('smtp exploded'));
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLogSymfony')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createBasicMessage(withSymfonyMessage: true)),
+                $this->createProceed($called)
+            );
+            $this->fail('Expected MailException to propagate.');
+        } catch (MailException $e) {
+            // Expected.
+        }
+
+        $this->assertSame('smtp exploded', $capturedExtra['error_message']);
+    }
+
     public function testEmailLogTruncatesErrorMessageTo1000Characters(): void
     {
         $this->helper = $this->enableLoggingViaGraphHelper();
@@ -1121,7 +1204,7 @@ class TransportTest extends TestCase
 
         $capturedExtra = null;
         $log = $this->createMock(Log::class);
-        $log->method('saveLogSymfony')->willReturnCallback(
+        $log->method('saveLog')->willReturnCallback(
             function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
                 $capturedExtra = $extra;
 
@@ -1143,9 +1226,65 @@ class TransportTest extends TestCase
         $this->assertSame(1000, strlen($capturedExtra['error_message']));
     }
 
+    public function testEmailLogTruncatesErrorMessageTo1000CharactersSymfonyBranch(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper(true);
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willThrowException(new \RuntimeException(str_repeat('y', 2000)));
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLogSymfony')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createBasicMessage(withSymfonyMessage: true)),
+                $this->createProceed($called)
+            );
+        } catch (MailException $e) {
+            // Expected.
+        }
+
+        $this->assertSame(1000, strlen($capturedExtra['error_message']));
+    }
+
     public function testEmailLogDoesNotIncludeErrorMessageWhenSendSucceeds(): void
     {
         $this->helper = $this->enableLoggingViaGraphHelper();
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLog')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage()),
+            $this->createProceed($called)
+        );
+
+        $this->assertArrayNotHasKey('error_message', $capturedExtra);
+    }
+
+    public function testEmailLogDoesNotIncludeErrorMessageWhenSendSucceedsSymfonyBranch(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper(true);
         $this->resourceMail = $this->enableLoggingResourceMail();
         $this->graphMailer->method('sendEmailPayload')->willReturn(true);
 
@@ -1162,7 +1301,7 @@ class TransportTest extends TestCase
 
         $called = false;
         $this->createSut()->aroundSendMessage(
-            $this->createSubject($this->createBasicMessage()),
+            $this->createSubject($this->createBasicMessage(withSymfonyMessage: true)),
             $this->createProceed($called)
         );
 
@@ -1192,7 +1331,7 @@ class TransportTest extends TestCase
 
         $capturedExtra = null;
         $log = $this->createMock(Log::class);
-        $log->method('saveLogSymfony')->willReturnCallback(
+        $log->method('saveLog')->willReturnCallback(
             function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
                 $capturedExtra = $extra;
 
@@ -1211,9 +1350,72 @@ class TransportTest extends TestCase
         $this->assertSame(42, $capturedExtra['entity_id']);
     }
 
+    public function testEmailLogPassesEntityFromRegistryAndClearsItSymfonyBranch(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper(true);
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
+
+        $registry = $this->createMock(Registry::class);
+        $registry->method('registry')->willReturnCallback(
+            static fn (string $key) => $key === SetTemplateVarsEntity::REGISTRY_KEY
+                ? ['entity_type' => 'order', 'entity_id' => 42]
+                : null
+        );
+        $registry->expects($this->once())->method('unregister')->with(SetTemplateVarsEntity::REGISTRY_KEY);
+        $this->registry = $registry;
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLogSymfony')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage(withSymfonyMessage: true)),
+            $this->createProceed($called)
+        );
+
+        $this->assertSame('order', $capturedExtra['entity_type']);
+        $this->assertSame(42, $capturedExtra['entity_id']);
+    }
+
     public function testEmailLogOmitsEntityDataWhenRegistryEmpty(): void
     {
         $this->helper = $this->enableLoggingViaGraphHelper();
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLog')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage()),
+            $this->createProceed($called)
+        );
+
+        $this->assertArrayNotHasKey('entity_type', $capturedExtra);
+        $this->assertArrayNotHasKey('entity_id', $capturedExtra);
+    }
+
+    public function testEmailLogOmitsEntityDataWhenRegistryEmptySymfonyBranch(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper(true);
         $this->resourceMail = $this->enableLoggingResourceMail();
         $this->graphMailer->method('sendEmailPayload')->willReturn(true);
 
@@ -1230,7 +1432,7 @@ class TransportTest extends TestCase
 
         $called = false;
         $this->createSut()->aroundSendMessage(
-            $this->createSubject($this->createBasicMessage()),
+            $this->createSubject($this->createBasicMessage(withSymfonyMessage: true)),
             $this->createProceed($called)
         );
 
