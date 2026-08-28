@@ -147,12 +147,28 @@ class Transport
                     $shouldUseGraphApi = $this->helper->shouldUseGraphApi($this->_storeId, $smtpOptions);
 
                     if ($shouldUseGraphApi) {
-                        // Convert to Symfony Email if needed
-                        if (!$message instanceof Email) {
-                            $message = $this->convertToSymfonyEmail($message);
-                        }
+                        if ($message instanceof Email) {
+                            // Already a Symfony Email -- keep the existing path unchanged.
+                            $this->graphMailer->sendEmail($message, $this->_storeId, $smtpOptions);
+                        } else {
+                            // Build the Graph API payload straight from Magento's own mail
+                            // objects, without creating a Symfony Email/Address. This is what
+                            // lets Graph sending work on Magento < 2.4.8, where
+                            // egulias/email-validator (required by Symfony\Component\Mime\Address)
+                            // is not installed.
+                            $fromList    = $message->getFrom();
+                            $senderEmail = (is_array($fromList) && count($fromList))
+                                ? $fromList[0]->getEmail()
+                                : null;
+                            $payload = $this->buildGraphPayload($message);
 
-                        $this->graphMailer->sendEmail($message, $this->_storeId, $smtpOptions);
+                            $this->graphMailer->sendEmailPayload(
+                                $payload,
+                                $senderEmail,
+                                $this->_storeId,
+                                $smtpOptions
+                            );
+                        }
                     } else {
                         // Use SMTP transport (existing logic)
                         if ($this->helper->versionCompare('2.4.8')) {
@@ -331,6 +347,122 @@ class Transport
         }
 
         return $email;
+    }
+
+    /**
+     * Build the Microsoft Graph API message payload as a plain array, reading data only
+     * through Magento's own mail accessors (getTo/getCc/getBcc/getFrom/getReplyTo/getSubject/
+     * getBody). Unlike convertToSymfonyEmail(), this never constructs a
+     * Symfony\Component\Mime\Email/Address, so it works on Magento < 2.4.8 where
+     * egulias/email-validator (required by Address) is not installed. Mirrors the exact
+     * array shape GraphMailer::buildGraphMessage() builds from a Symfony Email.
+     *
+     * @param $message
+     *
+     * @return array
+     */
+    protected function buildGraphPayload($message): array
+    {
+        $payload = [
+            'message'         => [
+                'subject'       => (string) $message->getSubject(),
+                'body'          => [
+                    'contentType' => 'HTML',
+                    'content'     => '',
+                ],
+                'toRecipients'  => $this->buildGraphAddressList($message->getTo() ?: []),
+                'ccRecipients'  => $this->buildGraphAddressList($message->getCc() ?: []),
+                'bccRecipients' => $this->buildGraphAddressList($message->getBcc() ?: []),
+                'attachments'   => [],
+            ],
+            'saveToSentItems' => false,
+        ];
+
+        try {
+            $body = $message->getBody();
+        } catch (\Throwable $e) {
+            $body = null;
+        }
+
+        $textParts   = [];
+        $attachments = [];
+        if ($body instanceof AbstractPart) {
+            $this->collectBodyParts($body, $textParts, $attachments);
+        } elseif ($body instanceof LaminasMimeMessage) {
+            $this->collectLaminasMimeParts($body, $textParts, $attachments);
+        } elseif (is_string($body) && $body !== '') {
+            $textParts['plain'] = new TextPart($body);
+        }
+
+        $htmlContent = null;
+        $textContent = null;
+        if ($textParts || $attachments) {
+            if (isset($textParts['html'])) {
+                $htmlContent = $textParts['html']->getBody();
+            }
+            if (isset($textParts['plain'])) {
+                $textContent = $textParts['plain']->getBody();
+            }
+        } elseif (!$body instanceof AbstractPart) {
+            $textContent = 'No readable content.';
+        }
+
+        if ($htmlContent) {
+            $payload['message']['body']['contentType'] = 'HTML';
+            $payload['message']['body']['content']     = $htmlContent;
+        } elseif ($textContent) {
+            $payload['message']['body']['contentType'] = 'Text';
+            $payload['message']['body']['content']     = $textContent;
+        }
+
+        foreach ($attachments as $attachment) {
+            $filename = $attachment instanceof DataPart ? $attachment->getFilename() : null;
+            $payload['message']['attachments'][] = [
+                '@odata.type'  => '#microsoft.graph.fileAttachment',
+                'name'         => $filename ?: 'attachment',
+                'contentType'  => $attachment->getMediaType() . '/' . $attachment->getMediaSubtype(),
+                'contentBytes' => base64_encode($attachment->getBody()),
+            ];
+        }
+
+        $replyTo = $message->getReplyTo();
+        if ($replyTo) {
+            $replyToAddresses = [];
+            foreach ($replyTo as $address) {
+                $replyToAddresses[] = [
+                    'emailAddress' => [
+                        'address' => $address->getEmail(),
+                        'name'    => $address->getName() ?: $address->getEmail(),
+                    ],
+                ];
+            }
+            $payload['message']['replyTo'] = $replyToAddresses;
+        }
+
+        return $payload;
+    }
+
+    /**
+     * @param array $addresses Magento\Framework\Mail\Address[]
+     *
+     * @return array
+     */
+    protected function buildGraphAddressList(array $addresses): array
+    {
+        $recipients = [];
+        foreach ($addresses as $address) {
+            $recipient = [
+                'emailAddress' => [
+                    'address' => $address->getEmail(),
+                ],
+            ];
+            if ($address->getName()) {
+                $recipient['emailAddress']['name'] = $address->getName();
+            }
+            $recipients[] = $recipient;
+        }
+
+        return $recipients;
     }
 
     /**

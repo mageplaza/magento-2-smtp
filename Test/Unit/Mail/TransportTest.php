@@ -174,29 +174,32 @@ class TransportTest extends TestCase
         return $captured;
     }
 
-    // Graph is the only path that still converts post-M2X-63 (SMTP is now a pass-through).
-    private function convertViaGraph(?AbstractPart $body, ?EmailMessage $message = null): Email
+    // Post-graph-nosymfony: neither the Graph nor the SMTP send path converts a plain
+    // EmailMessage to Symfony anymore (see testAroundSendMessageDoesNotConvertOnSmtpPath /
+    // testAroundSendMessageDoesNotConvertOnGraphPathForNonEmailMessage). convertToSymfonyEmail()
+    // is still reachable from emailLog() on Magento >= 2.4.8 (see
+    // testEmailLogConvertsMessageOutsideDeveloperMode for that end-to-end path), but exercising
+    // every MIME shape through the full aroundSendMessage() flow would drag in the SMTP branch's
+    // Symfony\Component\Mailer\Transport\TransportInterface, which does not exist on Magento
+    // 2.4.7 -- unrelated to what these tests are about. Call the protected method directly
+    // instead via a subclass that exposes it.
+    private function convertViaEmailLog(?AbstractPart $body, ?EmailMessage $message = null): Email
     {
-        $this->helper->method('shouldUseGraphApi')->willReturn(true);
-
-        $captured = null;
-        $this->graphMailer->method('sendEmail')->willReturnCallback(
-            static function ($sent) use (&$captured) {
-                $captured = $sent;
-
-                return true;
+        $sut = new class (
+            $this->resourceMail,
+            $this->logFactory,
+            $this->registry,
+            $this->helper,
+            $this->logger,
+            $this->graphMailer
+        ) extends Transport {
+            public function convertToSymfonyEmail($laminasMessage)
+            {
+                return parent::convertToSymfonyEmail($laminasMessage);
             }
-        );
+        };
 
-        $called = false;
-        $this->createSut()->aroundSendMessage(
-            $this->createSubject($message ?? $this->createMessage($body)),
-            $this->createProceed($called)
-        );
-
-        $this->assertInstanceOf(Email::class, $captured);
-
-        return $captured;
+        return $sut->convertToSymfonyEmail($message ?? $this->createMessage($body));
     }
 
     private function attachmentNames(Email $email): array
@@ -241,6 +244,119 @@ class TransportTest extends TestCase
         $this->sendViaSmtp($this->createMessage(new TextPart('hello')), $sut);
 
         $this->assertFalse($sut->converted);
+    }
+
+    // Graph path: a plain EmailMessage must reach GraphMailer as a raw payload array,
+    // built straight from Magento's own mail objects -- no Symfony\Component\Mime\Email/
+    // Address is created for this (see buildGraphPayload()), which is what lets the Graph
+    // path work on Magento < 2.4.8 where egulias/email-validator is not installed.
+
+    public function testAroundSendMessageDoesNotConvertOnGraphPathForNonEmailMessage(): void
+    {
+        $this->helper->method('shouldUseGraphApi')->willReturn(true);
+
+        // Subclass instead of a spy mock: the SUT itself must never be mocked.
+        $sut = new class (
+            $this->resourceMail,
+            $this->logFactory,
+            $this->registry,
+            $this->helper,
+            $this->logger,
+            $this->graphMailer
+        ) extends Transport {
+            public bool $converted = false;
+
+            protected function convertToSymfonyEmail($laminasMessage)
+            {
+                $this->converted = true;
+
+                return parent::convertToSymfonyEmail($laminasMessage);
+            }
+        };
+
+        $message = $this->createMock(EmailMessage::class);
+        $message->method('getTo')->willReturn([]);
+        $message->method('getFrom')->willReturn([]);
+        $message->method('getCc')->willReturn([]);
+        $message->method('getBcc')->willReturn([]);
+        $message->method('getReplyTo')->willReturn([]);
+        $message->method('getSubject')->willReturn('Subject');
+        $message->method('getBody')->willReturn(new TextPart('hello'));
+
+        $called = false;
+        $sut->aroundSendMessage($this->createSubject($message), $this->createProceed($called));
+
+        $this->assertFalse($sut->converted);
+    }
+
+    public function testAroundSendMessageSendsGraphPayloadBuiltFromEmailMessage(): void
+    {
+        $this->helper->method('shouldUseGraphApi')->willReturn(true);
+
+        $from = $this->createMock(Address::class);
+        $from->method('getEmail')->willReturn('sender@example.com');
+        $from->method('getName')->willReturn('Sender');
+
+        $to = $this->createMock(Address::class);
+        $to->method('getEmail')->willReturn('to@example.com');
+        $to->method('getName')->willReturn('To Name');
+
+        $message = $this->createMock(EmailMessage::class);
+        $message->method('getFrom')->willReturn([$from]);
+        $message->method('getTo')->willReturn([$to]);
+        $message->method('getCc')->willReturn([]);
+        $message->method('getBcc')->willReturn([]);
+        $message->method('getReplyTo')->willReturn([]);
+        $message->method('getSubject')->willReturn('Order confirmation');
+        $message->method('getBody')->willReturn(
+            new MixedPart(
+                new TextPart('<p>Hi</p>', 'utf-8', 'html'),
+                new DataPart('PDFDATA', 'invoice.pdf', 'application/pdf')
+            )
+        );
+
+        $this->graphMailer->expects($this->never())->method('sendEmail');
+        $this->graphMailer->expects($this->once())->method('sendEmailPayload')->with(
+            $this->callback(static function (array $payload): bool {
+                return $payload['message']['subject'] === 'Order confirmation'
+                    && $payload['message']['body']['contentType'] === 'HTML'
+                    && $payload['message']['body']['content'] === '<p>Hi</p>'
+                    && $payload['message']['toRecipients'][0]['emailAddress']['address'] === 'to@example.com'
+                    && $payload['message']['toRecipients'][0]['emailAddress']['name'] === 'To Name'
+                    && $payload['message']['attachments'][0]['name'] === 'invoice.pdf'
+                    && $payload['message']['attachments'][0]['contentBytes'] === base64_encode('PDFDATA')
+                    && $payload['saveToSentItems'] === false;
+            }),
+            'sender@example.com',
+            self::STORE_ID,
+            []
+        );
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($message),
+            $this->createProceed($called)
+        );
+    }
+
+    public function testAroundSendMessageUsesSendEmailWhenMessageIsAlreadySymfonyEmail(): void
+    {
+        $this->helper->method('shouldUseGraphApi')->willReturn(true);
+
+        $email = (new Email())
+            ->from('sender@example.com')
+            ->to('to@example.com')
+            ->subject('Already Symfony')
+            ->text('body');
+
+        $this->graphMailer->expects($this->never())->method('sendEmailPayload');
+        $this->graphMailer->expects($this->once())->method('sendEmail')->with($email, self::STORE_ID, []);
+
+        $subject = $this->createMock(TransportInterface::class);
+        $subject->method('getMessage')->willReturn($email);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage($subject, $this->createProceed($called));
     }
 
     public function testAroundSendMessagePreservesNestedMultipartTree(): void
@@ -489,7 +605,7 @@ class TransportTest extends TestCase
 
     public function testConvertPlainTextRootIsUnchanged(): void
     {
-        $email = $this->convertViaGraph(new TextPart('plain body'));
+        $email = $this->convertViaEmailLog(new TextPart('plain body'));
 
         $this->assertSame('plain body', $email->getTextBody());
         $this->assertSame([], $email->getAttachments());
@@ -497,7 +613,7 @@ class TransportTest extends TestCase
 
     public function testConvertHtmlRootIsUnchanged(): void
     {
-        $email = $this->convertViaGraph(new TextPart('<p>html body</p>', 'utf-8', 'html'));
+        $email = $this->convertViaEmailLog(new TextPart('<p>html body</p>', 'utf-8', 'html'));
 
         $this->assertSame('<p>html body</p>', $email->getHtmlBody());
         $this->assertSame([], $email->getAttachments());
@@ -505,7 +621,7 @@ class TransportTest extends TestCase
 
     public function testConvertAlternativePartKeepsBothBodies(): void
     {
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new AlternativePart(new TextPart('plain'), new TextPart('<p>html</p>', 'utf-8', 'html'))
         );
 
@@ -516,7 +632,7 @@ class TransportTest extends TestCase
 
     public function testConvertMixedAlternativeWithAttachmentKeepsBodyAndAttachment(): void
     {
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(
                 new AlternativePart(new TextPart('plain'), new TextPart('<p>html</p>', 'utf-8', 'html')),
                 new DataPart('id,name', 'export.csv', 'text/csv')
@@ -530,7 +646,7 @@ class TransportTest extends TestCase
 
     public function testConvertMixedWithTwoAttachmentsKeepsOrder(): void
     {
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(
                 new TextPart('plain'),
                 new DataPart('A', 'first.pdf', 'application/pdf'),
@@ -545,7 +661,7 @@ class TransportTest extends TestCase
     public function testConvertNestedRelatedTreeKeepsBodiesAndAttachments(): void
     {
         $png = new DataPart('PNGDATA', 'logo.png', 'image/png');
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(
                 new RelatedPart(
                     new AlternativePart(new TextPart('plain'), new TextPart('<p>html</p>', 'utf-8', 'html')),
@@ -563,7 +679,7 @@ class TransportTest extends TestCase
     public function testConvertBinaryAttachmentPayloadIsByteIdentical(): void
     {
         $payload = random_bytes(64);
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(new TextPart('plain'), new DataPart($payload, 'blob.pdf', 'application/pdf'))
         );
 
@@ -573,7 +689,7 @@ class TransportTest extends TestCase
     public function testConvertUtf8BodyIsByteIdentical(): void
     {
         $body = 'Xin chào — tiếng Việt có dấu';
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(new TextPart($body), new DataPart('X', 'a.txt', 'text/plain'))
         );
 
@@ -582,7 +698,7 @@ class TransportTest extends TestCase
 
     public function testConvertBareDataPartRootBecomesAttachmentNotBody(): void
     {
-        $email = $this->convertViaGraph(new DataPart('FILEDATA', 'only.pdf', 'application/pdf'));
+        $email = $this->convertViaEmailLog(new DataPart('FILEDATA', 'only.pdf', 'application/pdf'));
 
         $this->assertSame(['only.pdf'], $this->attachmentNames($email));
         $this->assertNull($email->getTextBody());
@@ -591,7 +707,7 @@ class TransportTest extends TestCase
 
     public function testConvertHtmlDataPartRootIsNotUsedAsBody(): void
     {
-        $email = $this->convertViaGraph(new DataPart('<h1>file</h1>', 'page.html', 'text/html'));
+        $email = $this->convertViaEmailLog(new DataPart('<h1>file</h1>', 'page.html', 'text/html'));
 
         $this->assertSame(['page.html'], $this->attachmentNames($email));
         $this->assertNull($email->getHtmlBody());
@@ -600,7 +716,7 @@ class TransportTest extends TestCase
     public function testConvertTextPlainAttachmentDoesNotOverwriteHtmlBody(): void
     {
         // DataPart extends TextPart, so an attachment-first tree used to hijack the body.
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(
                 new DataPart('attached text', 'note.txt', 'text/plain'),
                 new TextPart('<p>real body</p>', 'utf-8', 'html')
@@ -616,21 +732,21 @@ class TransportTest extends TestCase
     {
         $smime = new SMimePart('ENCRYPTED', 'application', 'pkcs7-mime', ['smime-type' => 'enveloped-data']);
 
-        $email = $this->convertViaGraph($smime);
+        $email = $this->convertViaEmailLog($smime);
 
         $this->assertSame($smime, $email->getBody());
     }
 
     public function testConvertPreservesNonUtf8Charset(): void
     {
-        $email = $this->convertViaGraph(new TextPart('body', 'iso-8859-1', 'html'));
+        $email = $this->convertViaEmailLog(new TextPart('body', 'iso-8859-1', 'html'));
 
         $this->assertSame('iso-8859-1', $email->getHtmlCharset());
     }
 
     public function testConvertAttachmentsOnlyDoesNotInjectPlaceholder(): void
     {
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(
                 new DataPart('A', 'a.pdf', 'application/pdf'),
                 new DataPart('B', 'b.pdf', 'application/pdf')
@@ -644,7 +760,7 @@ class TransportTest extends TestCase
 
     public function testConvertCalendarPartBecomesAttachmentNotBody(): void
     {
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(new TextPart('plain body'), new TextPart('BEGIN:VCALENDAR', 'utf-8', 'calendar'))
         );
 
@@ -657,7 +773,7 @@ class TransportTest extends TestCase
         $part = new TextPart('body');
         $part->getHeaders()->addTextHeader('Content-Type', 'text/plain');
 
-        $email = $this->convertViaGraph($part);
+        $email = $this->convertViaEmailLog($part);
 
         $this->assertSame('utf-8', $email->getTextCharset());
     }
@@ -695,7 +811,7 @@ class TransportTest extends TestCase
         $message->method('getSubject')->willReturn('Subject');
         $message->method('getBody')->willReturn($mimeMessage);
 
-        $email = $this->convertViaGraph(null, $message);
+        $email = $this->convertViaEmailLog(null, $message);
 
         $this->assertNotSame('No readable content.', $email->getHtmlBody());
         $this->assertSame('<p>Hello</p>', $email->getHtmlBody());
@@ -740,7 +856,7 @@ class TransportTest extends TestCase
         $message->method('getSubject')->willReturn('Subject');
         $message->method('getBody')->willReturn($mimeMessage);
 
-        $email = $this->convertViaGraph(null, $message);
+        $email = $this->convertViaEmailLog(null, $message);
 
         $this->assertSame('<p>Real Magento part</p>', $email->getHtmlBody());
         $this->assertCount(1, $email->getAttachments());
@@ -759,7 +875,7 @@ class TransportTest extends TestCase
         $message->method('getBody')->willThrowException(new TypeError('no body'));
         $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage(new Headers()));
 
-        $email = $this->convertViaGraph(null, $message);
+        $email = $this->convertViaEmailLog(null, $message);
 
         $this->assertSame('No readable content.', $email->getTextBody());
     }
@@ -859,7 +975,7 @@ class TransportTest extends TestCase
         $message->method('getBody')->willReturn(new TextPart('x'));
         $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage(new Headers(), new TextPart('x')));
 
-        $this->assertCount(2, $this->convertViaGraph(null, $message)->getReplyTo());
+        $this->assertCount(2, $this->convertViaEmailLog(null, $message)->getReplyTo());
     }
 
     public function testConvertDoesNotDuplicateCcFromClonedHeaders(): void
@@ -881,7 +997,7 @@ class TransportTest extends TestCase
         $message->method('getBody')->willReturn(new TextPart('x'));
         $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage($headers, new TextPart('x')));
 
-        $this->assertCount(1, $this->convertViaGraph(null, $message)->getCc());
+        $this->assertCount(1, $this->convertViaEmailLog(null, $message)->getCc());
     }
 
     public function testEmailLogConvertsMessageOutsideDeveloperMode(): void
@@ -970,7 +1086,7 @@ class TransportTest extends TestCase
     {
         $this->helper = $this->enableLoggingViaGraphHelper();
         $this->resourceMail = $this->enableLoggingResourceMail();
-        $this->graphMailer->method('sendEmail')->willThrowException(new \RuntimeException('smtp exploded'));
+        $this->graphMailer->method('sendEmailPayload')->willThrowException(new \RuntimeException('smtp exploded'));
 
         $capturedExtra = null;
         $log = $this->createMock(Log::class);
@@ -1001,7 +1117,7 @@ class TransportTest extends TestCase
     {
         $this->helper = $this->enableLoggingViaGraphHelper();
         $this->resourceMail = $this->enableLoggingResourceMail();
-        $this->graphMailer->method('sendEmail')->willThrowException(new \RuntimeException(str_repeat('y', 2000)));
+        $this->graphMailer->method('sendEmailPayload')->willThrowException(new \RuntimeException(str_repeat('y', 2000)));
 
         $capturedExtra = null;
         $log = $this->createMock(Log::class);
@@ -1031,7 +1147,7 @@ class TransportTest extends TestCase
     {
         $this->helper = $this->enableLoggingViaGraphHelper();
         $this->resourceMail = $this->enableLoggingResourceMail();
-        $this->graphMailer->method('sendEmail')->willReturn(true);
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
 
         $capturedExtra = null;
         $log = $this->createMock(Log::class);
@@ -1063,7 +1179,7 @@ class TransportTest extends TestCase
     {
         $this->helper = $this->enableLoggingViaGraphHelper();
         $this->resourceMail = $this->enableLoggingResourceMail();
-        $this->graphMailer->method('sendEmail')->willReturn(true);
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
 
         $registry = $this->createMock(Registry::class);
         $registry->method('registry')->willReturnCallback(
@@ -1099,7 +1215,7 @@ class TransportTest extends TestCase
     {
         $this->helper = $this->enableLoggingViaGraphHelper();
         $this->resourceMail = $this->enableLoggingResourceMail();
-        $this->graphMailer->method('sendEmail')->willReturn(true);
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
 
         $capturedExtra = null;
         $log = $this->createMock(Log::class);
@@ -1135,7 +1251,7 @@ class TransportTest extends TestCase
         $helper->method('shouldUseGraphApi')->willReturn(true);
         $this->helper = $helper;
         $this->resourceMail = $this->enableLoggingResourceMail();
-        $this->graphMailer->method('sendEmail')->willReturn(true);
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
 
         $registry = $this->createMock(Registry::class);
         $registry->method('registry')->willReturnCallback(
