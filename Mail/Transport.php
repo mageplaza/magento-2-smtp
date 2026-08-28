@@ -185,7 +185,7 @@ class Transport
                 $this->emailLog($message);
             } catch (\Throwable $e) {
                 $this->logSendFailureReason($e, $message);
-                $this->emailLog($message, false);
+                $this->emailLog($message, false, $e);
                 throw new MailException(new Phrase($e->getMessage()), $e instanceof Exception ? $e : null);
             }
         }
@@ -552,21 +552,26 @@ class Transport
      *
      * @param $message
      * @param bool $status
+     * @param \Throwable|null $exception The send failure, if any -- its message (capped at 1000
+     *                                   chars, never auth credentials/tokens) is stored as
+     *                                   error_message so admins can see why a send failed
+     *                                   without digging through system.log.
      */
-    protected function emailLog($message, $status = true)
+    protected function emailLog($message, $status = true, ?\Throwable $exception = null)
     {
         if ($this->helper->isEnabled($this->_storeId) && $this->resourceMail->isEnableEmailLog($this->_storeId)) {
             /** @var Log $log */
-            $log = $this->logFactory->create();
+            $log   = $this->logFactory->create();
+            $extra = $exception ? ['error_message' => mb_substr($exception->getMessage(), 0, 1000)] : [];
             try {
                 if ($this->helper->versionCompare('2.4.8')) {
                     if (!$message instanceof Email) {
                         $message = $this->convertToSymfonyEmail($message);
                     }
 
-                    $log->saveLogSymfony($message, $status, $this->_storeId);
+                    $log->saveLogSymfony($message, $status, $this->_storeId, $extra);
                 } else {
-                    $log->saveLog($message, $status, $this->_storeId);
+                    $log->saveLog($message, $status, $this->_storeId, $extra);
                 }
 
                 if ($status) {

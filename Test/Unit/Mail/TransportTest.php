@@ -922,6 +922,136 @@ class TransportTest extends TestCase
         $this->assertSame('logged body', $logged->getTextBody());
     }
 
+    // SMTP-2 (DB): emailLog() must persist the failure reason alongside the existing
+    // saveLogSymfony() call. The Graph API path is used deliberately here (not SMTP/Symfony
+    // Mailer) since it never touches getSymfonyMessage()/Symfony\Component\Mailer\Transport\
+    // TransportInterface -- both unavailable in this Magento < 2.4.8 test environment and
+    // already responsible for the accepted 43-error baseline; a manually-built EmailMessage
+    // mock (no getSymfonyMessage stub) keeps these new tests out of that bucket.
+
+    private function createBasicMessage(?AbstractPart $body = null): EmailMessage&MockObject
+    {
+        $message = $this->createMock(EmailMessage::class);
+        $message->method('getTo')->willReturn([]);
+        $message->method('getFrom')->willReturn([]);
+        $message->method('getCc')->willReturn([]);
+        $message->method('getBcc')->willReturn([]);
+        $message->method('getReplyTo')->willReturn([]);
+        $message->method('getSubject')->willReturn('Subject');
+        $message->method('getBody')->willReturn($body ?? new TextPart('body'));
+
+        return $message;
+    }
+
+    private function enableLoggingViaGraphHelper(): Data&MockObject
+    {
+        $helper = $this->createMock(Data::class);
+        $helper->method('versionCompare')->willReturn(true);
+        $helper->method('isTestEmail')->willReturn(true);
+        $helper->method('isEnabled')->willReturn(true);
+        $helper->method('shouldUseGraphApi')->willReturn(true);
+
+        return $helper;
+    }
+
+    private function enableLoggingResourceMail(): Mail&MockObject
+    {
+        $resourceMail = $this->createMock(Mail::class);
+        $resourceMail->method('isModuleEnable')->willReturn(true);
+        $resourceMail->method('isDeveloperMode')->willReturn(false);
+        $resourceMail->method('getSmtpOptions')->willReturn([]);
+        $resourceMail->method('isEnableEmailLog')->willReturn(true);
+
+        return $resourceMail;
+    }
+
+    public function testEmailLogPassesErrorMessageWhenSendFails(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper();
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmail')->willThrowException(new \RuntimeException('smtp exploded'));
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLogSymfony')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createBasicMessage()),
+                $this->createProceed($called)
+            );
+            $this->fail('Expected MailException to propagate.');
+        } catch (MailException $e) {
+            // Expected.
+        }
+
+        $this->assertSame('smtp exploded', $capturedExtra['error_message']);
+    }
+
+    public function testEmailLogTruncatesErrorMessageTo1000Characters(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper();
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmail')->willThrowException(new \RuntimeException(str_repeat('y', 2000)));
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLogSymfony')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createBasicMessage()),
+                $this->createProceed($called)
+            );
+        } catch (MailException $e) {
+            // Expected.
+        }
+
+        $this->assertSame(1000, strlen($capturedExtra['error_message']));
+    }
+
+    public function testEmailLogDoesNotIncludeErrorMessageWhenSendSucceeds(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper();
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmail')->willReturn(true);
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLogSymfony')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage()),
+            $this->createProceed($called)
+        );
+
+        $this->assertArrayNotHasKey('error_message', $capturedExtra);
+    }
+
     public function testGetRecipientJoinsAddresses(): void
     {
         $message = $this->createMessage(new TextPart('x'), ['a@x.com', 'b@x.com']);

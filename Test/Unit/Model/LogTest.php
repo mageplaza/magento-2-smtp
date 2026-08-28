@@ -657,6 +657,42 @@ class LogTest extends TestCase
         $this->assertSame(Store::DEFAULT_STORE_ID, $log->getStoreId());
     }
 
+    // saveLog()/saveLogSymfony() -- SMTP-2: error_message extra data.
+
+    public function testSaveLogSetsErrorMessageWhenProvidedInExtra(): void
+    {
+        $this->helper->method('versionCompare')->willReturn(true);
+
+        $message = $this->createLegacyMessage('Hello', [], [], [], [], 'body');
+
+        $log = $this->createLog();
+        $log->saveLog($message, Status::STATUS_ERROR, 1, ['error_message' => 'Connection refused']);
+
+        $this->assertSame('Connection refused', $log->getErrorMessage());
+    }
+
+    public function testSaveLogLeavesErrorMessageUnsetWhenExtraOmitsIt(): void
+    {
+        $this->helper->method('versionCompare')->willReturn(true);
+
+        $message = $this->createLegacyMessage('Hello', [], [], [], [], 'body');
+
+        $log = $this->createLog();
+        $log->saveLog($message, Status::STATUS_SUCCESS, 1);
+
+        $this->assertFalse($log->hasData('error_message'));
+    }
+
+    public function testSaveLogSymfonySetsErrorMessageWhenProvidedInExtra(): void
+    {
+        $message = $this->createSymfonyMessage('S', [], [], [], [], null, null);
+
+        $log = $this->createLog();
+        $log->saveLogSymfony($message, Status::STATUS_ERROR, 1, ['error_message' => 'Timed out']);
+
+        $this->assertSame('Timed out', $log->getErrorMessage());
+    }
+
     // resendEmail().
 
     public function testResendEmailAddsRecipientWithoutNameWhenVersion228Available(): void

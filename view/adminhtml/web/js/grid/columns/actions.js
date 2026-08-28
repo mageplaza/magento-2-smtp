@@ -44,7 +44,11 @@ define([
 
             if (typeof this.modal[action.rowIndex] === 'undefined' || typeof this.modal[action.rowIndex] === 'object') {
                 var row = this.rows[action.rowIndex],
-                    modalHtml = '<iframe srcdoc="' + row['email_content'] + '" sandbox="" style="width: 100%; height: 100%"></iframe>';
+                    errorBanner = row['error_message'] ?
+                        '<div style="padding: 10px; margin-bottom: 10px; background: #fdf0f0; border: 1px solid #e22626; color: #e22626;">'
+                        + strip(row['error_message']) + '</div>' : '',
+                    modalHtml = errorBanner
+                        + '<iframe srcdoc="' + row['email_content'] + '" sandbox="" style="width: 100%; height: 100%"></iframe>';
 
                 this.modal[action.rowIndex] = $('<div>')
                     .html(modalHtml)

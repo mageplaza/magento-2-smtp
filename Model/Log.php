@@ -99,8 +99,10 @@ class Log extends AbstractModel
      * @param $message
      * @param $status
      * @param null $storeId
+     * @param array $extra Optional extra columns to persist alongside the log row
+     *                     (currently: error_message).
      */
-    public function saveLog($message, $status, $storeId = null)
+    public function saveLog($message, $status, $storeId = null, array $extra = [])
     {
         if ($this->helper->versionCompare('2.2.8')) {
             if ($message->getSubject()) {
@@ -189,8 +191,9 @@ class Log extends AbstractModel
 
         $this->setEmailContent($content)
             ->setStatus($status)
-            ->setStoreId($storeId ?? Store::DEFAULT_STORE_ID)
-            ->save();
+            ->setStoreId($storeId ?? Store::DEFAULT_STORE_ID);
+        $this->applyExtraData($extra);
+        $this->save();
     }
 
     /**
@@ -199,8 +202,10 @@ class Log extends AbstractModel
      * @param $message
      * @param $status
      * @param int $storeId
+     * @param array $extra Optional extra columns to persist alongside the log row
+     *                     (currently: error_message).
      */
-    public function saveLogSymfony($message, $status, $storeId = Store::DEFAULT_STORE_ID)
+    public function saveLogSymfony($message, $status, $storeId = Store::DEFAULT_STORE_ID, array $extra = [])
     {
         if ($message->getSubject()) {
             $this->setSubject($message->getSubject());
@@ -245,8 +250,23 @@ class Log extends AbstractModel
 
         $this->setEmailContent($content)
             ->setStatus($status)
-            ->setStoreId($storeId)
-            ->save();
+            ->setStoreId($storeId);
+        $this->applyExtraData($extra);
+        $this->save();
+    }
+
+    /**
+     * Set the optional extra columns (currently: error_message) on the log row before it is
+     * saved. Only keys actually present in $extra are touched, so a caller that omits the key
+     * leaves the column untouched (NULL for a new row).
+     *
+     * @param array $extra
+     */
+    protected function applyExtraData(array $extra)
+    {
+        if (array_key_exists('error_message', $extra) && $extra['error_message'] !== null) {
+            $this->setErrorMessage($extra['error_message']);
+        }
     }
 
     /**
