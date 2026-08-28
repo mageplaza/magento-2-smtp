@@ -12,7 +12,9 @@
             "bcc": true,
             "sender": true,
             "recipient": true,
-            "error_message": true
+            "error_message": true,
+            "entity_type": true,
+            "entity_id": true
         },
         "index": {
             "MAGEPLAZA_SMTP_LOG_STATUS": true
