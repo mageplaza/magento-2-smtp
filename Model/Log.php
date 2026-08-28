@@ -33,7 +33,6 @@ use Magento\Framework\Registry;
 use Magento\Store\Model\Store;
 use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Mail\Rse\Mail;
-use Mageplaza\Smtp\Model\Source\Status;
 
 /**
  * Class Log
@@ -324,8 +323,10 @@ class Log extends AbstractModel
             $this->_transportBuilder->getTransport()
                 ->sendMessage();
 
-            $this->setStatus(Status::STATUS_SUCCESS)
-                ->save();
+            // Do not flip/save this row: sendMessage() above already goes through the module's
+            // own Transport plugin, which logs the resend as its own new row. Also mutating the
+            // original row to SUCCESS here used to make the grid show two identical-looking rows
+            // for a single resend.
         } catch (Exception $e) {
             $this->_logger->critical($e->getMessage());
 

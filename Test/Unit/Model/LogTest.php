@@ -721,7 +721,6 @@ class LogTest extends TestCase
         // PHPUnit fills the unpassed $name with its declared default, so the recorded call
         // carries both args even though Log::resendEmail() only passes $email explicitly.
         $this->assertSame([['jane@example.com', '']], $toCalls);
-        $this->assertSame(Status::STATUS_SUCCESS, $log->getStatus());
     }
 
     public function testResendEmailAddsRecipientWithNameWhenVersion228Unavailable(): void
@@ -882,6 +881,32 @@ class LogTest extends TestCase
         ]);
 
         $this->assertTrue($log->resendEmail());
+    }
+
+    // Resend must not create a duplicate-looking row: resendEmail() sends through
+    // _transportBuilder->getTransport()->sendMessage(), which the module's own Transport
+    // plugin already logs as its own new row. Before this fix, resendEmail() ALSO flipped
+    // the original row to SUCCESS and saved it, so the grid showed two rows with the same
+    // content. Keeping the original row's status untouched (simpler than teaching the
+    // plugin to skip logging during a resend) fixes the duplicate.
+
+    public function testResendEmailDoesNotChangeOrSaveTheOriginalLogRowOnSuccess(): void
+    {
+        $this->helper->method('versionCompare')->willReturn(true);
+        $this->stubTransportBuilderChain();
+        $this->transportBuilder->method('getTransport')->willReturn($this->createMock(TransportInterface::class));
+
+        $this->resource->expects($this->never())->method('save');
+
+        $log = $this->createLog([
+            'status'        => Status::STATUS_ERROR,
+            'sender'        => 'John <john@example.com>',
+            'recipient'     => 'Jane <jane@example.com>',
+            'email_content' => htmlspecialchars('<p>Hi</p>'),
+        ]);
+
+        $this->assertTrue($log->resendEmail());
+        $this->assertSame(Status::STATUS_ERROR, $log->getStatus());
     }
 
     // extractEmailInfo() — protected, invoked via ReflectionMethod.
