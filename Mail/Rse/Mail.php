@@ -207,6 +207,17 @@ class Mail
         return $this;
     }
 
+    public function __destruct()
+    {
+        try {
+            if ($this->_transport instanceof Smtp) {
+                $this->retireConnection($this->_transport->getConnection());
+            }
+        } catch (\Throwable $e) {
+            // Shutdown is underway; there is nowhere left to report this.
+        }
+    }
+
     /**
      * @param $connection
      *
