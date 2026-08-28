@@ -188,6 +188,18 @@ class Mail
     }
 
     /**
+     * Clear the cached transport instance so the next getTransport() call
+     * builds a fresh one. Needed because this class is a long-lived
+     * singleton: a cached Laminas\Mail\Transport\Smtp keeps reusing a socket
+     * that the remote server may have closed (e.g. idle timeout), so every
+     * send after that would otherwise fail forever.
+     */
+    public function resetTransport()
+    {
+        $this->_transport = null;
+    }
+
+    /**
      * @param $message
      * @param $storeId
      *

@@ -24,6 +24,8 @@ namespace Mageplaza\Smtp\Mail;
 use Closure;
 use Exception;
 use Laminas\Mail\Message;
+use Laminas\Mail\Protocol\Exception\RuntimeException as LaminasProtocolRuntimeException;
+use Laminas\Mail\Transport\Exception\RuntimeException as LaminasTransportRuntimeException;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\EmailMessage;
 use Magento\Framework\Mail\TransportInterface;
@@ -161,8 +163,7 @@ class Transport
                                 $message->getHeaders()->removeHeader("Content-Disposition");
                             }
 
-                            $transport = $this->resourceMail->getTransport($this->_storeId);
-                            $transport->send($message);
+                            $this->sendWithTransportRetry($message);
 
                             if ($this->helper->versionCompare('2.2.8')) {
                                 $messageTmp = $this->getMessage($subject);
@@ -182,6 +183,30 @@ class Transport
                 $this->emailLog($message, false);
                 throw new MailException(new Phrase($e->getMessage()), $e instanceof Exception ? $e : null);
             }
+        }
+    }
+
+    /**
+     * Send through the legacy (< 2.4.8) Laminas transport, retrying once if
+     * the first attempt fails. resourceMail caches the transport as a
+     * long-lived singleton, so a socket the remote server closed (e.g. idle
+     * timeout) would otherwise make every subsequent send fail forever.
+     * A second consecutive failure is not swallowed: it is rethrown so the
+     * caller's existing catch block still logs and wraps it as before.
+     *
+     * @param $message
+     *
+     * @throws \Laminas\Mail\Protocol\Exception\RuntimeException
+     * @throws \Laminas\Mail\Transport\Exception\RuntimeException
+     */
+    protected function sendWithTransportRetry($message)
+    {
+        $transport = $this->resourceMail->getTransport($this->_storeId);
+        try {
+            $transport->send($message);
+        } catch (LaminasProtocolRuntimeException | LaminasTransportRuntimeException $e) {
+            $this->resourceMail->resetTransport();
+            $this->resourceMail->getTransport($this->_storeId)->send($message);
         }
     }
 

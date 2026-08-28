@@ -335,6 +335,86 @@ class TransportTest extends TestCase
         $this->assertSame('legacy body', $captured->getTextBody());
     }
 
+    // SMTP-1: legacy (< 2.4.8) transport retry on a transient send failure.
+    // A cached Laminas\Mail\Transport\Smtp reuses a socket that the remote
+    // server may have dropped; a single retry after resetTransport() should
+    // recover, but a second consecutive failure must still propagate.
+
+    private function legacyHelper(): Data&MockObject
+    {
+        $helper = $this->createMock(Data::class);
+        $helper->method('versionCompare')->willReturnCallback(
+            static fn (string $version): bool => !in_array($version, ['2.4.8', '2.2.8', '2.3.3'], true)
+        );
+        $helper->method('shouldUseGraphApi')->willReturn(false);
+        $helper->method('isTestEmail')->willReturn(true);
+
+        return $helper;
+    }
+
+    public function testAroundSendMessageRetriesOnceWhenLegacyTransportSendThrowsRuntimeExceptionThenSucceeds(): void
+    {
+        $this->helper = $this->legacyHelper();
+
+        $laminasMessage = new \Laminas\Mail\Message();
+        $this->resourceMail->method('processMessage')->willReturn($laminasMessage);
+
+        $sendCallCount = 0;
+        $transport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
+        $transport->method('send')->willReturnCallback(
+            function () use (&$sendCallCount) {
+                $sendCallCount++;
+                if ($sendCallCount === 1) {
+                    throw new \Laminas\Mail\Protocol\Exception\RuntimeException('Could not read from remote host');
+                }
+
+                return null;
+            }
+        );
+        $this->resourceMail->method('getTransport')->willReturn($transport);
+        $this->resourceMail->expects($this->once())->method('resetTransport');
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createMock(EmailMessage::class)),
+            $this->createProceed($called)
+        );
+
+        $this->assertSame(2, $sendCallCount);
+    }
+
+    public function testAroundSendMessageRethrowsWhenLegacyTransportSendFailsTwice(): void
+    {
+        $this->helper = $this->legacyHelper();
+
+        $laminasMessage = new \Laminas\Mail\Message();
+        $this->resourceMail->method('processMessage')->willReturn($laminasMessage);
+
+        $sendCallCount = 0;
+        $transport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
+        $transport->method('send')->willReturnCallback(
+            function () use (&$sendCallCount) {
+                $sendCallCount++;
+                throw new \Laminas\Mail\Protocol\Exception\RuntimeException('Could not read from remote host');
+            }
+        );
+        $this->resourceMail->method('getTransport')->willReturn($transport);
+        $this->resourceMail->expects($this->once())->method('resetTransport');
+
+        $called = false;
+
+        $this->expectException(MailException::class);
+
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createMock(EmailMessage::class)),
+                $this->createProceed($called)
+            );
+        } finally {
+            $this->assertSame(2, $sendCallCount);
+        }
+    }
+
     // Conversion (Graph + log paths) must survive every MIME shape.
 
     public function testConvertPlainTextRootIsUnchanged(): void
