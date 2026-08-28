@@ -98,9 +98,15 @@ class ActionsTest extends TestCase
         $this->assertSame('http://shop/adminhtml/smtp/email/id/7', $actions['resend']['href']);
         $this->assertSame((string) __('Resend'), (string) $actions['resend']['label']);
         $this->assertSame((string) __('Resend Email'), (string) $actions['resend']['confirm']['title']);
+        // SMTP-3c: the confirm dialog carries a fixed warning that resend only replays the
+        // logged HTML, never the original attachment (see Mail/Transport.php's stripping of
+        // multipart bodies before logging on Magento < 2.4.8).
         $this->assertSame(
             (string) __(
-                'Are you sure you want to resend the email <strong>"%1"</strong>?',
+                'Are you sure you want to resend the email <strong>"%1"</strong>?'
+                . ' Note: resending only includes the HTML content saved in this log --'
+                . ' any attachment from the original email is not included. If the'
+                . ' original had an attachment, resend it from the order/invoice instead.',
                 'Order confirmation'
             ),
             (string) $actions['resend']['confirm']['message']

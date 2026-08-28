@@ -110,6 +110,7 @@ View,View
 Resend,Resend
 "Resend Email","Resend Email"
 "Are you sure you want to resend the email <strong>""%1""</strong>?","Are you sure you want to resend the email <strong>""%1""</strong>?"
+"Are you sure you want to resend the email <strong>""%1""</strong>? Note: resending only includes the HTML content saved in this log -- any attachment from the original email is not included. If the original had an attachment, resend it from the order/invoice instead.","Are you sure you want to resend the email <strong>""%1""</strong>? Note: resending only includes the HTML content saved in this log -- any attachment from the original email is not included. If the original had an attachment, resend it from the order/invoice instead."
 Delete,Delete
 "Delete Log","Delete Log"
 "Are you sure you want to delete this log?","Are you sure you want to delete this log?"
@@ -241,6 +242,7 @@ Status,Status
 "Created At","Created At"
 "Resend items","Resend items"
 "Are you sure to resend selected log(s)?","Are you sure to resend selected log(s)?"
+"Are you sure to resend selected log(s)? Note: resending only includes the HTML content saved in the log -- any attachment from the original email is not included. If an original email had an attachment, resend it from the order/invoice instead.","Are you sure to resend selected log(s)? Note: resending only includes the HTML content saved in the log -- any attachment from the original email is not included. If an original email had an attachment, resend it from the order/invoice instead."
 "Delete items","Delete items"
 "Are you sure to delete selected log email(s)?","Are you sure to delete selected log email(s)?"
 ID,ID

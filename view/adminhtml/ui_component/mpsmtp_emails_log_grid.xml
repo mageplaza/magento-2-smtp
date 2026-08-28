@@ -82,7 +82,7 @@
                         <item name="url" xsi:type="url" path="adminhtml/smtp/massresend"/>
                         <item name="confirm" xsi:type="array">
                             <item name="title" xsi:type="string" translate="true">Resend items</item>
-                            <item name="message" xsi:type="string" translate="true">Are you sure to resend selected log(s)?</item>
+                            <item name="message" xsi:type="string" translate="true">Are you sure to resend selected log(s)? Note: resending only includes the HTML content saved in the log -- any attachment from the original email is not included. If an original email had an attachment, resend it from the order/invoice instead.</item>
                         </item>
                     </item>
                 </argument>
