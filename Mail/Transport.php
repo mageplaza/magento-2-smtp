@@ -26,8 +26,12 @@ use Exception;
 use Laminas\Mail\Message;
 use Laminas\Mail\Protocol\Exception\RuntimeException as LaminasProtocolRuntimeException;
 use Laminas\Mail\Transport\Exception\RuntimeException as LaminasTransportRuntimeException;
+use Laminas\Mime\Message as LaminasMimeMessage;
+use Laminas\Mime\Mime as LaminasMime;
+use Laminas\Mime\Part as LaminasMimePart;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\EmailMessage;
+use Magento\Framework\Mail\MimePartInterface;
 use Magento\Framework\Mail\TransportInterface;
 use Magento\Framework\Phrase;
 use Magento\Framework\Registry;
@@ -253,6 +257,15 @@ class Transport
         $attachments = [];
         if ($body instanceof AbstractPart) {
             $this->collectBodyParts($body, $textParts, $attachments);
+        } elseif ($body instanceof LaminasMimeMessage) {
+            // Magento < 2.4.8: Magento\Framework\Mail\Message::getBody() delegates to
+            // Laminas\Mail\Message::getBody(), which returns a Laminas\Mime\Message,
+            // not a Symfony\Component\Mime\Part\AbstractPart. Without this branch the
+            // body/attachments are silently dropped and replaced with the
+            // "No readable content." placeholder below.
+            $this->collectLaminasMimeParts($body, $textParts, $attachments);
+        } elseif (is_string($body) && $body !== '') {
+            $textParts['plain'] = new TextPart($body);
         }
 
         if ($textParts || $attachments) {
@@ -354,6 +367,54 @@ class Transport
             foreach ($part->getParts() as $childPart) {
                 $this->collectBodyParts($childPart, $textParts, $attachments);
             }
+        }
+    }
+
+    /**
+     * Convert a Laminas\Mime\Message body (Magento < 2.4.8) into the same
+     * $textParts/$attachments shape collectBodyParts() builds, so the
+     * existing Email-assembly loop in convertToSymfonyEmail() can stay
+     * unchanged.
+     *
+     * @param LaminasMimeMessage $mimeMessage
+     * @param $textParts
+     * @param $attachments
+     */
+    protected function collectLaminasMimeParts(LaminasMimeMessage $mimeMessage, &$textParts, &$attachments)
+    {
+        foreach ($mimeMessage->getParts() as $part) {
+            // Magento's own EmailMessage/MimeMessage (used by TransportBuilder) hand
+            // Laminas\Mime\Message::setParts() an array of Magento\Framework\Mail\MimePart
+            // objects, not Laminas\Mime\Part -- they only happen to expose the same
+            // accessor methods (getType/getDisposition/getFileName/getCharset/
+            // getRawContent). A raw Laminas\Mime\Part is also accepted for callers that
+            // build the body directly with Laminas.
+            if (!$part instanceof LaminasMimePart && !$part instanceof MimePartInterface) {
+                continue;
+            }
+
+            $type = strtolower((string) $part->getType());
+            $isInlineText = ($type === 'text/html' || $type === 'text/plain')
+                && $part->getDisposition() !== LaminasMime::DISPOSITION_ATTACHMENT;
+
+            if ($isInlineText) {
+                $subtype = $type === 'text/html' ? 'html' : 'plain';
+                if (!isset($textParts[$subtype])) {
+                    $textParts[$subtype] = new TextPart(
+                        $part->getRawContent(),
+                        $part->getCharset() ?: 'utf-8',
+                        $subtype
+                    );
+                }
+
+                continue;
+            }
+
+            $attachments[] = new DataPart(
+                $part->getRawContent(),
+                $part->getFileName(),
+                $type ?: 'application/octet-stream'
+            );
         }
     }
 

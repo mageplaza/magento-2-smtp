@@ -26,6 +26,8 @@ use Closure;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\Address;
 use Magento\Framework\Mail\EmailMessage;
+use Magento\Framework\Mail\MimeInterface;
+use Magento\Framework\Mail\MimePart;
 use Magento\Framework\Mail\TransportInterface;
 use Magento\Framework\Registry;
 use Mageplaza\Smtp\Helper\Data;
@@ -590,6 +592,91 @@ class TransportTest extends TestCase
         $email = $this->convertViaGraph($part);
 
         $this->assertSame('utf-8', $email->getTextCharset());
+    }
+
+    // SMTP-5: on Magento < 2.4.8, EmailMessage::getBody() returns a real
+    // Laminas\Mime\Message (see Magento\Framework\Mail\Message::getBody()),
+    // not a Symfony\Component\Mime\Part\AbstractPart. convertToSymfonyEmail()
+    // must not silently drop that body as "No readable content.".
+    // A mock EmailMessage is used deliberately (not a Laminas one) because
+    // this is the exact object aroundSendMessage() hands to convertToSymfonyEmail()
+    // in production; only getBody()'s return value needs to be the real
+    // Laminas\Mime\Message type this bug is about.
+
+    public function testConvertHandlesLaminasMimeMessageBodyWithHtmlAndAttachment(): void
+    {
+        $htmlPart = new \Laminas\Mime\Part('<p>Hello</p>');
+        $htmlPart->type = 'text/html';
+        $htmlPart->charset = 'utf-8';
+
+        $attachmentPart = new \Laminas\Mime\Part('PDFDATA');
+        $attachmentPart->type = 'application/pdf';
+        $attachmentPart->disposition = \Laminas\Mime\Mime::DISPOSITION_ATTACHMENT;
+        $attachmentPart->encoding = \Laminas\Mime\Mime::ENCODING_BASE64;
+        $attachmentPart->filename = 'invoice.pdf';
+
+        $mimeMessage = new \Laminas\Mime\Message();
+        $mimeMessage->setParts([$htmlPart, $attachmentPart]);
+
+        $message = $this->createMock(EmailMessage::class);
+        $message->method('getTo')->willReturn([]);
+        $message->method('getFrom')->willReturn([]);
+        $message->method('getCc')->willReturn([]);
+        $message->method('getBcc')->willReturn([]);
+        $message->method('getReplyTo')->willReturn([]);
+        $message->method('getSubject')->willReturn('Subject');
+        $message->method('getBody')->willReturn($mimeMessage);
+
+        $email = $this->convertViaGraph(null, $message);
+
+        $this->assertNotSame('No readable content.', $email->getHtmlBody());
+        $this->assertSame('<p>Hello</p>', $email->getHtmlBody());
+        $this->assertCount(1, $email->getAttachments());
+        $this->assertSame(['invoice.pdf'], $this->attachmentNames($email));
+    }
+
+    // Production shape: TransportBuilder/EmailMessage hand
+    // Laminas\Mime\Message::setParts() an array of Magento\Framework\Mail\MimePart
+    // objects (Magento's own MimePartInterface wrapper), NOT raw
+    // Laminas\Mime\Part -- they only expose the same accessor method names.
+    // A mock-only test using Laminas\Mime\Part alone would miss this.
+    public function testConvertHandlesMagentoMimePartObjectsInsideLaminasMimeMessage(): void
+    {
+        $htmlPart = new MimePart(
+            '<p>Real Magento part</p>',
+            MimeInterface::TYPE_HTML,
+            null,
+            MimeInterface::DISPOSITION_INLINE,
+            MimeInterface::ENCODING_QUOTED_PRINTABLE,
+            null,
+            [],
+            'utf-8'
+        );
+        $attachmentPart = new MimePart(
+            'PDFDATA',
+            'application/pdf',
+            'invoice.pdf',
+            MimeInterface::DISPOSITION_ATTACHMENT,
+            MimeInterface::ENCODING_BASE64
+        );
+
+        $mimeMessage = new \Laminas\Mime\Message();
+        $mimeMessage->setParts([$htmlPart, $attachmentPart]);
+
+        $message = $this->createMock(EmailMessage::class);
+        $message->method('getTo')->willReturn([]);
+        $message->method('getFrom')->willReturn([]);
+        $message->method('getCc')->willReturn([]);
+        $message->method('getBcc')->willReturn([]);
+        $message->method('getReplyTo')->willReturn([]);
+        $message->method('getSubject')->willReturn('Subject');
+        $message->method('getBody')->willReturn($mimeMessage);
+
+        $email = $this->convertViaGraph(null, $message);
+
+        $this->assertSame('<p>Real Magento part</p>', $email->getHtmlBody());
+        $this->assertCount(1, $email->getAttachments());
+        $this->assertSame(['invoice.pdf'], $this->attachmentNames($email));
     }
 
     public function testConvertEmptyBodyFallsBackToPlaceholder(): void
