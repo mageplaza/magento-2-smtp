@@ -24,7 +24,9 @@ namespace Mageplaza\Smtp\Mail\Rse;
 use Mageplaza\Smtp\Helper\Data;
 use Laminas\Mail\Message;
 use Laminas\Mail\Transport\Smtp;
+use Laminas\Mail\Protocol\Smtp as SmtpProtocol;
 use Laminas\Mail\Transport\SmtpOptions;
+use ReflectionMethod;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Symfony\Component\Mime\Parser\MessageParser;
 use Zend_Exception;
@@ -185,6 +187,52 @@ class Mail
         }
 
         return $this->_transport;
+    }
+
+    /**
+     * @return $this
+     */
+    public function resetTransport()
+    {
+        if ($this->_transport instanceof Smtp) {
+            try {
+                $this->retireConnection($this->_transport->getConnection());
+            } catch (\Throwable $e) {
+                // The transport is being discarded; closing it cannot be worth an error.
+            }
+        }
+
+        $this->_transport = null;
+
+        return $this;
+    }
+
+    /**
+     * @param $connection
+     *
+     * @return void
+     */
+    protected function retireConnection($connection)
+    {
+        if (!$connection instanceof SmtpProtocol) {
+            return;
+        }
+
+        if ($connection->hasSession() && method_exists($connection, 'stopSession')) {
+            try {
+                $stopSession = new ReflectionMethod($connection, 'stopSession');
+                $stopSession->setAccessible(true);
+                $stopSession->invoke($connection);
+            } catch (\Throwable $e) {
+                // Leave the flag as it is; disconnect() below still releases the socket.
+            }
+        }
+
+        try {
+            $connection->disconnect();
+        } catch (\Throwable $e) {
+            // The socket is going away regardless of what the server makes of it.
+        }
     }
 
     /**

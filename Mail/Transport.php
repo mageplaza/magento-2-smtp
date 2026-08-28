@@ -24,6 +24,8 @@ namespace Mageplaza\Smtp\Mail;
 use Closure;
 use Exception;
 use Laminas\Mail\Message;
+use Laminas\Mail\Protocol\Smtp as SmtpProtocol;
+use Laminas\Mail\Transport\Smtp;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\EmailMessage;
 use Magento\Framework\Mail\TransportInterface;
@@ -161,8 +163,7 @@ class Transport
                                 $message->getHeaders()->removeHeader("Content-Disposition");
                             }
 
-                            $transport = $this->resourceMail->getTransport($this->_storeId);
-                            $transport->send($message);
+                            $this->sendWithRetry($message);
 
                             if ($this->helper->versionCompare('2.2.8')) {
                                 $messageTmp = $this->getMessage($subject);
@@ -183,6 +184,55 @@ class Transport
                 throw new MailException(new Phrase($e->getMessage()), $e instanceof Exception ? $e : null);
             }
         }
+    }
+
+    /**
+     * @param $message
+     *
+     * @throws Zend_Exception
+     * @throws \Throwable
+     */
+    protected function sendWithRetry($message)
+    {
+        $transport = $this->resourceMail->getTransport($this->_storeId);
+
+        if (!$this->isConnectionAlive($transport)) {
+            $transport = $this->resourceMail
+                ->resetTransport()
+                ->getTransport($this->_storeId);
+        }
+
+        $transport->send($message);
+    }
+
+    /**
+     * @param $transport
+     *
+     * @return bool
+     */
+    protected function isConnectionAlive($transport)
+    {
+        if (!$transport instanceof Smtp || !method_exists($transport, 'getConnection')) {
+            return true;
+        }
+
+        $connection = $transport->getConnection();
+        if (!$connection instanceof SmtpProtocol || !$connection->hasSession()) {
+            return true;
+        }
+
+        try {
+            $connection->noop();
+        } catch (\Throwable $e) {
+            $this->logger->warning(
+                'Mageplaza_Smtp: SMTP connection is no longer usable, reconnecting. ' . $e->getMessage(),
+                ['store_id' => $this->_storeId]
+            );
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
