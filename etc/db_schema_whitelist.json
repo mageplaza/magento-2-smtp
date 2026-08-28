@@ -12,8 +12,7 @@
             "bcc": true,
             "sender": true,
             "recipient": true,
-            "error_message": true,
-            "has_attachment": true
+            "error_message": true
         },
         "index": {
             "MAGEPLAZA_SMTP_LOG_STATUS": true
