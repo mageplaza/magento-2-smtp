@@ -145,6 +145,12 @@ class EmailSentFlagUpdater
             return;
         }
 
+        // saveAttribute() only persists whatever value is already set on $entity for the
+        // given attributes (see Magento\Sales\Model\ResourceModel\Attribute::saveAttribute()) --
+        // it does not flip anything itself. send_email is already true from the original send
+        // attempt; email_sent is the one that needs setting here, same as core's own
+        // OrderSender/InvoiceSender/... do right before their own saveAttribute() call.
+        $entity->setData('email_sent', true);
         $resource->saveAttribute($entity, self::SEND_EMAIL_ATTRIBUTES);
     }
 

@@ -85,6 +85,9 @@ class EmailSentFlagUpdaterTest extends TestCase
         $order = $this->createMock(Order::class);
         $this->orderRepository->method('get')->with(55)->willReturn($order);
 
+        // saveAttribute() only persists whatever is already set on the entity -- it does not
+        // flip email_sent itself, so this must happen first.
+        $order->expects($this->once())->method('setData')->with('email_sent', true);
         $this->orderResource->expects($this->once())->method('saveAttribute')
             ->with($order, ['send_email', 'email_sent']);
 
@@ -96,6 +99,7 @@ class EmailSentFlagUpdaterTest extends TestCase
         $invoice = $this->createMock(Invoice::class);
         $this->invoiceRepository->method('get')->with(7)->willReturn($invoice);
 
+        $invoice->expects($this->once())->method('setData')->with('email_sent', true);
         $this->invoiceResource->expects($this->once())->method('saveAttribute')
             ->with($invoice, ['send_email', 'email_sent']);
 
@@ -107,6 +111,7 @@ class EmailSentFlagUpdaterTest extends TestCase
         $shipment = $this->createMock(Shipment::class);
         $this->shipmentRepository->method('get')->with(9)->willReturn($shipment);
 
+        $shipment->expects($this->once())->method('setData')->with('email_sent', true);
         $this->shipmentResource->expects($this->once())->method('saveAttribute')
             ->with($shipment, ['send_email', 'email_sent']);
 
@@ -118,6 +123,7 @@ class EmailSentFlagUpdaterTest extends TestCase
         $creditmemo = $this->createMock(Creditmemo::class);
         $this->creditmemoRepository->method('get')->with(3)->willReturn($creditmemo);
 
+        $creditmemo->expects($this->once())->method('setData')->with('email_sent', true);
         $this->creditmemoResource->expects($this->once())->method('saveAttribute')
             ->with($creditmemo, ['send_email', 'email_sent']);
 
