@@ -184,6 +184,7 @@ class Transport
 
                 $this->emailLog($message);
             } catch (\Throwable $e) {
+                $this->logSendFailureReason($e, $message);
                 $this->emailLog($message, false);
                 throw new MailException(new Phrase($e->getMessage()), $e instanceof Exception ? $e : null);
             }
@@ -476,6 +477,42 @@ class Transport
         }
 
         return implode(',', $emails);
+    }
+
+    /**
+     * Log why a send failed. Only the exception message (capped at 1000
+     * chars), store id, recipient and subject are logged -- never auth
+     * credentials/tokens. Recipient/subject extraction is best-effort so a
+     * problem here can never mask the original exception.
+     *
+     * @param \Throwable $e
+     * @param $message
+     */
+    protected function logSendFailureReason(\Throwable $e, $message)
+    {
+        $recipient = '';
+        try {
+            $recipient = $this->getRecipient($message);
+        } catch (\Throwable $ignored) {
+            // Ignore: recipient extraction failing must not hide the real error.
+        }
+
+        $subject = '';
+        try {
+            if (is_object($message) && method_exists($message, 'getSubject')) {
+                $subject = (string) $message->getSubject();
+            }
+        } catch (\Throwable $ignored) {
+            // Ignore: subject extraction failing must not hide the real error.
+        }
+
+        $this->logger->error(sprintf(
+            'Mageplaza_Smtp: failed to send email (store id: %s, to: %s, subject: "%s"): %s',
+            $this->_storeId,
+            $recipient,
+            $subject,
+            mb_substr($e->getMessage(), 0, 1000)
+        ));
     }
 
     /**

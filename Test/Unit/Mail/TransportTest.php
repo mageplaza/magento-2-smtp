@@ -337,6 +337,73 @@ class TransportTest extends TestCase
         $this->assertSame('legacy body', $captured->getTextBody());
     }
 
+    // SMTP-2: a send failure must be logged with a reason, not just swallowed
+    // into a bare emailLog($message, false) + rethrow.
+
+    public function testAroundSendMessageLogsErrorReasonWhenSendFails(): void
+    {
+        $this->helper = $this->legacyHelper();
+
+        $laminasMessage = new \Laminas\Mail\Message();
+        $laminasMessage->setSubject('Test Subject');
+        $laminasMessage->addTo('victim@example.com');
+        $this->resourceMail->method('processMessage')->willReturn($laminasMessage);
+
+        $transport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
+        $transport->method('send')->willThrowException(new \RuntimeException('Connection refused by host'));
+        $this->resourceMail->method('getTransport')->willReturn($transport);
+
+        $this->logger->expects($this->once())->method('error')->with(
+            $this->callback(static function (string $logged): bool {
+                return str_contains($logged, 'Connection refused by host')
+                    && str_contains($logged, (string) self::STORE_ID)
+                    && str_contains($logged, 'victim@example.com')
+                    && str_contains($logged, 'Test Subject');
+            })
+        );
+
+        $called = false;
+
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createMock(EmailMessage::class)),
+                $this->createProceed($called)
+            );
+            $this->fail('Expected MailException to propagate.');
+        } catch (MailException $e) {
+            // Expected: the retry logic does not retry a plain \RuntimeException,
+            // so the outer catch in aroundSendMessage() wraps and rethrows it.
+        }
+    }
+
+    public function testAroundSendMessageLoggedReasonIsTruncatedTo1000Characters(): void
+    {
+        $this->helper = $this->legacyHelper();
+
+        $laminasMessage = new \Laminas\Mail\Message();
+        $this->resourceMail->method('processMessage')->willReturn($laminasMessage);
+
+        $transport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
+        $transport->method('send')->willThrowException(new \RuntimeException(str_repeat('x', 2000)));
+        $this->resourceMail->method('getTransport')->willReturn($transport);
+
+        $this->logger->expects($this->once())->method('error')->with(
+            $this->callback(static function (string $logged): bool {
+                return substr_count($logged, 'x') <= 1000;
+            })
+        );
+
+        $called = false;
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createMock(EmailMessage::class)),
+                $this->createProceed($called)
+            );
+        } catch (MailException $e) {
+            // Expected.
+        }
+    }
+
     // SMTP-1: legacy (< 2.4.8) transport retry on a transient send failure.
     // A cached Laminas\Mail\Transport\Smtp reuses a socket that the remote
     // server may have dropped; a single retry after resetTransport() should
