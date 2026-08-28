@@ -12,6 +12,8 @@
     <column xsi:type="varchar" name="bcc" nullable="true" length="255" comment="Bcc"/>
     <column xsi:type="varchar" name="sender" nullable="true" length="255" comment="Sender" onCreate="migrateDataFrom(from)"/>
     <column xsi:type="varchar" name="recipient" nullable="true" length="255" comment="Recipient" onCreate="migrateDataFrom(to)"/>
+    <column xsi:type="text" name="error_message" nullable="true" comment="Error Message"/>
+    <column xsi:type="smallint" name="has_attachment" padding="6" unsigned="false" nullable="true" identity="false" default="0" comment="Has Attachment"/>
     <constraint xsi:type="primary" referenceId="PRIMARY">
       <column name="id"/>
     </constraint>
