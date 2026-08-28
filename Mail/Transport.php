@@ -55,6 +55,10 @@ use Zend_Exception;
  */
 class Transport
 {
+    const ERROR_CAUSE_LIMIT = 3;
+
+    const ERROR_MESSAGE_LIMIT = 2000;
+
     /**
      * @var int Store Id
      */
@@ -180,7 +184,18 @@ class Transport
 
                 $this->emailLog($message);
             } catch (\Throwable $e) {
-                $this->emailLog($message, false);
+                $errorMessage = $this->describeSendFailure($e);
+
+                $this->logger->error(
+                    'Mageplaza_Smtp: failed to send email. ' . $errorMessage,
+                    [
+                        'store_id'  => $this->_storeId,
+                        'recipient' => $this->getRecipient($message),
+                        'exception' => $e,
+                    ]
+                );
+
+                $this->emailLog($message, false, $errorMessage);
                 throw new MailException(new Phrase($e->getMessage()), $e instanceof Exception ? $e : null);
             }
         }
@@ -233,6 +248,38 @@ class Transport
         }
 
         return true;
+    }
+
+    /**
+     * @param \Throwable $e
+     *
+     * @return string
+     */
+    protected function describeSendFailure(\Throwable $e)
+    {
+        $parts = [];
+
+        for ($current = $e; $current !== null; $current = $current->getPrevious()) {
+            $part = get_class($current);
+
+            $code = $current->getCode();
+            if ($code) {
+                $part .= ' [' . $code . ']';
+            }
+
+            $text = trim($current->getMessage());
+            if ($text !== '') {
+                $part .= ': ' . $text;
+            }
+
+            $parts[] = $part;
+
+            if (count($parts) >= self::ERROR_CAUSE_LIMIT) {
+                break;
+            }
+        }
+
+        return implode(' | ', $parts);
     }
 
     /**
@@ -480,11 +527,16 @@ class Transport
      * @param $message
      * @param bool $status
      */
-    protected function emailLog($message, $status = true)
+    protected function emailLog($message, $status = true, $errorMessage = null)
     {
         if ($this->helper->isEnabled($this->_storeId) && $this->resourceMail->isEnableEmailLog($this->_storeId)) {
             /** @var Log $log */
             $log = $this->logFactory->create();
+
+            if ($errorMessage !== null && $errorMessage !== '') {
+                $log->setErrorMessage(mb_substr($errorMessage, 0, self::ERROR_MESSAGE_LIMIT));
+            }
+
             try {
                 if ($this->helper->versionCompare('2.4.8')) {
                     if (!$message instanceof Email) {

@@ -5,6 +5,7 @@
     <column xsi:type="varchar" name="subject" nullable="true" length="255" comment="Email Subject"/>
     <column xsi:type="text" name="email_content" nullable="true" comment="Email Content"/>
     <column xsi:type="smallint" name="status" padding="6" unsigned="false" nullable="false" identity="false" comment="Status"/>
+    <column xsi:type="text" name="error_message" nullable="true" comment="Error Message"/>
     <column xsi:type="timestamp" name="created_at" on_update="false" nullable="true" comment="Created At"/>
     <column xsi:type="varchar" name="from" nullable="true" length="255" comment="Sender" disabled="true"/>
     <column xsi:type="varchar" name="to" nullable="true" length="255" comment="Recipient" disabled="true"/>
