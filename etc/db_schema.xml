@@ -18,6 +18,9 @@
     <index referenceId="MAGEPLAZA_SMTP_LOG_STATUS" indexType="btree">
       <column name="status"/>
     </index>
+    <index referenceId="MAGEPLAZA_SMTP_LOG_CREATED_AT" indexType="btree">
+      <column name="created_at"/>
+    </index>
   </table>
   <table name="mageplaza_smtp_abandonedcart" resource="default" engine="innodb" comment="SMTP Abandoned Cart">
     <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="Log Id"/>
