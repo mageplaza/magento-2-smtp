@@ -137,7 +137,8 @@ class Transport
 
             return;
         }
-        $message = $this->getMessage($subject);
+        $message       = $this->getMessage($subject);
+        $loggedBody    = null;
         if (!$this->validateBlacklist($message)) {
             try {
                 if (!$this->resourceMail->isDeveloperMode($this->_storeId)) {
@@ -174,6 +175,7 @@ class Transport
                                 if ($messageTmp && is_object($messageTmp)) {
                                     $body = $messageTmp->getBody();
                                     if (is_object($body) && $body->isMultiPart()) {
+                                        $loggedBody = $body;
                                         $message->setBody($body->getPartContent("0"));
                                     }
                                 }
@@ -182,7 +184,7 @@ class Transport
                     }
                 }
 
-                $this->emailLog($message);
+                $this->emailLog($message, true, null, $loggedBody);
             } catch (\Throwable $e) {
                 $errorMessage = $this->describeSendFailure($e);
 
@@ -195,7 +197,7 @@ class Transport
                     ]
                 );
 
-                $this->emailLog($message, false, $errorMessage);
+                $this->emailLog($message, false, $errorMessage, $loggedBody);
                 throw new MailException(new Phrase($e->getMessage()), $e instanceof Exception ? $e : null);
             }
         }
@@ -349,9 +351,13 @@ class Transport
                 if ($attachment instanceof DataPart) {
                     $dataPart = $attachment;
                 } else {
+                    $filename = method_exists($attachment, 'getFilename')
+                        ? $attachment->getFilename()
+                        : null;
+
                     $dataPart = new DataPart(
                         $attachment->getBody(),
-                        null,
+                        $filename,
                         $attachment->getMediaType() . '/' . $attachment->getMediaSubtype()
                     );
                 }
@@ -527,7 +533,7 @@ class Transport
      * @param $message
      * @param bool $status
      */
-    protected function emailLog($message, $status = true, $errorMessage = null)
+    protected function emailLog($message, $status = true, $errorMessage = null, $fullBody = null)
     {
         if ($this->helper->isEnabled($this->_storeId) && $this->resourceMail->isEnableEmailLog($this->_storeId)) {
             /** @var Log $log */
@@ -545,7 +551,7 @@ class Transport
 
                     $log->saveLogSymfony($message, $status, $this->_storeId);
                 } else {
-                    $log->saveLog($message, $status, $this->_storeId);
+                    $log->saveLog($message, $status, $this->_storeId, $fullBody);
                 }
 
                 if ($status) {

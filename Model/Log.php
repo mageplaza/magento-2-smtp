@@ -28,11 +28,21 @@ use Magento\Framework\DataObject;
 use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
+use Laminas\Mime\Message as MimeMessage;
+use Laminas\Mime\Mime;
+use Laminas\Mime\Part as MimePart;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Mail\MimeMessageInterface as MagentoMimeMessage;
+use Magento\Framework\Mail\MimePartInterface as MagentoMimePart;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
+use Symfony\Component\Mime\Part\AbstractPart;
+use Symfony\Component\Mime\Part\DataPart;
+use Symfony\Component\Mime\Part\Multipart\MixedPart;
 use Magento\Framework\Registry;
 use Magento\Store\Model\Store;
 use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Mail\Rse\Mail;
+use Mageplaza\Smtp\Model\ResourceModel\LogAttachment\CollectionFactory as AttachmentCollectionFactory;
 use Mageplaza\Smtp\Model\Source\Status;
 
 /**
@@ -57,6 +67,21 @@ class Log extends AbstractModel
     protected $helper;
 
     /**
+     * @var LogAttachmentFactory
+     */
+    protected $attachmentFactory;
+
+    /**
+     * @var AttachmentCollectionFactory
+     */
+    protected $attachmentCollectionFactory;
+
+    /**
+     * @var array
+     */
+    protected $pendingAttachments = [];
+
+    /**
      * Log constructor.
      *
      * @param Context $context
@@ -67,6 +92,8 @@ class Log extends AbstractModel
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
      * @param array $data
+     * @param LogAttachmentFactory|null $attachmentFactory
+     * @param AttachmentCollectionFactory|null $attachmentCollectionFactory
      */
     public function __construct(
         Context $context,
@@ -76,13 +103,18 @@ class Log extends AbstractModel
         Data $helper,
         ?AbstractResource $resource = null,
         ?AbstractDb $resourceCollection = null,
-        array $data = []
+        array $data = [],
+        ?LogAttachmentFactory $attachmentFactory = null,
+        ?AttachmentCollectionFactory $attachmentCollectionFactory = null
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
 
         $this->_transportBuilder = $transportBuilder;
         $this->mailResource      = $mailResource;
         $this->helper            = $helper;
+
+        $this->attachmentFactory           = $attachmentFactory;
+        $this->attachmentCollectionFactory = $attachmentCollectionFactory;
     }
 
     /**
@@ -100,7 +132,7 @@ class Log extends AbstractModel
      * @param $status
      * @param null $storeId
      */
-    public function saveLog($message, $status, $storeId = null)
+    public function saveLog($message, $status, $storeId = null, $fullBody = null)
     {
         if ($this->helper->versionCompare('2.2.8')) {
             if ($message->getSubject()) {
@@ -138,12 +170,15 @@ class Log extends AbstractModel
             }
             $this->setBcc(implode(',', $bccArr));
 
+            $parts   = $this->extractParts($message, $fullBody);
+            $content = $parts['html'];
+
             if ($this->helper->versionCompare('2.3.3')) {
-                $messageBody = quoted_printable_decode($message->getBodyText());
-                $content     = htmlspecialchars($messageBody);
-            } else {
-                $content = htmlspecialchars($message->getBodyText());
+                $content = quoted_printable_decode($content);
             }
+
+            $content                  = htmlspecialchars($content);
+            $this->pendingAttachments = $parts['attachments'];
         } else {
             $headers = $message->getHeaders();
 
@@ -191,6 +226,8 @@ class Log extends AbstractModel
             ->setStatus($status)
             ->setStoreId($storeId ?? Store::DEFAULT_STORE_ID)
             ->save();
+
+        $this->saveAttachments();
     }
 
     /**
@@ -243,10 +280,196 @@ class Log extends AbstractModel
             $content = htmlspecialchars($textBody);
         }
 
+        $this->pendingAttachments = $this->extractSymfonyAttachments($message);
+
         $this->setEmailContent($content)
             ->setStatus($status)
             ->setStoreId($storeId)
             ->save();
+
+        $this->saveAttachments();
+    }
+
+    /**
+     * @return LogAttachmentFactory
+     */
+    protected function getAttachmentFactory()
+    {
+        if ($this->attachmentFactory === null) {
+            $this->attachmentFactory = ObjectManager::getInstance()->get(LogAttachmentFactory::class);
+        }
+
+        return $this->attachmentFactory;
+    }
+
+    /**
+     * Resolve the attachment collection factory, falling back to the object manager.
+     *
+     * @return AttachmentCollectionFactory
+     */
+    protected function getAttachmentCollectionFactory()
+    {
+        if ($this->attachmentCollectionFactory === null) {
+            $this->attachmentCollectionFactory = ObjectManager::getInstance()
+                ->get(AttachmentCollectionFactory::class);
+        }
+
+        return $this->attachmentCollectionFactory;
+    }
+
+    /**
+     * @param $message
+     *
+     * @return array ['html' => string, 'attachments' => array]
+     */
+    protected function extractParts($message, $fullBody = null)
+    {
+        $html        = '';
+        $attachments = [];
+
+        $body = $fullBody;
+
+        if ($body === null) {
+            try {
+                $body = $message->getBody();
+            } catch (\Throwable $e) {
+                $body = null;
+            }
+        }
+
+        if (!$body instanceof MimeMessage) {
+            if (is_string($body) && $body !== '') {
+                return ['html' => $body, 'attachments' => []];
+            }
+
+            try {
+                return ['html' => (string) $message->getBodyText(), 'attachments' => []];
+            } catch (\Throwable $e) {
+                return ['html' => '', 'attachments' => []];
+            }
+        }
+
+        $plain = '';
+        foreach ($body->getParts() as $part) {
+            if (!$part instanceof MimePart && !$part instanceof MagentoMimePart) {
+                continue;
+            }
+
+            $type        = strtolower((string) $part->getType());
+            $disposition = strtolower((string) $part->getDisposition());
+            $filename    = $this->readPartFileName($part);
+
+            $isAttached = strpos($disposition, 'attachment') !== false || $filename !== '';
+
+            if (!$isAttached && strpos($type, 'text/html') === 0) {
+                $html = $part->getRawContent();
+                continue;
+            }
+
+            if (!$isAttached && strpos($type, 'text/plain') === 0) {
+                if ($plain === '') {
+                    $plain = $part->getRawContent();
+                }
+                continue;
+            }
+
+            $attachments[] = [
+                'filename'    => $filename ?: 'attachment',
+                'mime_type'   => $type ?: 'application/octet-stream',
+                'disposition' => $disposition ?: 'attachment',
+                'content'     => $part->getRawContent(),
+            ];
+        }
+
+        return ['html' => $html !== '' ? $html : $plain, 'attachments' => $attachments];
+    }
+
+    /**
+     * @param $part
+     *
+     * @return string
+     */
+    protected function readPartFileName($part)
+    {
+        try {
+            return (string) $part->getFileName();
+        } catch (\Throwable $e) {
+            return '';
+        }
+    }
+
+    /**
+     * @param $message
+     *
+     * @return array
+     */
+    protected function extractSymfonyAttachments($message)
+    {
+        $attachments = [];
+
+        if (!method_exists($message, 'getAttachments')) {
+            return $attachments;
+        }
+
+        try {
+            $parts = $message->getAttachments();
+        } catch (\Throwable $e) {
+            return $attachments;
+        }
+
+        foreach ($parts as $part) {
+            $attachments[] = [
+                'filename'    => method_exists($part, 'getFilename') ? $part->getFilename() : 'attachment',
+                'mime_type'   => method_exists($part, 'getMediaType')
+                    ? $part->getMediaType() . '/' . $part->getMediaSubtype()
+                    : 'application/octet-stream',
+                'disposition' => method_exists($part, 'getDisposition')
+                    ? (string) $part->getDisposition()
+                    : 'attachment',
+                'content'     => $part->getBody(),
+            ];
+        }
+
+        return $attachments;
+    }
+
+    /**
+     * @return void
+     */
+    protected function saveAttachments()
+    {
+        if (!$this->pendingAttachments || !$this->getId()) {
+            $this->pendingAttachments = [];
+
+            return;
+        }
+
+        foreach ($this->pendingAttachments as $attachment) {
+            try {
+                $this->getAttachmentFactory()->create()
+                    ->addData($attachment)
+                    ->setLogId($this->getId())
+                    ->save();
+            } catch (Exception $e) {
+                $this->_logger->critical($e->getMessage());
+            }
+        }
+
+        $this->pendingAttachments = [];
+    }
+
+    /**
+     * @return array
+     */
+    public function getAttachments()
+    {
+        if (!$this->getId()) {
+            return [];
+        }
+
+        return $this->getAttachmentCollectionFactory()->create()
+            ->addFieldToFilter('log_id', $this->getId())
+            ->getItems();
     }
 
     /**
@@ -301,8 +524,9 @@ class Log extends AbstractModel
                 ->setTemplateVars($data)
                 ->setFrom($sender);
 
-            $this->_transportBuilder->getTransport()
-                ->sendMessage();
+            $transport = $this->_transportBuilder->getTransport();
+            $this->reattachFiles($transport);
+            $transport->sendMessage();
 
             $this->setStatus(Status::STATUS_SUCCESS)
                 ->save();
@@ -313,6 +537,86 @@ class Log extends AbstractModel
         }
 
         return true;
+    }
+
+    /**
+     * @param $transport
+     *
+     * @return void
+     */
+    protected function reattachFiles($transport)
+    {
+        $attachments = $this->getAttachments();
+        if (!$attachments || !method_exists($transport, 'getMessage')) {
+            return;
+        }
+
+        try {
+            $message = $transport->getMessage();
+
+            if (method_exists($message, 'getSymfonyMessage')) {
+                $this->attachToSymfonyMessage($message->getSymfonyMessage(), $attachments);
+
+                return;
+            }
+
+            $body = $message->getBody();
+
+            if (!$body instanceof MimeMessage && !$body instanceof MagentoMimeMessage) {
+                return;
+            }
+
+            $parts = $body->getParts();
+
+            foreach ($attachments as $attachment) {
+                $part = new MimePart($attachment->getContent());
+                $part->type        = $attachment->getMimeType() ?: 'application/octet-stream';
+                $part->encoding    = Mime::ENCODING_BASE64;
+                $part->disposition = Mime::DISPOSITION_ATTACHMENT;
+                $part->filename    = $attachment->getFilename() ?: 'attachment';
+
+                $parts[] = $part;
+            }
+
+            $body->setParts($parts);
+            $message->setBody($body);
+        } catch (\Throwable $e) {
+            // A resend without its files still beats no resend at all.
+            $this->_logger->critical($e->getMessage());
+        }
+    }
+
+    /**
+     * @param $symfonyMessage
+     * @param array $attachments
+     *
+     * @return void
+     */
+    protected function attachToSymfonyMessage($symfonyMessage, array $attachments)
+    {
+        if (!$symfonyMessage || !method_exists($symfonyMessage, 'getBody')) {
+            return;
+        }
+
+        $body = $symfonyMessage->getBody();
+        if (!$body instanceof AbstractPart) {
+            return;
+        }
+
+        $parts = [];
+        foreach ($attachments as $attachment) {
+            $parts[] = new DataPart(
+                (string) $attachment->getContent(),
+                $attachment->getFilename() ?: 'attachment',
+                $attachment->getMimeType() ?: 'application/octet-stream'
+            );
+        }
+
+        if (!$parts) {
+            return;
+        }
+
+        $symfonyMessage->setBody(new MixedPart($body, ...$parts));
     }
 
     /**
