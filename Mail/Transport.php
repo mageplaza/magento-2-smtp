@@ -543,6 +543,12 @@ class Transport
                 $log->setErrorMessage(mb_substr($errorMessage, 0, self::ERROR_MESSAGE_LIMIT));
             }
 
+            $entity = $this->registry->registry('mp_smtp_entity');
+            if (is_array($entity) && !empty($entity['type']) && !empty($entity['id'])) {
+                $log->setEntityType($entity['type'])
+                    ->setEntityId($entity['id']);
+            }
+
             try {
                 if ($this->helper->versionCompare('2.4.8')) {
                     if (!$message instanceof Email) {

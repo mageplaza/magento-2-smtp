@@ -51,6 +51,25 @@ use Mageplaza\Smtp\Model\Source\Status;
  */
 class Log extends AbstractModel
 {
+    const ENTITY_RESOURCES = [
+        'order'      => [
+            'model'    => \Magento\Sales\Model\Order::class,
+            'resource' => \Magento\Sales\Model\ResourceModel\Order::class,
+        ],
+        'invoice'    => [
+            'model'    => \Magento\Sales\Model\Order\Invoice::class,
+            'resource' => \Magento\Sales\Model\ResourceModel\Order\Invoice::class,
+        ],
+        'shipment'   => [
+            'model'    => \Magento\Sales\Model\Order\Shipment::class,
+            'resource' => \Magento\Sales\Model\ResourceModel\Order\Shipment::class,
+        ],
+        'creditmemo' => [
+            'model'    => \Magento\Sales\Model\Order\Creditmemo::class,
+            'resource' => \Magento\Sales\Model\ResourceModel\Order\Creditmemo::class,
+        ],
+    ];
+
     /**
      * @var TransportBuilder
      */
@@ -530,6 +549,8 @@ class Log extends AbstractModel
 
             $this->setStatus(Status::STATUS_SUCCESS)
                 ->save();
+
+            $this->markEntityAsNotified();
         } catch (Exception $e) {
             $this->_logger->critical($e->getMessage());
 
@@ -537,6 +558,41 @@ class Log extends AbstractModel
         }
 
         return true;
+    }
+
+    /**
+     * @return void
+     */
+    protected function markEntityAsNotified()
+    {
+        $type = $this->getEntityType();
+        $id   = (int) $this->getEntityId();
+
+        if (!$type || !$id || !isset(self::ENTITY_RESOURCES[$type])) {
+            return;
+        }
+
+        try {
+            $entity = ObjectManager::getInstance()
+                ->create(self::ENTITY_RESOURCES[$type]['model'])
+                ->load($id);
+
+            if (!$entity->getId()) {
+                return;
+            }
+
+            $entity->setEmailSent(1);
+            $entity->setSendEmail(1);
+
+            ObjectManager::getInstance()
+                ->get(self::ENTITY_RESOURCES[$type]['resource'])
+                ->saveAttribute($entity, ['send_email', 'email_sent']);
+        } catch (\Throwable $e) {
+            $this->_logger->critical(
+                'Mageplaza_Smtp: resend succeeded but could not flag ' . $type . ' #' . $id
+                . '. ' . $e->getMessage()
+            );
+        }
     }
 
     /**
