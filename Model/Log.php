@@ -515,7 +515,10 @@ class Log extends AbstractModel
     public function resendEmail()
     {
         $data                  = $this->getData();
-        $data['email_content'] = htmlspecialchars_decode($data['email_content']);
+        // A log row whose body was never captured (email_content NULL) must still be
+        // resendable. Passing null here raised a deprecation that developer mode turns
+        // into an exception and production mode turns into a blank error page.
+        $data['email_content'] = htmlspecialchars_decode((string) ($data['email_content'] ?? ''));
 
         $dataObject = new DataObject();
         $dataObject->setData($data);

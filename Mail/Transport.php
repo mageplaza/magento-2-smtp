@@ -66,6 +66,8 @@ class Transport
 
     const ERROR_MESSAGE_LIMIT = 2000;
 
+    const REDACTED = '***';
+
     /**
      * @var int Store Id
      */
@@ -301,7 +303,7 @@ class Transport
                 $part .= ': ' . $text;
             }
 
-            $parts[] = mb_substr($part, 0, self::ERROR_MESSAGE_LIMIT);
+            $parts[] = mb_substr($this->redactCredentials($part), 0, self::ERROR_MESSAGE_LIMIT);
 
             if (count($parts) >= self::ERROR_CAUSE_LIMIT) {
                 break;
@@ -309,6 +311,54 @@ class Transport
         }
 
         return implode(' | ', $parts);
+    }
+
+    /**
+     * Strip SMTP credentials out of text that is about to be stored on the log row and shown
+     * in the admin grid. A rejecting server commonly echoes the AUTH payload back in its
+     * reply (e.g. "535 Authentication failed: dXNlcjpwYXNz"), so the raw exception message
+     * carries the account password.
+     *
+     * Two passes, because neither is sufficient alone: the configured values catch the real
+     * credential in whatever form it was sent, and the generic pass catches a server that
+     * echoes a token we cannot reconstruct.
+     *
+     * @param string $text
+     *
+     * @return string
+     */
+    protected function redactCredentials($text)
+    {
+        $secrets = [];
+
+        try {
+            $username = (string) $this->helper->getSmtpConfig('username', $this->_storeId);
+            $password = (string) $this->helper->getPassword($this->_storeId);
+        } catch (\Throwable $e) {
+            $username = '';
+            $password = '';
+        }
+
+        foreach ([$username, $password] as $value) {
+            if ($value === '') {
+                continue;
+            }
+
+            $secrets[] = $value;
+            $secrets[] = base64_encode($value);
+        }
+
+        if ($username !== '' || $password !== '') {
+            // AUTH PLAIN sends \0user\0pass as a single base64 blob.
+            $secrets[] = base64_encode("\0" . $username . "\0" . $password);
+        }
+
+        foreach (array_unique(array_filter($secrets)) as $secret) {
+            $text = str_replace($secret, self::REDACTED, $text);
+        }
+
+        // Any remaining long base64-looking run is treated as a credential echo.
+        return preg_replace('#[A-Za-z0-9+/]{20,}={0,2}#', self::REDACTED, $text);
     }
 
     /**
