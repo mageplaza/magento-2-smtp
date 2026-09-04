@@ -17,7 +17,8 @@
             "entity_id": true
         },
         "index": {
-            "MAGEPLAZA_SMTP_LOG_STATUS": true
+            "MAGEPLAZA_SMTP_LOG_STATUS": true,
+            "MAGEPLAZA_SMTP_LOG_ENTITY_TYPE_ENTITY_ID": true
         },
         "constraint": {
             "PRIMARY": true
@@ -35,7 +36,8 @@
         "constraint": {
             "PRIMARY": true,
             "MAGEPLAZA_SMTP_ABANDONEDCART_QUOTE_ID_QUOTE_ENTITY_ID": true
-        }
+        },
+        "index": {}
     },
     "quote": {
         "column": {
@@ -59,6 +61,23 @@
     "newsletter_subscriber": {
         "column": {
             "mp_smtp_email_marketing_synced": true
+        }
+    },
+    "mageplaza_smtp_log_attachment": {
+        "column": {
+            "id": true,
+            "log_id": true,
+            "filename": true,
+            "mime_type": true,
+            "disposition": true,
+            "content": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "MP_SMTP_LOG_ATTACHMENT_LOG_ID_MP_SMTP_LOG_ID": true
+        },
+        "index": {
+            "MAGEPLAZA_SMTP_LOG_ATTACHMENT_LOG_ID": true
         }
     }
 }
