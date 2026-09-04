@@ -223,14 +223,6 @@ class Transport
     }
 
     /**
-     * Send through the legacy (< 2.4.8) Laminas transport.
-     *
-     * Two independent guards, because they catch different failures:
-     * the NOOP health-check retires a socket the server closed while idle,
-     * and the retry covers the race where the socket dies between that
-     * NOOP and send(). A second consecutive failure is rethrown so the
-     * caller's catch block still logs and wraps it as before.
-     *
      * @param $message
      *
      * @throws Zend_Exception
@@ -353,7 +345,6 @@ class Transport
         }
 
         if ($username !== '' || $password !== '') {
-            // AUTH PLAIN sends \0user\0pass as a single base64 blob.
             $secrets[] = base64_encode("\0" . $username . "\0" . $password);
         }
 
@@ -361,11 +352,6 @@ class Transport
             $text = str_replace($secret, self::REDACTED, $text);
         }
 
-        // A server may echo a credential we cannot reconstruct from config, so any remaining
-        // run that really looks like base64 is redacted too. "Really looks like" means at
-        // least three of the four character classes: a long run of one class is far more
-        // likely to be a message id, a boundary or a repeated filler than an AUTH payload,
-        // and redacting those would throw away the only diagnostic the admin has.
         return preg_replace_callback(
             '#[A-Za-z0-9+/]{20,}={0,2}#',
             static function (array $match) {
@@ -618,9 +604,6 @@ class Transport
     }
 
     /**
-     * Read a body part collected by either collector: a Symfony part object on 2.4.8+,
-     * a plain array on the versions where symfony/mime is not installed.
-     *
      * @param array|object $part
      *
      * @return string
@@ -699,12 +682,6 @@ class Transport
 
     /**
      * Convert a Laminas\Mime\Message body (Magento < 2.4.8) into plain arrays.
-     *
-     * This runs on installs where symfony/mime is absent -- Magento 2.4.7 carries it as a
-     * dev dependency only, so a merchant's composer install --no-dev has no Symfony\Mime
-     * classes at all. Constructing TextPart/DataPart here would be a fatal on exactly the
-     * versions this branch exists to serve. instanceof against a missing class is safe
-     * (it is false and autoloads nothing); new is not.
      *
      * @param LaminasMimeMessage $mimeMessage
      * @param $textParts
@@ -838,10 +815,12 @@ class Transport
             'Mageplaza_Smtp: failed to send email. '
             . ($errorMessage !== '' ? $errorMessage : $this->redactCredentials($e->getMessage())),
             [
-                'store_id'  => $this->_storeId,
-                'recipient' => $recipient,
-                'subject'   => $subject,
-                'exception' => $e,
+                'store_id'       => $this->_storeId,
+                'recipient'      => $recipient,
+                'subject'        => $subject,
+                'exception_type' => get_class($e),
+                'exception_code' => $e->getCode(),
+                'trace'          => $this->redactCredentials($e->getTraceAsString()),
             ]
         );
     }

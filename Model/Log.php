@@ -500,10 +500,6 @@ class Log extends AbstractModel
     }
 
     /**
-     * Set the optional extra columns (error_message, entity_type/entity_id) on the log row
-     * before it is saved. Only keys actually present in $extra are touched, so a caller that
-     * omits a key leaves the column untouched (NULL for a new row).
-     *
      * @param array $extra
      */
     protected function applyExtraData(array $extra)
@@ -527,9 +523,6 @@ class Log extends AbstractModel
     public function resendEmail()
     {
         $data                  = $this->getData();
-        // A log row whose body was never captured (email_content NULL) must still be
-        // resendable. Passing null here raised a deprecation that developer mode turns
-        // into an exception and production mode turns into a blank error page.
         $data['email_content'] = htmlspecialchars_decode((string) ($data['email_content'] ?? ''));
 
         $dataObject = new DataObject();
