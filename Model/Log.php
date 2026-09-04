@@ -48,7 +48,8 @@ use Mageplaza\Smtp\Model\Source\Status;
 use Mageplaza\Smtp\Model\EmailSentFlagUpdater;
 
 /**
- * Class Log
+ * Persists a record of each outgoing email (recipients, subject, content, status) together
+ * with its attachments, and supports resending a previously logged email.
  * @package Mageplaza\Smtp\Model
  */
 class Log extends AbstractModel
@@ -130,6 +131,8 @@ class Log extends AbstractModel
     }
 
     /**
+     * Initialize the resource model for this log entity.
+     *
      * @return void
      */
     public function _construct()
@@ -140,11 +143,12 @@ class Log extends AbstractModel
     /**
      * Save email logs
      *
-     * @param $message
-     * @param $status
-     * @param null $storeId
+     * @param mixed $message
+     * @param int $status
+     * @param int|null $storeId
      * @param array $extra Optional extra columns to persist alongside the log row
      *                     (currently: error_message).
+     * @param string|null $fullBody
      */
     public function saveLog($message, $status, $storeId = null, array $extra = [], $fullBody = null)
     {
@@ -248,8 +252,8 @@ class Log extends AbstractModel
     /**
      * Save email logs magento 2.4.8 and above
      *
-     * @param $message
-     * @param $status
+     * @param mixed $message
+     * @param int $status
      * @param int $storeId
      * @param array $extra Optional extra columns to persist alongside the log row
      *                     (currently: error_message).
@@ -264,8 +268,9 @@ class Log extends AbstractModel
         if (is_array($from) && count($from)) {
             $firstFrom = reset($from);
             $name      = method_exists($firstFrom, 'getName') ? $firstFrom->getName() : '';
-            $email     = method_exists($firstFrom, 'getAddress') ? $firstFrom->getAddress() : (method_exists($firstFrom,
-                'getEmail') ? $firstFrom->getEmail() : '');
+            $email     = method_exists($firstFrom, 'getAddress')
+                ? $firstFrom->getAddress()
+                : (method_exists($firstFrom, 'getEmail') ? $firstFrom->getEmail() : '');
             $this->setSender(trim($name . ' <' . $email . '>'));
         }
 
@@ -309,6 +314,8 @@ class Log extends AbstractModel
     }
 
     /**
+     * Resolve the attachment factory, falling back to the object manager.
+     *
      * @return LogAttachmentFactory
      */
     protected function getAttachmentFactory()
@@ -321,6 +328,8 @@ class Log extends AbstractModel
     }
 
     /**
+     * Resolve the email-sent flag updater, falling back to the object manager.
+     *
      * @return EmailSentFlagUpdater
      */
     protected function getEmailSentFlagUpdater()
@@ -348,7 +357,10 @@ class Log extends AbstractModel
     }
 
     /**
-     * @param $message
+     * Extract the HTML body and attachments from a legacy Laminas mail message.
+     *
+     * @param mixed $message
+     * @param string|null $fullBody
      *
      * @return array ['html' => string, 'attachments' => array]
      */
@@ -389,6 +401,8 @@ class Log extends AbstractModel
     }
 
     /**
+     * Recursively walk MIME parts, collecting the HTML/plain body and any attachments.
+     *
      * @param array $parts
      * @param array $collected
      * @param int $depth
@@ -438,7 +452,9 @@ class Log extends AbstractModel
     }
 
     /**
-     * @param $part
+     * Normalize a MIME part (Laminas or Magento) into a plain array shape.
+     *
+     * @param mixed $part
      *
      * @return array|null
      */
@@ -457,6 +473,8 @@ class Log extends AbstractModel
     }
 
     /**
+     * Split a multipart MIME part into its child parts.
+     *
      * @param array $part
      *
      * @return array
@@ -494,7 +512,10 @@ class Log extends AbstractModel
                 'type'        => strtolower($value('Content-Type')) ?: 'text/plain',
                 'disposition' => strtolower($disposition),
                 'filename'    => $filename,
-                'content'     => $this->decodePartBody((string) ($entry['body'] ?? ''), $value('Content-Transfer-Encoding')),
+                'content'     => $this->decodePartBody(
+                    (string) ($entry['body'] ?? ''),
+                    $value('Content-Transfer-Encoding')
+                ),
             ];
         }
 
@@ -502,6 +523,8 @@ class Log extends AbstractModel
     }
 
     /**
+     * Decode a MIME part body according to its Content-Transfer-Encoding.
+     *
      * @param string $body
      * @param string $encoding
      *
@@ -523,7 +546,9 @@ class Log extends AbstractModel
     }
 
     /**
-     * @param $part
+     * Read a MIME part's filename, swallowing any error.
+     *
+     * @param mixed $part
      *
      * @return string
      */
@@ -537,7 +562,9 @@ class Log extends AbstractModel
     }
 
     /**
-     * @param $message
+     * Extract attachments from a Symfony mailer message.
+     *
+     * @param mixed $message
      *
      * @return array
      */
@@ -572,6 +599,8 @@ class Log extends AbstractModel
     }
 
     /**
+     * Persist any pending attachments collected during saveLog()/saveLogSymfony().
+     *
      * @return void
      */
     protected function saveAttachments()
@@ -597,6 +626,8 @@ class Log extends AbstractModel
     }
 
     /**
+     * Get the attachments saved for this log entry.
+     *
      * @return array
      */
     public function getAttachments()
@@ -611,6 +642,8 @@ class Log extends AbstractModel
     }
 
     /**
+     * Apply optional extra columns (error_message, entity_type, entity_id) onto this log entry.
+     *
      * @param array $extra
      */
     protected function applyExtraData(array $extra)
@@ -629,6 +662,8 @@ class Log extends AbstractModel
     }
 
     /**
+     * Resend a previously logged email using its stored sender/recipients/content.
+     *
      * @return bool
      */
     public function resendEmail()
@@ -723,7 +758,9 @@ class Log extends AbstractModel
     }
 
     /**
-     * @param $transport
+     * Re-attach this log entry's saved attachments onto the outgoing transport's message.
+     *
+     * @param mixed $transport
      *
      * @return void
      */
@@ -770,7 +807,9 @@ class Log extends AbstractModel
     }
 
     /**
-     * @param $symfonyMessage
+     * Attach saved attachments onto a Symfony mailer message body.
+     *
+     * @param mixed $symfonyMessage
      * @param array $attachments
      *
      * @return void
@@ -803,7 +842,9 @@ class Log extends AbstractModel
     }
 
     /**
-     * @param $emailList
+     * Parse a "Name <email>" or comma-separated email string into a [name => email] array.
+     *
+     * @param mixed $emailList
      *
      * @return array
      */

@@ -72,6 +72,8 @@ class SetTemplateVarsEntity implements ObserverInterface
     }
 
     /**
+     * Capture the sales entity from the dispatched event and store it in the registry.
+     *
      * @param Observer $observer
      */
     public function execute(Observer $observer)

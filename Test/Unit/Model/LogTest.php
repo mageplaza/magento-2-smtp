@@ -46,13 +46,28 @@ use ReflectionMethod;
 #[CoversClass(Log::class)]
 class LogTest extends TestCase
 {
+    /** @var Context&MockObject */
     private Context&MockObject $context;
+
+    /** @var Registry&MockObject */
     private Registry&MockObject $registry;
+
+    /** @var TransportBuilder&MockObject */
     private TransportBuilder&MockObject $transportBuilder;
+
+    /** @var Mail&MockObject */
     private Mail&MockObject $mailResource;
+
+    /** @var Data&MockObject */
     private Data&MockObject $helper;
+
+    /** @var AbstractDb&MockObject */
     private AbstractDb&MockObject $resource;
+
+    /** @var LoggerInterface&MockObject */
     private LoggerInterface&MockObject $logger;
+
+    /** @var EmailSentFlagUpdater&MockObject */
     private EmailSentFlagUpdater&MockObject $emailSentFlagUpdater;
 
     protected function setUp(): void
@@ -135,6 +150,7 @@ class LogTest extends TestCase
     private function createStubAddressIterator(string $name, string $email): object
     {
         return new class ($name, $email) implements Iterator, Countable {
+            /** @var bool */
             private bool $consumed = false;
 
             public function __construct(private readonly string $name, private readonly string $email)

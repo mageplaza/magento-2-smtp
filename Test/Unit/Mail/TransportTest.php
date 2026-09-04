@@ -63,11 +63,22 @@ class TransportTest extends TestCase
 {
     private const STORE_ID = 1;
 
+    /** @var Mail&MockObject */
     private Mail&MockObject $resourceMail;
+
+    /** @var LogFactory&MockObject */
     private LogFactory&MockObject $logFactory;
+
+    /** @var Registry&MockObject */
     private Registry&MockObject $registry;
+
+    /** @var Data&MockObject */
     private Data&MockObject $helper;
+
+    /** @var LoggerInterface&MockObject */
     private LoggerInterface&MockObject $logger;
+
+    /** @var GraphMailer&MockObject */
     private GraphMailer&MockObject $graphMailer;
 
     protected function setUp(): void
@@ -233,6 +244,7 @@ class TransportTest extends TestCase
             $this->logger,
             $this->graphMailer
         ) extends Transport {
+            /** @var bool */
             public bool $converted = false;
 
             protected function convertToSymfonyEmail($laminasMessage)
@@ -266,6 +278,7 @@ class TransportTest extends TestCase
             $this->logger,
             $this->graphMailer
         ) extends Transport {
+            /** @var bool */
             public bool $converted = false;
 
             protected function convertToSymfonyEmail($laminasMessage)
@@ -1200,8 +1213,10 @@ class TransportTest extends TestCase
     // trying to mock the final Symfony\Component\Mime\Header\Headers class when getHeaders() is
     // called on it -- an exception that emailLog()'s catch (Exception $e) swallows silently,
     // so saveLogSymfony() is never reached.
-    private function createBasicMessage(?AbstractPart $body = null, bool $withSymfonyMessage = false): EmailMessage&MockObject
-    {
+    private function createBasicMessage(
+        ?AbstractPart $body = null,
+        bool $withSymfonyMessage = false
+    ): EmailMessage&MockObject {
         $message = $this->createMock(EmailMessage::class);
         $message->method('getTo')->willReturn([]);
         $message->method('getFrom')->willReturn([]);
@@ -1322,7 +1337,9 @@ class TransportTest extends TestCase
     {
         $this->helper = $this->enableLoggingViaGraphHelper();
         $this->resourceMail = $this->enableLoggingResourceMail();
-        $this->graphMailer->method('sendEmailPayload')->willThrowException(new \RuntimeException(str_repeat('y', 3000)));
+        $this->graphMailer->method('sendEmailPayload')->willThrowException(
+            new \RuntimeException(str_repeat('y', 3000))
+        );
 
         $capturedExtra = null;
         $log = $this->createMock(Log::class);
@@ -1352,7 +1369,9 @@ class TransportTest extends TestCase
     {
         $this->helper = $this->enableLoggingViaGraphHelper(true);
         $this->resourceMail = $this->enableLoggingResourceMail();
-        $this->graphMailer->method('sendEmailPayload')->willThrowException(new \RuntimeException(str_repeat('y', 2000)));
+        $this->graphMailer->method('sendEmailPayload')->willThrowException(
+            new \RuntimeException(str_repeat('y', 2000))
+        );
 
         $capturedExtra = null;
         $log = $this->createMock(Log::class);

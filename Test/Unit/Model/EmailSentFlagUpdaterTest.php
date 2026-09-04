@@ -47,14 +47,49 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(EmailSentFlagUpdater::class)]
 class EmailSentFlagUpdaterTest extends TestCase
 {
+    /**
+     * @var OrderRepositoryInterface&MockObject
+     */
     private OrderRepositoryInterface&MockObject $orderRepository;
+
+    /**
+     * @var OrderResource&MockObject
+     */
     private OrderResource&MockObject $orderResource;
+
+    /**
+     * @var InvoiceRepositoryInterface&MockObject
+     */
     private InvoiceRepositoryInterface&MockObject $invoiceRepository;
+
+    /**
+     * @var InvoiceResource&MockObject
+     */
     private InvoiceResource&MockObject $invoiceResource;
+
+    /**
+     * @var ShipmentRepositoryInterface&MockObject
+     */
     private ShipmentRepositoryInterface&MockObject $shipmentRepository;
+
+    /**
+     * @var ShipmentResource&MockObject
+     */
     private ShipmentResource&MockObject $shipmentResource;
+
+    /**
+     * @var CreditmemoRepositoryInterface&MockObject
+     */
     private CreditmemoRepositoryInterface&MockObject $creditmemoRepository;
+
+    /**
+     * @var CreditmemoResource&MockObject
+     */
     private CreditmemoResource&MockObject $creditmemoResource;
+
+    /**
+     * @var EmailSentFlagUpdater
+     */
     private EmailSentFlagUpdater $subject;
 
     protected function setUp(): void

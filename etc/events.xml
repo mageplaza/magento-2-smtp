@@ -20,22 +20,40 @@
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+<config
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd"
+>
     <!--    ================================================ CUSTOMER ============================================-->
     <event name="customer_address_save_commit_after">
-        <observer name="mp_smtp_customer_address_save_commit_after" instance="Mageplaza\Smtp\Observer\Customer\SaveAddress"/>
+        <observer
+            name="mp_smtp_customer_address_save_commit_after"
+            instance="Mageplaza\Smtp\Observer\Customer\SaveAddress"
+        />
     </event>
     <event name="customer_address_save_before">
-        <observer name="mp_smtp_customer_address_model_save_before" instance="Mageplaza\Smtp\Observer\Customer\ModelSaveBefore"/>
+        <observer
+            name="mp_smtp_customer_address_model_save_before"
+            instance="Mageplaza\Smtp\Observer\Customer\ModelSaveBefore"
+        />
     </event>
     <event name="customer_save_before">
-        <observer name="mp_smtp_customer_model_save_before" instance="Mageplaza\Smtp\Observer\Customer\ModelSaveBefore"/>
+        <observer
+            name="mp_smtp_customer_model_save_before"
+            instance="Mageplaza\Smtp\Observer\Customer\ModelSaveBefore"
+        />
     </event>
     <event name="newsletter_subscriber_save_commit_after">
-        <observer name="mp_smtp_customer_model_save_before" instance="Mageplaza\Smtp\Observer\Customer\SubscriberSaveCommitAfter"/>
+        <observer
+            name="mp_smtp_customer_model_save_before"
+            instance="Mageplaza\Smtp\Observer\Customer\SubscriberSaveCommitAfter"
+        />
     </event>
     <event name="customer_save_commit_after">
-        <observer name="mp_smtp_customer_save_commit_after" instance="Mageplaza\Smtp\Observer\Customer\CustomerSaveCommitAfter"/>
+        <observer
+            name="mp_smtp_customer_save_commit_after"
+            instance="Mageplaza\Smtp\Observer\Customer\CustomerSaveCommitAfter"
+        />
     </event>
     <event name="sales_quote_save_commit_after">
         <observer name="mp_smtp_quote_save_after" instance="Mageplaza\Smtp\Observer\Quote\SyncQuote"/>
@@ -60,15 +78,27 @@
     </event>
     <!--    ================================================ EMAIL LOG ENTITY (SMTP-4) ===========================-->
     <event name="email_order_set_template_vars_before">
-        <observer name="mp_smtp_email_order_set_template_vars_before" instance="Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity"/>
+        <observer
+            name="mp_smtp_email_order_set_template_vars_before"
+            instance="Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity"
+        />
     </event>
     <event name="email_invoice_set_template_vars_before">
-        <observer name="mp_smtp_email_invoice_set_template_vars_before" instance="Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity"/>
+        <observer
+            name="mp_smtp_email_invoice_set_template_vars_before"
+            instance="Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity"
+        />
     </event>
     <event name="email_shipment_set_template_vars_before">
-        <observer name="mp_smtp_email_shipment_set_template_vars_before" instance="Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity"/>
+        <observer
+            name="mp_smtp_email_shipment_set_template_vars_before"
+            instance="Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity"
+        />
     </event>
     <event name="email_creditmemo_set_template_vars_before">
-        <observer name="mp_smtp_email_creditmemo_set_template_vars_before" instance="Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity"/>
+        <observer
+            name="mp_smtp_email_creditmemo_set_template_vars_before"
+            instance="Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity"
+        />
     </event>
 </config>

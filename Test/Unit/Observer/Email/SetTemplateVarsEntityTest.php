@@ -44,8 +44,19 @@ use Psr\Log\LoggerInterface;
 #[CoversClass(SetTemplateVarsEntity::class)]
 class SetTemplateVarsEntityTest extends TestCase
 {
+    /**
+     * @var Registry&MockObject
+     */
     private Registry&MockObject $registry;
+
+    /**
+     * @var LoggerInterface&MockObject
+     */
     private LoggerInterface&MockObject $logger;
+
+    /**
+     * @var SetTemplateVarsEntity
+     */
     private SetTemplateVarsEntity $subject;
 
     protected function setUp(): void

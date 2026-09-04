@@ -58,6 +58,9 @@ use Zend_Exception;
 
 /**
  * Class Transport
+ *
+ * Overrides Magento's mail transport to route outgoing messages through the configured
+ * SMTP connection or the Microsoft Graph API, with retry, blacklist and logging support.
  * @package Mageplaza\Smtp\Mail
  */
 class Transport
@@ -223,7 +226,9 @@ class Transport
     }
 
     /**
-     * @param $message
+     * Send the message, resetting and retrying once through a fresh transport if the cached connection is dead.
+     *
+     * @param mixed $message
      *
      * @throws Zend_Exception
      * @throws \Throwable
@@ -247,7 +252,9 @@ class Transport
     }
 
     /**
-     * @param $transport
+     * Check whether a cached SMTP transport's connection is still usable, by probing it with a NOOP command.
+     *
+     * @param mixed $transport
      *
      * @return bool
      */
@@ -278,6 +285,8 @@ class Transport
     }
 
     /**
+     * Build a redacted, length-capped description of an exception and its causal chain, for storage on the log row.
+     *
      * @param \Throwable $e
      *
      * @return string
@@ -343,6 +352,8 @@ class Transport
     }
 
     /**
+     * Replace the configured SMTP username/password and their base64-encoded forms wherever they appear in the text.
+     *
      * @param string $text
      *
      * @return string
@@ -380,7 +391,9 @@ class Transport
     }
 
     /**
-     * @param $laminasMessage
+     * Convert a Laminas mail message into an equivalent Symfony Email, preserving headers and content.
+     *
+     * @param mixed $laminasMessage
      *
      * @return Email
      */
@@ -508,7 +521,7 @@ class Transport
      * egulias/email-validator (required by Address) is not installed. Mirrors the exact
      * array shape GraphMailer::buildGraphMessage() builds from a Symfony Email.
      *
-     * @param $message
+     * @param mixed $message
      *
      * @return array
      */
@@ -593,6 +606,8 @@ class Transport
     }
 
     /**
+     * Convert a list of Magento mail addresses into Microsoft Graph API recipient entries.
+     *
      * @param array $addresses Magento\Framework\Mail\Address[]
      *
      * @return array
@@ -616,6 +631,8 @@ class Transport
     }
 
     /**
+     * Read the raw content of a mime part, whether it is a plain array shape or an object.
+     *
      * @param array|object $part
      *
      * @return string
@@ -626,6 +643,8 @@ class Transport
     }
 
     /**
+     * Read the filename of a mime part, whether it is a plain array shape or an object.
+     *
      * @param array|object $part
      *
      * @return string|null
@@ -640,6 +659,8 @@ class Transport
     }
 
     /**
+     * Read the mime type of a mime part, whether it is a plain array shape or an object.
+     *
      * @param array|object $part
      *
      * @return string
@@ -654,9 +675,12 @@ class Transport
     }
 
     /**
-     * @param $part
-     * @param $textParts
-     * @param $attachments
+     * Recursively walk a Symfony mime part tree, sorting inline html/plain text parts into
+     * $textParts and everything else into $attachments.
+     *
+     * @param AbstractPart $part
+     * @param array $textParts
+     * @param array $attachments
      */
     protected function collectBodyParts($part, &$textParts, &$attachments)
     {
@@ -696,8 +720,8 @@ class Transport
      * Convert a Laminas\Mime\Message body (Magento < 2.4.8) into plain arrays.
      *
      * @param LaminasMimeMessage $mimeMessage
-     * @param $textParts
-     * @param $attachments
+     * @param array $textParts
+     * @param array $attachments
      */
     protected function collectLaminasMimeParts(LaminasMimeMessage $mimeMessage, &$textParts, &$attachments)
     {
@@ -762,7 +786,9 @@ class Transport
     }
 
     /**
-     * @param $message
+     * Resolve a Magento mail message into the Symfony RawMessage the Symfony mailer expects.
+     *
+     * @param mixed $message
      *
      * @return RawMessage
      */
@@ -780,6 +806,8 @@ class Transport
     }
 
     /**
+     * Return the comma-separated list of "To" recipient email addresses on the message.
+     *
      * @param EmailMessage $message
      *
      * @return string
@@ -803,7 +831,7 @@ class Transport
      * problem here can never mask the original exception.
      *
      * @param \Throwable $e
-     * @param $message
+     * @param EmailMessage $message
      * @param string $errorMessage
      */
     protected function logSendFailureReason(\Throwable $e, $message, $errorMessage = '')
@@ -837,6 +865,8 @@ class Transport
     }
 
     /**
+     * Check whether the message's recipient matches one of the configured blacklist patterns.
+     *
      * @param EmailMessage $message
      *
      * @return bool
@@ -871,7 +901,7 @@ class Transport
     /**
      * Save Email Sent
      *
-     * @param $message
+     * @param mixed $message
      * @param bool $status
      * @param string|null $errorMessage
      * @param mixed|null $fullBody
@@ -937,6 +967,8 @@ class Transport
     }
 
     /**
+     * Append the log id to the quote's abandoned-cart log id list, if a quote is registered.
+     *
      * @param Log $log
      */
     protected function saveLogIdForAbandonedCart($log)

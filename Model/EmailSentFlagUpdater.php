@@ -155,6 +155,8 @@ class EmailSentFlagUpdater
     }
 
     /**
+     * Map the given entity type to its repository and resource pair, or [null, null] if unsupported.
+     *
      * @param string $entityType
      *
      * @return array{0: ?object, 1: ?object}
