@@ -29,6 +29,7 @@ use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
 use Laminas\Mime\Message as MimeMessage;
+use Laminas\Mime\Decode;
 use Laminas\Mime\Mime;
 use Laminas\Mime\Part as MimePart;
 use Magento\Framework\App\ObjectManager;
@@ -52,6 +53,8 @@ use Mageplaza\Smtp\Model\EmailSentFlagUpdater;
  */
 class Log extends AbstractModel
 {
+    const MIME_MAX_DEPTH = 5;
+
     /**
      * @var TransportBuilder
      */
@@ -376,39 +379,147 @@ class Log extends AbstractModel
             }
         }
 
-        $plain = '';
-        foreach ($body->getParts() as $part) {
-            if (!$part instanceof MimePart && !$part instanceof MagentoMimePart) {
+        $collected = ['html' => '', 'plain' => '', 'attachments' => []];
+        $this->collectMimeParts($body->getParts(), $collected);
+
+        return [
+            'html'        => $collected['html'] !== '' ? $collected['html'] : $collected['plain'],
+            'attachments' => $collected['attachments'],
+        ];
+    }
+
+    /**
+     * @param array $parts
+     * @param array $collected
+     * @param int $depth
+     *
+     * @return void
+     */
+    protected function collectMimeParts($parts, array &$collected, $depth = 0)
+    {
+        if ($depth > self::MIME_MAX_DEPTH) {
+            return;
+        }
+
+        foreach ($parts as $part) {
+            $normalized = is_array($part) ? $part : $this->normalizeMimePart($part);
+            if ($normalized === null) {
                 continue;
             }
 
-            $type        = strtolower((string) $part->getType());
-            $disposition = strtolower((string) $part->getDisposition());
-            $filename    = $this->readPartFileName($part);
+            $type        = $normalized['type'];
+            $isAttached  = strpos($normalized['disposition'], 'attachment') !== false
+                || $normalized['filename'] !== '';
 
-            $isAttached = strpos($disposition, 'attachment') !== false || $filename !== '';
+            if (!$isAttached && strpos($type, 'multipart/') === 0) {
+                $this->collectMimeParts($this->splitMultipart($normalized), $collected, $depth + 1);
+                continue;
+            }
 
             if (!$isAttached && strpos($type, 'text/html') === 0) {
-                $html = $part->getRawContent();
+                $collected['html'] = $normalized['content'];
                 continue;
             }
 
             if (!$isAttached && strpos($type, 'text/plain') === 0) {
-                if ($plain === '') {
-                    $plain = $part->getRawContent();
+                if ($collected['plain'] === '') {
+                    $collected['plain'] = $normalized['content'];
                 }
                 continue;
             }
 
-            $attachments[] = [
-                'filename'    => $filename ?: 'attachment',
+            $collected['attachments'][] = [
+                'filename'    => $normalized['filename'] ?: 'attachment',
                 'mime_type'   => $type ?: 'application/octet-stream',
-                'disposition' => $disposition ?: 'attachment',
-                'content'     => $part->getRawContent(),
+                'disposition' => $normalized['disposition'] ?: 'attachment',
+                'content'     => $normalized['content'],
+            ];
+        }
+    }
+
+    /**
+     * @param $part
+     *
+     * @return array|null
+     */
+    protected function normalizeMimePart($part)
+    {
+        if (!$part instanceof MimePart && !$part instanceof MagentoMimePart) {
+            return null;
+        }
+
+        return [
+            'type'        => strtolower((string) $part->getType()),
+            'disposition' => strtolower((string) $part->getDisposition()),
+            'filename'    => $this->readPartFileName($part),
+            'content'     => $part->getRawContent(),
+        ];
+    }
+
+    /**
+     * @param array $part
+     *
+     * @return array
+     */
+    protected function splitMultipart(array $part)
+    {
+        if (!preg_match('#boundary\s*=\s*"?([^";\s]+)"?#i', $part['type'], $matches)) {
+            return [];
+        }
+
+        try {
+            $struct = Decode::splitMessageStruct($part['content'], $matches[1]);
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $children = [];
+        foreach ((array) $struct as $entry) {
+            $headers = $entry['header'] ?? null;
+            $value   = static function ($name) use ($headers) {
+                try {
+                    return ($headers && $headers->has($name)) ? (string) $headers->get($name)->getFieldValue() : '';
+                } catch (\Throwable $e) {
+                    return '';
+                }
+            };
+
+            $disposition = $value('Content-Disposition');
+            $filename    = '';
+            if (preg_match('#filename\s*=\s*"?([^";]+)"?#i', $disposition, $nameMatch)) {
+                $filename = trim($nameMatch[1]);
+            }
+
+            $children[] = [
+                'type'        => strtolower($value('Content-Type')) ?: 'text/plain',
+                'disposition' => strtolower($disposition),
+                'filename'    => $filename,
+                'content'     => $this->decodePartBody((string) ($entry['body'] ?? ''), $value('Content-Transfer-Encoding')),
             ];
         }
 
-        return ['html' => $html !== '' ? $html : $plain, 'attachments' => $attachments];
+        return $children;
+    }
+
+    /**
+     * @param string $body
+     * @param string $encoding
+     *
+     * @return string
+     */
+    protected function decodePartBody($body, $encoding)
+    {
+        $encoding = strtolower(trim($encoding));
+
+        if ($encoding === 'base64') {
+            return (string) base64_decode($body, true);
+        }
+
+        if ($encoding === 'quoted-printable') {
+            return quoted_printable_decode($body);
+        }
+
+        return $body;
     }
 
     /**
