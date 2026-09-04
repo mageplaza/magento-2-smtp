@@ -214,7 +214,10 @@ class Transport
                 $errorMessage = $this->describeSendFailure($e);
                 $this->logSendFailureReason($e, $message, $errorMessage);
                 $this->emailLog($message, false, $errorMessage, $loggedBody);
-                throw new MailException(new Phrase($e->getMessage()), $e instanceof Exception ? $e : null);
+                throw new MailException(
+                    new Phrase($this->redactCredentials($e->getMessage())),
+                    $e instanceof Exception ? $e : null
+                );
             }
         }
     }
@@ -271,7 +274,8 @@ class Transport
             $connection->noop();
         } catch (\Throwable $e) {
             $this->logger->warning(
-                'Mageplaza_Smtp: SMTP connection is no longer usable, reconnecting. ' . $e->getMessage(),
+                'Mageplaza_Smtp: SMTP connection is no longer usable, reconnecting. '
+                . $this->redactCredentials($e->getMessage()),
                 ['store_id' => $this->_storeId]
             );
 
@@ -433,19 +437,23 @@ class Transport
 
         if ($textParts || $attachments) {
             foreach ($textParts as $subtype => $part) {
-                try {
-                    $contentType = $part->getPreparedHeaders()->get('Content-Type');
-                    $charset     = ($contentType instanceof ParameterizedHeader
-                        ? $contentType->getParameter('charset')
-                        : null) ?: 'utf-8';
-                } catch (\Throwable $e) {
-                    $charset = 'utf-8';
+                if (is_array($part)) {
+                    $charset = $part['charset'] ?: 'utf-8';
+                } else {
+                    try {
+                        $contentType = $part->getPreparedHeaders()->get('Content-Type');
+                        $charset     = ($contentType instanceof ParameterizedHeader
+                            ? $contentType->getParameter('charset')
+                            : null) ?: 'utf-8';
+                    } catch (\Throwable $e) {
+                        $charset = 'utf-8';
+                    }
                 }
 
                 if ($subtype === 'html') {
-                    $email->html($part->getBody(), $charset);
+                    $email->html($this->readPartBody($part), $charset);
                 } else {
-                    $email->text($part->getBody(), $charset);
+                    $email->text($this->readPartBody($part), $charset);
                 }
             }
 
@@ -453,14 +461,10 @@ class Transport
                 if ($attachment instanceof DataPart) {
                     $dataPart = $attachment;
                 } else {
-                    $filename = method_exists($attachment, 'getFilename')
-                        ? $attachment->getFilename()
-                        : null;
-
                     $dataPart = new DataPart(
-                        $attachment->getBody(),
-                        $filename,
-                        $attachment->getMediaType() . '/' . $attachment->getMediaSubtype()
+                        $this->readPartBody($attachment),
+                        $this->readPartFilename($attachment),
+                        $this->readPartMimeType($attachment)
                     );
                 }
                 $email->addPart(clone $dataPart);
@@ -540,17 +544,17 @@ class Transport
         } elseif ($body instanceof LaminasMimeMessage) {
             $this->collectLaminasMimeParts($body, $textParts, $attachments);
         } elseif (is_string($body) && $body !== '') {
-            $textParts['plain'] = new TextPart($body);
+            $textParts['plain'] = ['content' => $body, 'charset' => 'utf-8'];
         }
 
         $htmlContent = null;
         $textContent = null;
         if ($textParts || $attachments) {
             if (isset($textParts['html'])) {
-                $htmlContent = $textParts['html']->getBody();
+                $htmlContent = $this->readPartBody($textParts['html']);
             }
             if (isset($textParts['plain'])) {
-                $textContent = $textParts['plain']->getBody();
+                $textContent = $this->readPartBody($textParts['plain']);
             }
         } elseif (!$body instanceof AbstractPart) {
             $textContent = 'No readable content.';
@@ -565,12 +569,11 @@ class Transport
         }
 
         foreach ($attachments as $attachment) {
-            $filename = $attachment instanceof DataPart ? $attachment->getFilename() : null;
             $payload['message']['attachments'][] = [
                 '@odata.type'  => '#microsoft.graph.fileAttachment',
-                'name'         => $filename ?: 'attachment',
-                'contentType'  => $attachment->getMediaType() . '/' . $attachment->getMediaSubtype(),
-                'contentBytes' => base64_encode($attachment->getBody()),
+                'name'         => $this->readPartFilename($attachment) ?: 'attachment',
+                'contentType'  => $this->readPartMimeType($attachment),
+                'contentBytes' => base64_encode($this->readPartBody($attachment)),
             ];
         }
 
@@ -615,6 +618,47 @@ class Transport
     }
 
     /**
+     * Read a body part collected by either collector: a Symfony part object on 2.4.8+,
+     * a plain array on the versions where symfony/mime is not installed.
+     *
+     * @param array|object $part
+     *
+     * @return string
+     */
+    protected function readPartBody($part)
+    {
+        return is_array($part) ? (string) $part['content'] : (string) $part->getBody();
+    }
+
+    /**
+     * @param array|object $part
+     *
+     * @return string|null
+     */
+    protected function readPartFilename($part)
+    {
+        if (is_array($part)) {
+            return $part['filename'] ?? null;
+        }
+
+        return method_exists($part, 'getFilename') ? $part->getFilename() : null;
+    }
+
+    /**
+     * @param array|object $part
+     *
+     * @return string
+     */
+    protected function readPartMimeType($part)
+    {
+        if (is_array($part)) {
+            return $part['mime'] ?? 'application/octet-stream';
+        }
+
+        return $part->getMediaType() . '/' . $part->getMediaSubtype();
+    }
+
+    /**
      * @param $part
      * @param $textParts
      * @param $attachments
@@ -654,10 +698,13 @@ class Transport
     }
 
     /**
-     * Convert a Laminas\Mime\Message body (Magento < 2.4.8) into the same
-     * $textParts/$attachments shape collectBodyParts() builds, so the
-     * existing Email-assembly loop in convertToSymfonyEmail() can stay
-     * unchanged.
+     * Convert a Laminas\Mime\Message body (Magento < 2.4.8) into plain arrays.
+     *
+     * This runs on installs where symfony/mime is absent -- Magento 2.4.7 carries it as a
+     * dev dependency only, so a merchant's composer install --no-dev has no Symfony\Mime
+     * classes at all. Constructing TextPart/DataPart here would be a fatal on exactly the
+     * versions this branch exists to serve. instanceof against a missing class is safe
+     * (it is false and autoloads nothing); new is not.
      *
      * @param LaminasMimeMessage $mimeMessage
      * @param $textParts
@@ -683,21 +730,20 @@ class Transport
             if ($isInlineText) {
                 $subtype = $type === 'text/html' ? 'html' : 'plain';
                 if (!isset($textParts[$subtype])) {
-                    $textParts[$subtype] = new TextPart(
-                        $part->getRawContent(),
-                        $part->getCharset() ?: 'utf-8',
-                        $subtype
-                    );
+                    $textParts[$subtype] = [
+                        'content' => $part->getRawContent(),
+                        'charset' => $part->getCharset() ?: 'utf-8',
+                    ];
                 }
 
                 continue;
             }
 
-            $attachments[] = new DataPart(
-                $part->getRawContent(),
-                $part->getFileName(),
-                $type ?: 'application/octet-stream'
-            );
+            $attachments[] = [
+                'content'  => $part->getRawContent(),
+                'filename' => $part->getFileName(),
+                'mime'     => $type ?: 'application/octet-stream',
+            ];
         }
     }
 
@@ -790,7 +836,7 @@ class Transport
 
         $this->logger->error(
             'Mageplaza_Smtp: failed to send email. '
-            . ($errorMessage !== '' ? $errorMessage : $e->getMessage()),
+            . ($errorMessage !== '' ? $errorMessage : $this->redactCredentials($e->getMessage())),
             [
                 'store_id'  => $this->_storeId,
                 'recipient' => $recipient,
