@@ -357,8 +357,24 @@ class Transport
             $text = str_replace($secret, self::REDACTED, $text);
         }
 
-        // Any remaining long base64-looking run is treated as a credential echo.
-        return preg_replace('#[A-Za-z0-9+/]{20,}={0,2}#', self::REDACTED, $text);
+        // A server may echo a credential we cannot reconstruct from config, so any remaining
+        // run that really looks like base64 is redacted too. "Really looks like" means at
+        // least three of the four character classes: a long run of one class is far more
+        // likely to be a message id, a boundary or a repeated filler than an AUTH payload,
+        // and redacting those would throw away the only diagnostic the admin has.
+        return preg_replace_callback(
+            '#[A-Za-z0-9+/]{20,}={0,2}#',
+            static function (array $match) {
+                $token   = $match[0];
+                $classes = (int) (bool) preg_match('#[a-z]#', $token)
+                    + (int) (bool) preg_match('#[A-Z]#', $token)
+                    + (int) (bool) preg_match('#[0-9]#', $token)
+                    + (int) (bool) preg_match('#[+/=]#', $token);
+
+                return $classes >= 3 ? self::REDACTED : $token;
+            },
+            $text
+        );
     }
 
     /**
