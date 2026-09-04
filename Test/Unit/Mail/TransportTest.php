@@ -42,6 +42,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use ReflectionMethod;
+use ReflectionProperty;
 use Symfony\Component\Mailer\Transport\TransportInterface as SymfonyTransportInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Mime\Header\Headers;
@@ -474,12 +476,14 @@ class TransportTest extends TestCase
         $transport->method('send')->willThrowException(new \RuntimeException('Connection refused by host'));
         $this->resourceMail->method('getTransport')->willReturn($transport);
 
+        // describeSendFailure() prefixes the exception class, and the store/recipient/subject
+        // moved out of the message string into the logger's structured context array.
         $this->logger->expects($this->once())->method('error')->with(
-            $this->callback(static function (string $logged): bool {
-                return str_contains($logged, 'Connection refused by host')
-                    && str_contains($logged, (string) self::STORE_ID)
-                    && str_contains($logged, 'victim@example.com')
-                    && str_contains($logged, 'Test Subject');
+            'Mageplaza_Smtp: failed to send email. RuntimeException: Connection refused by host',
+            $this->callback(static function (array $context): bool {
+                return (string) $context['store_id'] === (string) self::STORE_ID
+                    && $context['recipient'] === 'victim@example.com'
+                    && $context['subject'] === 'Test Subject';
             })
         );
 
@@ -497,7 +501,7 @@ class TransportTest extends TestCase
         }
     }
 
-    public function testAroundSendMessageLoggedReasonIsTruncatedTo1000Characters(): void
+    public function testAroundSendMessageLoggedReasonIsTruncatedTo2000Characters(): void
     {
         if (!class_exists(\Laminas\Mail\Message::class)) {
             $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
@@ -509,12 +513,12 @@ class TransportTest extends TestCase
         $this->resourceMail->method('processMessage')->willReturn($laminasMessage);
 
         $transport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
-        $transport->method('send')->willThrowException(new \RuntimeException(str_repeat('x', 2000)));
+        $transport->method('send')->willThrowException(new \RuntimeException(str_repeat('x', 3000)));
         $this->resourceMail->method('getTransport')->willReturn($transport);
 
         $this->logger->expects($this->once())->method('error')->with(
             $this->callback(static function (string $logged): bool {
-                return substr_count($logged, 'x') <= 1000;
+                return substr_count($logged, 'x') <= 2000;
             })
         );
 
@@ -544,6 +548,84 @@ class TransportTest extends TestCase
         $helper->method('isTestEmail')->willReturn(true);
 
         return $helper;
+    }
+
+    private function invokeRedactCredentials(string $text): string
+    {
+        $sut = $this->createSut();
+
+        $storeIdProperty = new ReflectionProperty(Transport::class, '_storeId');
+        $storeIdProperty->setAccessible(true);
+        $storeIdProperty->setValue($sut, self::STORE_ID);
+
+        $method = new ReflectionMethod(Transport::class, 'redactCredentials');
+        $method->setAccessible(true);
+
+        return $method->invoke($sut, $text);
+    }
+
+    public function testRedactCredentialsMasksConfiguredUsernameAndPasswordRaw(): void
+    {
+        $this->helper->method('getSmtpConfig')->with('username', self::STORE_ID)->willReturn('smtp-user');
+        $this->helper->method('getPassword')->with(self::STORE_ID)->willReturn('sup3rSecret!');
+
+        $result = $this->invokeRedactCredentials('535 Authentication failed for smtp-user with sup3rSecret!');
+
+        $this->assertSame('535 Authentication failed for *** with ***', $result);
+    }
+
+    public function testRedactCredentialsMasksConfiguredUsernameAndPasswordAsBase64(): void
+    {
+        $this->helper->method('getSmtpConfig')->with('username', self::STORE_ID)->willReturn('smtp-user');
+        $this->helper->method('getPassword')->with(self::STORE_ID)->willReturn('sup3rSecret!');
+
+        $text = '535 Auth rejected: ' . base64_encode('smtp-user') . ' / ' . base64_encode('sup3rSecret!');
+
+        $this->assertSame('535 Auth rejected: *** / ***', $this->invokeRedactCredentials($text));
+    }
+
+    public function testRedactCredentialsMasksAuthPlainBase64Blob(): void
+    {
+        $this->helper->method('getSmtpConfig')->with('username', self::STORE_ID)->willReturn('smtp-user');
+        $this->helper->method('getPassword')->with(self::STORE_ID)->willReturn('sup3rSecret!');
+
+        // AUTH PLAIN sends "\0user\0pass" as a single base64 blob.
+        $authPlain = base64_encode("\0smtp-user\0sup3rSecret!");
+
+        $this->assertSame('AUTH PLAIN ***', $this->invokeRedactCredentials('AUTH PLAIN ' . $authPlain));
+    }
+
+    public function testRedactCredentialsMasksUnknownTokenThatLooksLikeBase64(): void
+    {
+        $this->helper->method('getSmtpConfig')->with('username', self::STORE_ID)->willReturn('');
+        $this->helper->method('getPassword')->with(self::STORE_ID)->willReturn('');
+
+        // Not reconstructible from config, but mixes upper/lower/digit/symbol classes, so the
+        // generic base64-shaped fallback must still catch it.
+        $token = 'aGVsbG8gd29ybGQ+MTIzNA==';
+
+        $this->assertSame(
+            '535 Authentication failed: ***',
+            $this->invokeRedactCredentials('535 Authentication failed: ' . $token)
+        );
+    }
+
+    public function testRedactCredentialsKeepsDiagnosticTextThatIsNotACredential(): void
+    {
+        $this->helper->method('getSmtpConfig')->with('username', self::STORE_ID)->willReturn('smtp-user');
+        $this->helper->method('getPassword')->with(self::STORE_ID)->willReturn('sup3rSecret!');
+
+        // A long run of a single character class (repeated filler, a numeric message id, or a
+        // lowercase MIME boundary) must survive -- redacting it would throw away the only
+        // diagnostic the admin has, without actually being a credential.
+        $repeatedFiller  = str_repeat('a', 40);
+        $numericMessageId = str_repeat('1', 30);
+        $lowercaseBoundary = 'boundary' . str_repeat('b', 24);
+        $hostname          = 'smtp.mailtrap.io';
+
+        $text = "conn to $hostname failed, id=$numericMessageId boundary=$lowercaseBoundary filler=$repeatedFiller";
+
+        $this->assertSame($text, $this->invokeRedactCredentials($text));
     }
 
     public function testAroundSendMessageRetriesOnceWhenLegacyTransportSendThrowsRuntimeExceptionThenSucceeds(): void
@@ -615,6 +697,46 @@ class TransportTest extends TestCase
         } finally {
             $this->assertSame(2, $sendCallCount);
         }
+    }
+
+    public function testAroundSendMessageResetsTransportWhenConnectionIsNoLongerAlive(): void
+    {
+        if (!class_exists(\Laminas\Mail\Message::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
+        $this->helper = $this->legacyHelper();
+
+        $laminasMessage = new \Laminas\Mail\Message();
+        $this->resourceMail->method('processMessage')->willReturn($laminasMessage);
+
+        $connection = $this->createMock(\Laminas\Mail\Protocol\Smtp::class);
+        $connection->method('hasSession')->willReturn(true);
+        $connection->method('noop')->willThrowException(new \RuntimeException('socket closed by peer'));
+
+        $staleTransport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
+        $staleTransport->method('getConnection')->willReturn($connection);
+        // isConnectionAlive() must retire this socket without ever calling send() on it.
+        $staleTransport->expects($this->never())->method('send');
+
+        $freshTransport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
+        $freshTransport->expects($this->once())->method('send');
+
+        $getTransportCallCount = 0;
+        $this->resourceMail->method('getTransport')->willReturnCallback(
+            function () use (&$getTransportCallCount, $staleTransport, $freshTransport) {
+                $getTransportCallCount++;
+
+                return $getTransportCallCount === 1 ? $staleTransport : $freshTransport;
+            }
+        );
+        $this->resourceMail->expects($this->once())->method('resetTransport')->willReturnSelf();
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createMock(EmailMessage::class)),
+            $this->createProceed($called)
+        );
     }
 
     // Conversion (Graph + log paths) must survive every MIME shape.
@@ -1162,7 +1284,7 @@ class TransportTest extends TestCase
             // Expected.
         }
 
-        $this->assertSame('smtp exploded', $capturedExtra['error_message']);
+        $this->assertSame('RuntimeException: smtp exploded', $capturedExtra['error_message']);
     }
 
     public function testEmailLogPassesErrorMessageWhenSendFailsSymfonyBranch(): void
@@ -1196,11 +1318,11 @@ class TransportTest extends TestCase
         $this->assertSame('smtp exploded', $capturedExtra['error_message']);
     }
 
-    public function testEmailLogTruncatesErrorMessageTo1000Characters(): void
+    public function testEmailLogTruncatesErrorMessageTo2000Characters(): void
     {
         $this->helper = $this->enableLoggingViaGraphHelper();
         $this->resourceMail = $this->enableLoggingResourceMail();
-        $this->graphMailer->method('sendEmailPayload')->willThrowException(new \RuntimeException(str_repeat('y', 2000)));
+        $this->graphMailer->method('sendEmailPayload')->willThrowException(new \RuntimeException(str_repeat('y', 3000)));
 
         $capturedExtra = null;
         $log = $this->createMock(Log::class);
@@ -1223,7 +1345,7 @@ class TransportTest extends TestCase
             // Expected.
         }
 
-        $this->assertSame(1000, strlen($capturedExtra['error_message']));
+        $this->assertSame(2000, strlen($capturedExtra['error_message']));
     }
 
     public function testEmailLogTruncatesErrorMessageTo1000CharactersSymfonyBranch(): void

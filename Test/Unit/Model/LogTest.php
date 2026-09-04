@@ -83,8 +83,12 @@ class LogTest extends TestCase
             $this->transportBuilder,
             $this->mailResource,
             $this->helper,
-            $this->emailSentFlagUpdater,
-            $this->resource
+            $this->resource,
+            null,
+            [],
+            null,
+            null,
+            $this->emailSentFlagUpdater
         );
 
         if ($data !== []) {
@@ -889,6 +893,24 @@ class LogTest extends TestCase
             'sender'        => 'John <john@example.com>',
             'recipient'     => 'Jane <jane@example.com>',
             'email_content' => htmlspecialchars('<p>Hi</p>'),
+        ]);
+
+        $this->assertTrue($log->resendEmail());
+    }
+
+    public function testResendEmailDoesNotThrowWhenEmailContentIsNull(): void
+    {
+        // A log row whose body was never captured (email_content NULL) must still be
+        // resendable: htmlspecialchars_decode(null) raises a deprecation that developer mode
+        // turns into an exception and production mode turns into a blank error page.
+        $this->helper->method('versionCompare')->willReturn(true);
+        $this->stubTransportBuilderChain();
+        $this->transportBuilder->method('getTransport')->willReturn($this->createMock(TransportInterface::class));
+
+        $log = $this->createLog([
+            'sender'        => 'John <john@example.com>',
+            'recipient'     => 'Jane <jane@example.com>',
+            'email_content' => null,
         ]);
 
         $this->assertTrue($log->resendEmail());
