@@ -185,6 +185,25 @@ class MailTest extends TestCase
         $this->assertSame($cachedTransport, $mail->getTransport(self::STORE_ID));
     }
 
+    public function testResetTransportForcesNewTransportOnNextGetTransport(): void
+    {
+        if (!class_exists(\Laminas\Mail\Transport\Smtp::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
+        $helper = $this->createMock(Data::class);
+        $helper->method('getSmtpConfig')->willReturn(['host' => 'smtp.example.com', 'port' => 25]);
+        $helper->method('versionCompare')->willReturn(false);
+        $mail = new Mail($helper);
+        $cachedTransport = new \stdClass();
+        $this->setProtectedProperty($mail, '_transport', $cachedTransport);
+
+        $mail->resetTransport();
+
+        $this->assertNull($this->getProtectedProperty($mail, '_transport'));
+        $this->assertNotSame($cachedTransport, $mail->getTransport(self::STORE_ID));
+    }
+
     // processMessage()
 
     public function testProcessMessageFetchesReturnPathConfigOnFirstCall(): void

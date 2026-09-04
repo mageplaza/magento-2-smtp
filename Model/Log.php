@@ -44,6 +44,7 @@ use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Mail\Rse\Mail;
 use Mageplaza\Smtp\Model\ResourceModel\LogAttachment\CollectionFactory as AttachmentCollectionFactory;
 use Mageplaza\Smtp\Model\Source\Status;
+use Mageplaza\Smtp\Model\EmailSentFlagUpdater;
 
 /**
  * Class Log
@@ -51,25 +52,6 @@ use Mageplaza\Smtp\Model\Source\Status;
  */
 class Log extends AbstractModel
 {
-    const ENTITY_RESOURCES = [
-        'order'      => [
-            'model'    => \Magento\Sales\Model\Order::class,
-            'resource' => \Magento\Sales\Model\ResourceModel\Order::class,
-        ],
-        'invoice'    => [
-            'model'    => \Magento\Sales\Model\Order\Invoice::class,
-            'resource' => \Magento\Sales\Model\ResourceModel\Order\Invoice::class,
-        ],
-        'shipment'   => [
-            'model'    => \Magento\Sales\Model\Order\Shipment::class,
-            'resource' => \Magento\Sales\Model\ResourceModel\Order\Shipment::class,
-        ],
-        'creditmemo' => [
-            'model'    => \Magento\Sales\Model\Order\Creditmemo::class,
-            'resource' => \Magento\Sales\Model\ResourceModel\Order\Creditmemo::class,
-        ],
-    ];
-
     /**
      * @var TransportBuilder
      */
@@ -101,6 +83,11 @@ class Log extends AbstractModel
     protected $pendingAttachments = [];
 
     /**
+     * @var EmailSentFlagUpdater
+     */
+    protected $emailSentFlagUpdater;
+
+    /**
      * Log constructor.
      *
      * @param Context $context
@@ -108,6 +95,7 @@ class Log extends AbstractModel
      * @param TransportBuilder $transportBuilder
      * @param Mail $mailResource
      * @param Data $helper
+     * @param EmailSentFlagUpdater $emailSentFlagUpdater
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
      * @param array $data
@@ -120,6 +108,7 @@ class Log extends AbstractModel
         TransportBuilder $transportBuilder,
         Mail $mailResource,
         Data $helper,
+        EmailSentFlagUpdater $emailSentFlagUpdater,
         ?AbstractResource $resource = null,
         ?AbstractDb $resourceCollection = null,
         array $data = [],
@@ -128,9 +117,10 @@ class Log extends AbstractModel
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
 
-        $this->_transportBuilder = $transportBuilder;
-        $this->mailResource      = $mailResource;
-        $this->helper            = $helper;
+        $this->_transportBuilder    = $transportBuilder;
+        $this->mailResource         = $mailResource;
+        $this->helper               = $helper;
+        $this->emailSentFlagUpdater = $emailSentFlagUpdater;
 
         $this->attachmentFactory           = $attachmentFactory;
         $this->attachmentCollectionFactory = $attachmentCollectionFactory;
@@ -150,8 +140,10 @@ class Log extends AbstractModel
      * @param $message
      * @param $status
      * @param null $storeId
+     * @param array $extra Optional extra columns to persist alongside the log row
+     *                     (currently: error_message).
      */
-    public function saveLog($message, $status, $storeId = null, $fullBody = null)
+    public function saveLog($message, $status, $storeId = null, $fullBody = null, array $extra = [])
     {
         if ($this->helper->versionCompare('2.2.8')) {
             if ($message->getSubject()) {
@@ -243,8 +235,9 @@ class Log extends AbstractModel
 
         $this->setEmailContent($content)
             ->setStatus($status)
-            ->setStoreId($storeId ?? Store::DEFAULT_STORE_ID)
-            ->save();
+            ->setStoreId($storeId ?? Store::DEFAULT_STORE_ID);
+        $this->applyExtraData($extra);
+        $this->save();
 
         $this->saveAttachments();
     }
@@ -255,8 +248,10 @@ class Log extends AbstractModel
      * @param $message
      * @param $status
      * @param int $storeId
+     * @param array $extra Optional extra columns to persist alongside the log row
+     *                     (currently: error_message).
      */
-    public function saveLogSymfony($message, $status, $storeId = Store::DEFAULT_STORE_ID)
+    public function saveLogSymfony($message, $status, $storeId = Store::DEFAULT_STORE_ID, array $extra = [])
     {
         if ($message->getSubject()) {
             $this->setSubject($message->getSubject());
@@ -303,8 +298,9 @@ class Log extends AbstractModel
 
         $this->setEmailContent($content)
             ->setStatus($status)
-            ->setStoreId($storeId)
-            ->save();
+            ->setStoreId($storeId);
+        $this->applyExtraData($extra);
+        $this->save();
 
         $this->saveAttachments();
     }
@@ -492,6 +488,28 @@ class Log extends AbstractModel
     }
 
     /**
+     * Set the optional extra columns (error_message, entity_type/entity_id) on the log row
+     * before it is saved. Only keys actually present in $extra are touched, so a caller that
+     * omits a key leaves the column untouched (NULL for a new row).
+     *
+     * @param array $extra
+     */
+    protected function applyExtraData(array $extra)
+    {
+        if (array_key_exists('error_message', $extra) && $extra['error_message'] !== null) {
+            $this->setErrorMessage($extra['error_message']);
+        }
+
+        if (array_key_exists('entity_type', $extra) && $extra['entity_type'] !== null) {
+            $this->setEntityType($extra['entity_type']);
+        }
+
+        if (array_key_exists('entity_id', $extra) && $extra['entity_id'] !== null) {
+            $this->setEntityId($extra['entity_id']);
+        }
+    }
+
+    /**
      * @return bool
      */
     public function resendEmail()
@@ -547,51 +565,41 @@ class Log extends AbstractModel
             $this->reattachFiles($transport);
             $transport->sendMessage();
 
-            $this->setStatus(Status::STATUS_SUCCESS)
-                ->save();
-
-            $this->markEntityAsNotified();
+            // Do not flip/save this row: sendMessage() above already goes through the module's
+            // own Transport plugin, which logs the resend as its own new row. Also mutating the
+            // original row to SUCCESS here used to make the grid show two identical-looking rows
+            // for a single resend.
         } catch (Exception $e) {
             $this->_logger->critical($e->getMessage());
 
             return false;
         }
 
+        $this->flagLinkedEntityAsEmailed();
+
         return true;
     }
 
     /**
-     * @return void
+     * SMTP-4: a resent email may belong to an order/invoice/shipment/creditmemo whose
+     * confirmation email originally failed -- entity_type/entity_id (set by
+     * Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity at send time) link this log row
+     * back to it. Flip its email_sent flag so admin no longer sees the "not sent" banner.
+     * A failure here must not turn an already-successful resend into a failure.
      */
-    protected function markEntityAsNotified()
+    protected function flagLinkedEntityAsEmailed()
     {
-        $type = $this->getEntityType();
-        $id   = (int) $this->getEntityId();
+        $entityType = $this->getEntityType();
+        $entityId   = $this->getEntityId();
 
-        if (!$type || !$id || !isset(self::ENTITY_RESOURCES[$type])) {
+        if (!$entityType || !$entityId) {
             return;
         }
 
         try {
-            $entity = ObjectManager::getInstance()
-                ->create(self::ENTITY_RESOURCES[$type]['model'])
-                ->load($id);
-
-            if (!$entity->getId()) {
-                return;
-            }
-
-            $entity->setEmailSent(1);
-            $entity->setSendEmail(1);
-
-            ObjectManager::getInstance()
-                ->get(self::ENTITY_RESOURCES[$type]['resource'])
-                ->saveAttribute($entity, ['send_email', 'email_sent']);
-        } catch (\Throwable $e) {
-            $this->_logger->critical(
-                'Mageplaza_Smtp: resend succeeded but could not flag ' . $type . ' #' . $id
-                . '. ' . $e->getMessage()
-            );
+            $this->emailSentFlagUpdater->updateEmailSent($entityType, $entityId);
+        } catch (Exception $e) {
+            $this->_logger->critical($e->getMessage());
         }
     }
 

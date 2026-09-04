@@ -121,6 +121,50 @@ class GraphMailer
     }
 
     /**
+     * Send a pre-built Microsoft Graph API message payload (array). Used by
+     * Transport::buildGraphPayload() so the Graph path never has to construct a
+     * Symfony\Component\Mime\Email/Address (Address requires egulias/email-validator,
+     * which is not installed on Magento < 2.4.8). Reuses the same OAuth2 token
+     * retrieval and sendViaGraphApi() as sendEmail().
+     *
+     * @param array $payload Same shape buildGraphMessage() produces.
+     * @param string|null $senderEmail
+     * @param int|null $storeId
+     * @param array|null $configOverride
+     *
+     * @return void
+     * @throws LocalizedException
+     */
+    public function sendEmailPayload($payload, $senderEmail, $storeId = null, $configOverride = null)
+    {
+        // Get OAuth2 access token
+        try {
+            $accessToken = $this->helper->getOauthAccessToken($storeId, $configOverride);
+        } catch (\Exception $e) {
+            $errorMsg = $e->getMessage();
+            $this->logger->error('GraphMailer: OAuth2 token retrieval failed', [
+                'error'     => $errorMsg,
+                'storeId'   => $storeId,
+                'exception' => get_class($e)
+            ]);
+            throw new LocalizedException(__('Failed to get OAuth2 access token: %1', $errorMsg));
+        }
+
+        if (!$accessToken) {
+            $this->logger->error('GraphMailer: OAuth2 token is empty');
+            throw new LocalizedException(__('Failed to get OAuth2 access token for Microsoft Graph API.'));
+        }
+
+        if (!$senderEmail) {
+            $this->logger->error('GraphMailer: No sender email address found');
+            throw new LocalizedException(__('No sender email address found.'));
+        }
+
+        // Send via Microsoft Graph API
+        $this->sendViaGraphApi($senderEmail, $payload, $accessToken);
+    }
+
+    /**
      * Build Microsoft Graph API message format from Symfony Email
      *
      * @param Email $email

@@ -58,4 +58,17 @@
     <event name="sales_order_shipment_save_commit_after">
         <observer name="mp_smtp_sales_creditmemo_create" instance="Mageplaza\Smtp\Observer\Order\ShipmentCreate"/>
     </event>
+    <!--    ================================================ EMAIL LOG ENTITY (SMTP-4) ===========================-->
+    <event name="email_order_set_template_vars_before">
+        <observer name="mp_smtp_email_order_set_template_vars_before" instance="Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity"/>
+    </event>
+    <event name="email_invoice_set_template_vars_before">
+        <observer name="mp_smtp_email_invoice_set_template_vars_before" instance="Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity"/>
+    </event>
+    <event name="email_shipment_set_template_vars_before">
+        <observer name="mp_smtp_email_shipment_set_template_vars_before" instance="Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity"/>
+    </event>
+    <event name="email_creditmemo_set_template_vars_before">
+        <observer name="mp_smtp_email_creditmemo_set_template_vars_before" instance="Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity"/>
+    </event>
 </config>

@@ -26,8 +26,14 @@ use Exception;
 use Laminas\Mail\Message;
 use Laminas\Mail\Protocol\Smtp as SmtpProtocol;
 use Laminas\Mail\Transport\Smtp;
+use Laminas\Mail\Protocol\Exception\RuntimeException as LaminasProtocolRuntimeException;
+use Laminas\Mail\Transport\Exception\RuntimeException as LaminasTransportRuntimeException;
+use Laminas\Mime\Message as LaminasMimeMessage;
+use Laminas\Mime\Mime as LaminasMime;
+use Laminas\Mime\Part as LaminasMimePart;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\EmailMessage;
+use Magento\Framework\Mail\MimePartInterface;
 use Magento\Framework\Mail\TransportInterface;
 use Magento\Framework\Phrase;
 use Magento\Framework\Registry;
@@ -36,6 +42,7 @@ use Mageplaza\Smtp\Helper\GraphMailer;
 use Mageplaza\Smtp\Mail\Rse\Mail;
 use Mageplaza\Smtp\Model\Log;
 use Mageplaza\Smtp\Model\LogFactory;
+use Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Symfony\Component\Mailer\Mailer;
@@ -147,12 +154,28 @@ class Transport
                     $shouldUseGraphApi = $this->helper->shouldUseGraphApi($this->_storeId, $smtpOptions);
 
                     if ($shouldUseGraphApi) {
-                        // Convert to Symfony Email if needed
-                        if (!$message instanceof Email) {
-                            $message = $this->convertToSymfonyEmail($message);
-                        }
+                        if ($message instanceof Email) {
+                            // Already a Symfony Email -- keep the existing path unchanged.
+                            $this->graphMailer->sendEmail($message, $this->_storeId, $smtpOptions);
+                        } else {
+                            // Build the Graph API payload straight from Magento's own mail
+                            // objects, without creating a Symfony Email/Address. This is what
+                            // lets Graph sending work on Magento < 2.4.8, where
+                            // egulias/email-validator (required by Symfony\Component\Mime\Address)
+                            // is not installed.
+                            $fromList    = $message->getFrom();
+                            $senderEmail = (is_array($fromList) && count($fromList))
+                                ? $fromList[0]->getEmail()
+                                : null;
+                            $payload = $this->buildGraphPayload($message);
 
-                        $this->graphMailer->sendEmail($message, $this->_storeId, $smtpOptions);
+                            $this->graphMailer->sendEmailPayload(
+                                $payload,
+                                $senderEmail,
+                                $this->_storeId,
+                                $smtpOptions
+                            );
+                        }
                     } else {
                         // Use SMTP transport (existing logic)
                         if ($this->helper->versionCompare('2.4.8')) {
@@ -187,16 +210,7 @@ class Transport
                 $this->emailLog($message, true, null, $loggedBody);
             } catch (\Throwable $e) {
                 $errorMessage = $this->describeSendFailure($e);
-
-                $this->logger->error(
-                    'Mageplaza_Smtp: failed to send email. ' . $errorMessage,
-                    [
-                        'store_id'  => $this->_storeId,
-                        'recipient' => $this->getRecipient($message),
-                        'exception' => $e,
-                    ]
-                );
-
+                $this->logSendFailureReason($e, $message, $errorMessage);
                 $this->emailLog($message, false, $errorMessage, $loggedBody);
                 throw new MailException(new Phrase($e->getMessage()), $e instanceof Exception ? $e : null);
             }
@@ -204,6 +218,14 @@ class Transport
     }
 
     /**
+     * Send through the legacy (< 2.4.8) Laminas transport.
+     *
+     * Two independent guards, because they catch different failures:
+     * the NOOP health-check retires a socket the server closed while idle,
+     * and the retry covers the race where the socket dies between that
+     * NOOP and send(). A second consecutive failure is rethrown so the
+     * caller's catch block still logs and wraps it as before.
+     *
      * @param $message
      *
      * @throws Zend_Exception
@@ -219,7 +241,12 @@ class Transport
                 ->getTransport($this->_storeId);
         }
 
-        $transport->send($message);
+        try {
+            $transport->send($message);
+        } catch (LaminasProtocolRuntimeException | LaminasTransportRuntimeException $e) {
+            $this->resourceMail->resetTransport();
+            $this->resourceMail->getTransport($this->_storeId)->send($message);
+        }
     }
 
     /**
@@ -274,7 +301,7 @@ class Transport
                 $part .= ': ' . $text;
             }
 
-            $parts[] = $part;
+            $parts[] = mb_substr($part, 0, self::ERROR_MESSAGE_LIMIT);
 
             if (count($parts) >= self::ERROR_CAUSE_LIMIT) {
                 break;
@@ -327,6 +354,15 @@ class Transport
         $attachments = [];
         if ($body instanceof AbstractPart) {
             $this->collectBodyParts($body, $textParts, $attachments);
+        } elseif ($body instanceof LaminasMimeMessage) {
+            // Magento < 2.4.8: Magento\Framework\Mail\Message::getBody() delegates to
+            // Laminas\Mail\Message::getBody(), which returns a Laminas\Mime\Message,
+            // not a Symfony\Component\Mime\Part\AbstractPart. Without this branch the
+            // body/attachments are silently dropped and replaced with the
+            // "No readable content." placeholder below.
+            $this->collectLaminasMimeParts($body, $textParts, $attachments);
+        } elseif (is_string($body) && $body !== '') {
+            $textParts['plain'] = new TextPart($body);
         }
 
         if ($textParts || $attachments) {
@@ -397,6 +433,122 @@ class Transport
     }
 
     /**
+     * Build the Microsoft Graph API message payload as a plain array, reading data only
+     * through Magento's own mail accessors (getTo/getCc/getBcc/getFrom/getReplyTo/getSubject/
+     * getBody). Unlike convertToSymfonyEmail(), this never constructs a
+     * Symfony\Component\Mime\Email/Address, so it works on Magento < 2.4.8 where
+     * egulias/email-validator (required by Address) is not installed. Mirrors the exact
+     * array shape GraphMailer::buildGraphMessage() builds from a Symfony Email.
+     *
+     * @param $message
+     *
+     * @return array
+     */
+    protected function buildGraphPayload($message): array
+    {
+        $payload = [
+            'message'         => [
+                'subject'       => (string) $message->getSubject(),
+                'body'          => [
+                    'contentType' => 'HTML',
+                    'content'     => '',
+                ],
+                'toRecipients'  => $this->buildGraphAddressList($message->getTo() ?: []),
+                'ccRecipients'  => $this->buildGraphAddressList($message->getCc() ?: []),
+                'bccRecipients' => $this->buildGraphAddressList($message->getBcc() ?: []),
+                'attachments'   => [],
+            ],
+            'saveToSentItems' => false,
+        ];
+
+        try {
+            $body = $message->getBody();
+        } catch (\Throwable $e) {
+            $body = null;
+        }
+
+        $textParts   = [];
+        $attachments = [];
+        if ($body instanceof AbstractPart) {
+            $this->collectBodyParts($body, $textParts, $attachments);
+        } elseif ($body instanceof LaminasMimeMessage) {
+            $this->collectLaminasMimeParts($body, $textParts, $attachments);
+        } elseif (is_string($body) && $body !== '') {
+            $textParts['plain'] = new TextPart($body);
+        }
+
+        $htmlContent = null;
+        $textContent = null;
+        if ($textParts || $attachments) {
+            if (isset($textParts['html'])) {
+                $htmlContent = $textParts['html']->getBody();
+            }
+            if (isset($textParts['plain'])) {
+                $textContent = $textParts['plain']->getBody();
+            }
+        } elseif (!$body instanceof AbstractPart) {
+            $textContent = 'No readable content.';
+        }
+
+        if ($htmlContent) {
+            $payload['message']['body']['contentType'] = 'HTML';
+            $payload['message']['body']['content']     = $htmlContent;
+        } elseif ($textContent) {
+            $payload['message']['body']['contentType'] = 'Text';
+            $payload['message']['body']['content']     = $textContent;
+        }
+
+        foreach ($attachments as $attachment) {
+            $filename = $attachment instanceof DataPart ? $attachment->getFilename() : null;
+            $payload['message']['attachments'][] = [
+                '@odata.type'  => '#microsoft.graph.fileAttachment',
+                'name'         => $filename ?: 'attachment',
+                'contentType'  => $attachment->getMediaType() . '/' . $attachment->getMediaSubtype(),
+                'contentBytes' => base64_encode($attachment->getBody()),
+            ];
+        }
+
+        $replyTo = $message->getReplyTo();
+        if ($replyTo) {
+            $replyToAddresses = [];
+            foreach ($replyTo as $address) {
+                $replyToAddresses[] = [
+                    'emailAddress' => [
+                        'address' => $address->getEmail(),
+                        'name'    => $address->getName() ?: $address->getEmail(),
+                    ],
+                ];
+            }
+            $payload['message']['replyTo'] = $replyToAddresses;
+        }
+
+        return $payload;
+    }
+
+    /**
+     * @param array $addresses Magento\Framework\Mail\Address[]
+     *
+     * @return array
+     */
+    protected function buildGraphAddressList(array $addresses): array
+    {
+        $recipients = [];
+        foreach ($addresses as $address) {
+            $recipient = [
+                'emailAddress' => [
+                    'address' => $address->getEmail(),
+                ],
+            ];
+            if ($address->getName()) {
+                $recipient['emailAddress']['name'] = $address->getName();
+            }
+            $recipients[] = $recipient;
+        }
+
+        return $recipients;
+    }
+
+    /**
      * @param $part
      * @param $textParts
      * @param $attachments
@@ -432,6 +584,54 @@ class Transport
             foreach ($part->getParts() as $childPart) {
                 $this->collectBodyParts($childPart, $textParts, $attachments);
             }
+        }
+    }
+
+    /**
+     * Convert a Laminas\Mime\Message body (Magento < 2.4.8) into the same
+     * $textParts/$attachments shape collectBodyParts() builds, so the
+     * existing Email-assembly loop in convertToSymfonyEmail() can stay
+     * unchanged.
+     *
+     * @param LaminasMimeMessage $mimeMessage
+     * @param $textParts
+     * @param $attachments
+     */
+    protected function collectLaminasMimeParts(LaminasMimeMessage $mimeMessage, &$textParts, &$attachments)
+    {
+        foreach ($mimeMessage->getParts() as $part) {
+            // Magento's own EmailMessage/MimeMessage (used by TransportBuilder) hand
+            // Laminas\Mime\Message::setParts() an array of Magento\Framework\Mail\MimePart
+            // objects, not Laminas\Mime\Part -- they only happen to expose the same
+            // accessor methods (getType/getDisposition/getFileName/getCharset/
+            // getRawContent). A raw Laminas\Mime\Part is also accepted for callers that
+            // build the body directly with Laminas.
+            if (!$part instanceof LaminasMimePart && !$part instanceof MimePartInterface) {
+                continue;
+            }
+
+            $type = strtolower((string) $part->getType());
+            $isInlineText = ($type === 'text/html' || $type === 'text/plain')
+                && $part->getDisposition() !== LaminasMime::DISPOSITION_ATTACHMENT;
+
+            if ($isInlineText) {
+                $subtype = $type === 'text/html' ? 'html' : 'plain';
+                if (!isset($textParts[$subtype])) {
+                    $textParts[$subtype] = new TextPart(
+                        $part->getRawContent(),
+                        $part->getCharset() ?: 'utf-8',
+                        $subtype
+                    );
+                }
+
+                continue;
+            }
+
+            $attachments[] = new DataPart(
+                $part->getRawContent(),
+                $part->getFileName(),
+                $type ?: 'application/octet-stream'
+            );
         }
     }
 
@@ -496,6 +696,45 @@ class Transport
     }
 
     /**
+     * Log why a send failed. Only the exception message (capped at 1000
+     * chars), store id, recipient and subject are logged -- never auth
+     * credentials/tokens. Recipient/subject extraction is best-effort so a
+     * problem here can never mask the original exception.
+     *
+     * @param \Throwable $e
+     * @param $message
+     */
+    protected function logSendFailureReason(\Throwable $e, $message, $errorMessage = '')
+    {
+        $recipient = '';
+        try {
+            $recipient = $this->getRecipient($message);
+        } catch (\Throwable $ignored) {
+            // Ignore: recipient extraction failing must not hide the real error.
+        }
+
+        $subject = '';
+        try {
+            if (is_object($message) && method_exists($message, 'getSubject')) {
+                $subject = (string) $message->getSubject();
+            }
+        } catch (\Throwable $ignored) {
+            // Ignore: subject extraction failing must not hide the real error.
+        }
+
+        $this->logger->error(
+            'Mageplaza_Smtp: failed to send email. '
+            . ($errorMessage !== '' ? $errorMessage : $e->getMessage()),
+            [
+                'store_id'  => $this->_storeId,
+                'recipient' => $recipient,
+                'subject'   => $subject,
+                'exception' => $e,
+            ]
+        );
+    }
+
+    /**
      * @param EmailMessage $message
      *
      * @return bool
@@ -532,32 +771,34 @@ class Transport
      *
      * @param $message
      * @param bool $status
+     * @param \Throwable|null $exception The send failure, if any -- its message (capped at 1000
+     *                                   chars, never auth credentials/tokens) is stored as
+     *                                   error_message so admins can see why a send failed
+     *                                   without digging through system.log.
      */
     protected function emailLog($message, $status = true, $errorMessage = null, $fullBody = null)
     {
+        // Always consume the registry, even if logging ends up disabled below -- otherwise a
+        // captured entity would leak onto the next, unrelated email sent in this request.
+        $entityData = $this->consumeEmailEntity();
+
         if ($this->helper->isEnabled($this->_storeId) && $this->resourceMail->isEnableEmailLog($this->_storeId)) {
             /** @var Log $log */
-            $log = $this->logFactory->create();
-
+            $log   = $this->logFactory->create();
+            $extra = [];
             if ($errorMessage !== null && $errorMessage !== '') {
-                $log->setErrorMessage(mb_substr($errorMessage, 0, self::ERROR_MESSAGE_LIMIT));
+                $extra['error_message'] = mb_substr($errorMessage, 0, self::ERROR_MESSAGE_LIMIT);
             }
-
-            $entity = $this->registry->registry('mp_smtp_entity');
-            if (is_array($entity) && !empty($entity['type']) && !empty($entity['id'])) {
-                $log->setEntityType($entity['type'])
-                    ->setEntityId($entity['id']);
-            }
-
+            $extra = array_merge($extra, $entityData);
             try {
                 if ($this->helper->versionCompare('2.4.8')) {
                     if (!$message instanceof Email) {
                         $message = $this->convertToSymfonyEmail($message);
                     }
 
-                    $log->saveLogSymfony($message, $status, $this->_storeId);
+                    $log->saveLogSymfony($message, $status, $this->_storeId, $extra);
                 } else {
-                    $log->saveLog($message, $status, $this->_storeId, $fullBody);
+                    $log->saveLog($message, $status, $this->_storeId, $fullBody, $extra);
                 }
 
                 if ($status) {
@@ -567,6 +808,32 @@ class Transport
                 $this->logger->critical($e->getMessage());
             }
         }
+    }
+
+    /**
+     * Read back the {entity_type, entity_id} Observer\Email\SetTemplateVarsEntity stashed in
+     * the registry for the email currently being sent, and clear the key. Returns [] when
+     * nothing was captured (e.g. non-sales email, or the observer swallowed a problem).
+     *
+     * @return array
+     */
+    protected function consumeEmailEntity(): array
+    {
+        try {
+            $entityData = $this->registry->registry(SetTemplateVarsEntity::REGISTRY_KEY);
+            if ($entityData) {
+                $this->registry->unregister(SetTemplateVarsEntity::REGISTRY_KEY);
+
+                return [
+                    'entity_type' => $entityData['entity_type'] ?? null,
+                    'entity_id'   => $entityData['entity_id'] ?? null,
+                ];
+            }
+        } catch (Exception $e) {
+            $this->logger->critical($e->getMessage());
+        }
+
+        return [];
     }
 
     /**

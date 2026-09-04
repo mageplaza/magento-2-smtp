@@ -44,10 +44,23 @@ define([
 
             if (typeof this.modal[action.rowIndex] === 'undefined' || typeof this.modal[action.rowIndex] === 'object') {
                 var row = this.rows[action.rowIndex],
-                    modalHtml = '<iframe srcdoc="' + row['email_content'] + '" sandbox="" style="width: 100%; height: 100%"></iframe>';
+                    modalHtml = '<iframe srcdoc="' + row['email_content'] + '" sandbox="" style="width: 100%; height: 100%"></iframe>',
+                    $modalContent = $('<div>').html(modalHtml);
 
-                this.modal[action.rowIndex] = $('<div>')
-                    .html(modalHtml)
+                if (row['error_message']) {
+                    $('<div>')
+                        .css({
+                            padding: '10px',
+                            'margin-bottom': '10px',
+                            background: '#fdf0f0',
+                            border: '1px solid #e22626',
+                            color: '#e22626'
+                        })
+                        .text(row['error_message'])
+                        .prependTo($modalContent);
+                }
+
+                this.modal[action.rowIndex] = $modalContent
                     .modal({
                         type: 'slide',
                         title: strip(row['subject']),

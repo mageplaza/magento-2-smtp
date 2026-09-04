@@ -88,7 +88,9 @@ class Actions extends Column
                         'confirm' => [
                             'title'   => __('Resend Email'),
                             'message' => __(
-                                'Are you sure you want to resend the email <strong>"%1"</strong>?',
+                                'Are you sure you want to resend the email <strong>"%1"</strong>?'
+                                . ' The HTML content and any attachment stored with this log entry'
+                                . ' are sent again.',
                                 $item['subject']
                             )
                         ]
