@@ -848,7 +848,7 @@ class Transport
 
                     $log->saveLogSymfony($message, $status, $this->_storeId, $extra);
                 } else {
-                    $log->saveLog($message, $status, $this->_storeId, $fullBody, $extra);
+                    $log->saveLog($message, $status, $this->_storeId, $extra, $fullBody);
                 }
 
                 if ($status) {

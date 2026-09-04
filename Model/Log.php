@@ -95,12 +95,12 @@ class Log extends AbstractModel
      * @param TransportBuilder $transportBuilder
      * @param Mail $mailResource
      * @param Data $helper
-     * @param EmailSentFlagUpdater $emailSentFlagUpdater
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
      * @param array $data
      * @param LogAttachmentFactory|null $attachmentFactory
      * @param AttachmentCollectionFactory|null $attachmentCollectionFactory
+     * @param EmailSentFlagUpdater|null $emailSentFlagUpdater
      */
     public function __construct(
         Context $context,
@@ -108,12 +108,12 @@ class Log extends AbstractModel
         TransportBuilder $transportBuilder,
         Mail $mailResource,
         Data $helper,
-        EmailSentFlagUpdater $emailSentFlagUpdater,
         ?AbstractResource $resource = null,
         ?AbstractDb $resourceCollection = null,
         array $data = [],
         ?LogAttachmentFactory $attachmentFactory = null,
-        ?AttachmentCollectionFactory $attachmentCollectionFactory = null
+        ?AttachmentCollectionFactory $attachmentCollectionFactory = null,
+        ?EmailSentFlagUpdater $emailSentFlagUpdater = null
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
 
@@ -143,7 +143,7 @@ class Log extends AbstractModel
      * @param array $extra Optional extra columns to persist alongside the log row
      *                     (currently: error_message).
      */
-    public function saveLog($message, $status, $storeId = null, $fullBody = null, array $extra = [])
+    public function saveLog($message, $status, $storeId = null, array $extra = [], $fullBody = null)
     {
         if ($this->helper->versionCompare('2.2.8')) {
             if ($message->getSubject()) {
@@ -315,6 +315,18 @@ class Log extends AbstractModel
         }
 
         return $this->attachmentFactory;
+    }
+
+    /**
+     * @return EmailSentFlagUpdater
+     */
+    protected function getEmailSentFlagUpdater()
+    {
+        if ($this->emailSentFlagUpdater === null) {
+            $this->emailSentFlagUpdater = ObjectManager::getInstance()->get(EmailSentFlagUpdater::class);
+        }
+
+        return $this->emailSentFlagUpdater;
     }
 
     /**
@@ -600,7 +612,7 @@ class Log extends AbstractModel
         }
 
         try {
-            $this->emailSentFlagUpdater->updateEmailSent($entityType, $entityId);
+            $this->getEmailSentFlagUpdater()->updateEmailSent($entityType, $entityId);
         } catch (Exception $e) {
             $this->_logger->critical($e->getMessage());
         }
