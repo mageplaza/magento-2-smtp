@@ -325,6 +325,30 @@ class Transport
      */
     protected function redactCredentials($text)
     {
+        $text = $this->redactKnownSecrets($text);
+
+        return preg_replace_callback(
+            '#[A-Za-z0-9+/]{20,}={0,2}#',
+            static function (array $match) {
+                $token   = $match[0];
+                $classes = (int) (bool) preg_match('#[a-z]#', $token)
+                    + (int) (bool) preg_match('#[A-Z]#', $token)
+                    + (int) (bool) preg_match('#[0-9]#', $token)
+                    + (int) (bool) preg_match('#[+/=]#', $token);
+
+                return $classes >= 3 ? self::REDACTED : $token;
+            },
+            $text
+        );
+    }
+
+    /**
+     * @param string $text
+     *
+     * @return string
+     */
+    protected function redactKnownSecrets($text)
+    {
         $secrets = [];
 
         try {
@@ -352,19 +376,7 @@ class Transport
             $text = str_replace($secret, self::REDACTED, $text);
         }
 
-        return preg_replace_callback(
-            '#[A-Za-z0-9+/]{20,}={0,2}#',
-            static function (array $match) {
-                $token   = $match[0];
-                $classes = (int) (bool) preg_match('#[a-z]#', $token)
-                    + (int) (bool) preg_match('#[A-Z]#', $token)
-                    + (int) (bool) preg_match('#[0-9]#', $token)
-                    + (int) (bool) preg_match('#[+/=]#', $token);
-
-                return $classes >= 3 ? self::REDACTED : $token;
-            },
-            $text
-        );
+        return $text;
     }
 
     /**
@@ -820,7 +832,7 @@ class Transport
                 'subject'        => $subject,
                 'exception_type' => get_class($e),
                 'exception_code' => $e->getCode(),
-                'trace'          => $this->redactCredentials($e->getTraceAsString()),
+                'trace'          => $this->redactKnownSecrets($e->getTraceAsString()),
             ]
         );
     }
