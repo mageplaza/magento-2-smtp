@@ -1315,7 +1315,7 @@ class TransportTest extends TestCase
             // Expected.
         }
 
-        $this->assertSame('smtp exploded', $capturedExtra['error_message']);
+        $this->assertSame('RuntimeException: smtp exploded', $capturedExtra['error_message']);
     }
 
     public function testEmailLogTruncatesErrorMessageTo2000Characters(): void
@@ -1348,7 +1348,7 @@ class TransportTest extends TestCase
         $this->assertSame(2000, strlen($capturedExtra['error_message']));
     }
 
-    public function testEmailLogTruncatesErrorMessageTo1000CharactersSymfonyBranch(): void
+    public function testEmailLogTruncatesErrorMessageTo2000CharactersSymfonyBranch(): void
     {
         $this->helper = $this->enableLoggingViaGraphHelper(true);
         $this->resourceMail = $this->enableLoggingResourceMail();
@@ -1375,7 +1375,7 @@ class TransportTest extends TestCase
             // Expected.
         }
 
-        $this->assertSame(1000, strlen($capturedExtra['error_message']));
+        $this->assertSame(2000, strlen($capturedExtra['error_message']));
     }
 
     public function testEmailLogDoesNotIncludeErrorMessageWhenSendSucceeds(): void
