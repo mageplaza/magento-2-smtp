@@ -804,23 +804,22 @@ class Transport
      *
      * @param \Throwable $e
      * @param $message
+     * @param string $errorMessage
      */
     protected function logSendFailureReason(\Throwable $e, $message, $errorMessage = '')
     {
-        $recipient = '';
         try {
             $recipient = $this->getRecipient($message);
         } catch (\Throwable $ignored) {
-            // Ignore: recipient extraction failing must not hide the real error.
+            $recipient = '';
         }
 
-        $subject = '';
         try {
-            if (is_object($message) && method_exists($message, 'getSubject')) {
-                $subject = (string) $message->getSubject();
-            }
+            $subject = (is_object($message) && method_exists($message, 'getSubject'))
+                ? (string) $message->getSubject()
+                : '';
         } catch (\Throwable $ignored) {
-            // Ignore: subject extraction failing must not hide the real error.
+            $subject = '';
         }
 
         $this->logger->error(
@@ -874,10 +873,8 @@ class Transport
      *
      * @param $message
      * @param bool $status
-     * @param \Throwable|null $exception The send failure, if any -- its message (capped at 1000
-     *                                   chars, never auth credentials/tokens) is stored as
-     *                                   error_message so admins can see why a send failed
-     *                                   without digging through system.log.
+     * @param string|null $errorMessage
+     * @param mixed|null $fullBody
      */
     protected function emailLog($message, $status = true, $errorMessage = null, $fullBody = null)
     {
