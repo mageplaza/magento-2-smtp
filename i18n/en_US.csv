@@ -275,3 +275,5 @@ Product not found,Product not found
 Requested store is not found,Requested store is not found
 not found,not found
 resolve failed,resolve failed
+"Are you sure you want to resend the email <strong>""%1""</strong>? The HTML content and any attachment stored with this log entry are sent again.","Are you sure you want to resend the email <strong>""%1""</strong>? The HTML content and any attachment stored with this log entry are sent again."
+"Are you sure to resend selected log(s)? The HTML content and any attachment stored with each log entry are sent again.","Are you sure to resend selected log(s)? The HTML content and any attachment stored with each log entry are sent again."

@@ -238,6 +238,121 @@ class GraphMailerTest extends TestCase
     }
 
 
+    // sendEmailPayload(): the array-based entry point used by Transport::buildGraphPayload()
+    // (Magento < 2.4.8, no egulias/email-validator installed). It must reuse the same token
+    // retrieval + sendViaGraphApi() as sendEmail(), just skip the Symfony Email -> array step.
+
+    private function samplePayload(): array
+    {
+        return [
+            'message'         => [
+                'subject'       => 'Order confirmation',
+                'body'          => ['contentType' => 'HTML', 'content' => '<p>Thank you</p>'],
+                'toRecipients'  => [['emailAddress' => ['address' => 'recipient@example.com']]],
+                'ccRecipients'  => [],
+                'bccRecipients' => [],
+                'attachments'   => [],
+            ],
+            'saveToSentItems' => false,
+        ];
+    }
+
+    public function testSendEmailPayloadThrowsWhenOauthTokenRetrievalFails(): void
+    {
+        $this->helper->method('getOauthAccessToken')->willThrowException(new \Exception('boom'));
+
+        $this->logger->expects($this->once())->method('error')->with(
+            'GraphMailer: OAuth2 token retrieval failed',
+            ['error' => 'boom', 'storeId' => 5, 'exception' => \Exception::class]
+        );
+
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Failed to get OAuth2 access token: boom');
+
+        $this->createSut()->sendEmailPayload($this->samplePayload(), 'sender@example.com', 5);
+    }
+
+    public function testSendEmailPayloadThrowsWhenAccessTokenIsEmpty(): void
+    {
+        $this->helper->method('getOauthAccessToken')->willReturn('');
+
+        $this->logger->expects($this->once())->method('error')->with('GraphMailer: OAuth2 token is empty');
+
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Failed to get OAuth2 access token for Microsoft Graph API.');
+
+        $this->createSut()->sendEmailPayload($this->samplePayload(), 'sender@example.com');
+    }
+
+    public function testSendEmailPayloadThrowsWhenSenderEmailMissing(): void
+    {
+        $this->helper->method('getOauthAccessToken')->willReturn('access-token');
+
+        $this->logger->expects($this->once())->method('error')->with('GraphMailer: No sender email address found');
+
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('No sender email address found.');
+
+        $this->createSut()->sendEmailPayload($this->samplePayload(), null);
+    }
+
+    public function testSendEmailPayloadPostsPayloadUnchangedWithBearerTokenAndTimeout(): void
+    {
+        $this->helper->method('getOauthAccessToken')->willReturn('access-token');
+
+        $options = [];
+        $this->curl->method('setOption')->willReturnCallback(
+            function ($name, $value) use (&$options): void {
+                $options[$name] = $value;
+            }
+        );
+        $headers = [];
+        $this->curl->method('addHeader')->willReturnCallback(
+            function (string $name, string $value) use (&$headers): void {
+                $headers[$name] = $value;
+            }
+        );
+        $captured = [];
+        $this->captureSuccessfulPostPayload($captured);
+
+        $payload = $this->samplePayload();
+        $this->createSut()->sendEmailPayload($payload, 'sender@example.com');
+
+        $this->assertSame(30, $options[CURLOPT_TIMEOUT]);
+        $this->assertTrue($options[CURLOPT_RETURNTRANSFER]);
+        $this->assertSame('Bearer access-token', $headers['Authorization']);
+        $this->assertSame('application/json', $headers['Content-Type']);
+        $this->assertStringContainsString('sender%40example.com', $captured['url']);
+        $this->assertSame($payload, json_decode($captured['payload'], true));
+    }
+
+    public function testSendEmailPayloadSucceedsOnStatus200(): void
+    {
+        $this->helper->method('getOauthAccessToken')->willReturn('access-token');
+        $this->curl->expects($this->once())->method('post');
+        $this->curl->method('getStatus')->willReturn(200);
+        $this->curl->method('getBody')->willReturn('');
+
+        $this->createSut()->sendEmailPayload($this->samplePayload(), 'sender@example.com');
+    }
+
+    public function testSendEmailPayloadThrowsOnApiErrorWithParseableBody(): void
+    {
+        $this->helper->method('getOauthAccessToken')->willReturn('access-token');
+        $this->curl->method('getStatus')->willReturn(400);
+        $this->curl->method('getBody')->willReturn('{"error":{"message":"Bad request"}}');
+
+        $this->logger->expects($this->once())->method('error')->with(
+            'GraphMailer: API Error',
+            ['error' => 'Bad request']
+        );
+
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Microsoft Graph API email send failed (HTTP 400): Bad request');
+
+        $this->createSut()->sendEmailPayload($this->samplePayload(), 'sender@example.com');
+    }
+
     public function testSendEmailThrowsOnApiErrorWithParseableBody(): void
     {
         $this->helper->method('getOauthAccessToken')->willReturn('access-token');

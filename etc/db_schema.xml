@@ -3,8 +3,11 @@
   <table name="mageplaza_smtp_log" resource="default" engine="innodb" comment="mageplaza_smtp_log">
     <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="Log ID"/>
     <column xsi:type="varchar" name="subject" nullable="true" length="255" comment="Email Subject"/>
-    <column xsi:type="text" name="email_content" nullable="true" comment="Email Content"/>
+    <column xsi:type="mediumtext" name="email_content" nullable="true" comment="Email Content"/>
     <column xsi:type="smallint" name="status" padding="6" unsigned="false" nullable="false" identity="false" comment="Status"/>
+    <column xsi:type="text" name="error_message" nullable="true" comment="Error Message"/>
+    <column xsi:type="varchar" name="entity_type" nullable="true" length="32" comment="Entity Type"/>
+    <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="true" comment="Entity Id"/>
     <column xsi:type="timestamp" name="created_at" on_update="false" nullable="true" comment="Created At"/>
     <column xsi:type="varchar" name="from" nullable="true" length="255" comment="Sender" disabled="true"/>
     <column xsi:type="varchar" name="to" nullable="true" length="255" comment="Recipient" disabled="true"/>
@@ -17,6 +20,25 @@
     </constraint>
     <index referenceId="MAGEPLAZA_SMTP_LOG_STATUS" indexType="btree">
       <column name="status"/>
+    </index>
+    <index referenceId="MAGEPLAZA_SMTP_LOG_ENTITY_TYPE_ENTITY_ID" indexType="btree">
+      <column name="entity_type"/>
+      <column name="entity_id"/>
+    </index>
+  </table>
+  <table name="mageplaza_smtp_log_attachment" resource="default" engine="innodb" comment="SMTP Log Attachment">
+    <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true" comment="Attachment ID"/>
+    <column xsi:type="int" name="log_id" padding="10" unsigned="true" nullable="false" comment="Log ID"/>
+    <column xsi:type="varchar" name="filename" nullable="true" length="255" comment="File Name"/>
+    <column xsi:type="varchar" name="mime_type" nullable="true" length="255" comment="Mime Type"/>
+    <column xsi:type="varchar" name="disposition" nullable="true" length="32" comment="Disposition"/>
+    <column xsi:type="longblob" name="content" nullable="true" comment="Raw Content"/>
+    <constraint xsi:type="primary" referenceId="PRIMARY">
+      <column name="id"/>
+    </constraint>
+    <constraint xsi:type="foreign" referenceId="MP_SMTP_LOG_ATTACHMENT_LOG_ID_MP_SMTP_LOG_ID" table="mageplaza_smtp_log_attachment" column="log_id" referenceTable="mageplaza_smtp_log" referenceColumn="id" onDelete="CASCADE"/>
+    <index referenceId="MAGEPLAZA_SMTP_LOG_ATTACHMENT_LOG_ID" indexType="btree">
+      <column name="log_id"/>
     </index>
   </table>
   <table name="mageplaza_smtp_abandonedcart" resource="default" engine="innodb" comment="SMTP Abandoned Cart">

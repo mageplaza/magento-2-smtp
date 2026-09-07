@@ -26,6 +26,8 @@ use Closure;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\Address;
 use Magento\Framework\Mail\EmailMessage;
+use Magento\Framework\Mail\MimeInterface;
+use Magento\Framework\Mail\MimePart;
 use Magento\Framework\Mail\TransportInterface;
 use Magento\Framework\Registry;
 use Mageplaza\Smtp\Helper\Data;
@@ -34,11 +36,14 @@ use Mageplaza\Smtp\Mail\Rse\Mail;
 use Mageplaza\Smtp\Mail\Transport;
 use Mageplaza\Smtp\Model\Log;
 use Mageplaza\Smtp\Model\LogFactory;
+use Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use ReflectionMethod;
+use ReflectionProperty;
 use Symfony\Component\Mailer\Transport\TransportInterface as SymfonyTransportInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Mime\Header\Headers;
@@ -58,11 +63,22 @@ class TransportTest extends TestCase
 {
     private const STORE_ID = 1;
 
+    /** @var Mail&MockObject */
     private Mail&MockObject $resourceMail;
+
+    /** @var LogFactory&MockObject */
     private LogFactory&MockObject $logFactory;
+
+    /** @var Registry&MockObject */
     private Registry&MockObject $registry;
+
+    /** @var Data&MockObject */
     private Data&MockObject $helper;
+
+    /** @var LoggerInterface&MockObject */
     private LoggerInterface&MockObject $logger;
+
+    /** @var GraphMailer&MockObject */
     private GraphMailer&MockObject $graphMailer;
 
     protected function setUp(): void
@@ -171,29 +187,32 @@ class TransportTest extends TestCase
         return $captured;
     }
 
-    // Graph is the only path that still converts post-M2X-63 (SMTP is now a pass-through).
-    private function convertViaGraph(?AbstractPart $body, ?EmailMessage $message = null): Email
+    // Post-graph-nosymfony: neither the Graph nor the SMTP send path converts a plain
+    // EmailMessage to Symfony anymore (see testAroundSendMessageDoesNotConvertOnSmtpPath /
+    // testAroundSendMessageDoesNotConvertOnGraphPathForNonEmailMessage). convertToSymfonyEmail()
+    // is still reachable from emailLog() on Magento >= 2.4.8 (see
+    // testEmailLogConvertsMessageOutsideDeveloperMode for that end-to-end path), but exercising
+    // every MIME shape through the full aroundSendMessage() flow would drag in the SMTP branch's
+    // Symfony\Component\Mailer\Transport\TransportInterface, which does not exist on Magento
+    // 2.4.7 -- unrelated to what these tests are about. Call the protected method directly
+    // instead via a subclass that exposes it.
+    private function convertViaEmailLog(?AbstractPart $body, ?EmailMessage $message = null): Email
     {
-        $this->helper->method('shouldUseGraphApi')->willReturn(true);
-
-        $captured = null;
-        $this->graphMailer->method('sendEmail')->willReturnCallback(
-            static function ($sent) use (&$captured) {
-                $captured = $sent;
-
-                return true;
+        $sut = new class (
+            $this->resourceMail,
+            $this->logFactory,
+            $this->registry,
+            $this->helper,
+            $this->logger,
+            $this->graphMailer
+        ) extends Transport {
+            public function convertToSymfonyEmail($laminasMessage)
+            {
+                return parent::convertToSymfonyEmail($laminasMessage);
             }
-        );
+        };
 
-        $called = false;
-        $this->createSut()->aroundSendMessage(
-            $this->createSubject($message ?? $this->createMessage($body)),
-            $this->createProceed($called)
-        );
-
-        $this->assertInstanceOf(Email::class, $captured);
-
-        return $captured;
+        return $sut->convertToSymfonyEmail($message ?? $this->createMessage($body));
     }
 
     private function attachmentNames(Email $email): array
@@ -225,6 +244,7 @@ class TransportTest extends TestCase
             $this->logger,
             $this->graphMailer
         ) extends Transport {
+            /** @var bool */
             public bool $converted = false;
 
             protected function convertToSymfonyEmail($laminasMessage)
@@ -238,6 +258,120 @@ class TransportTest extends TestCase
         $this->sendViaSmtp($this->createMessage(new TextPart('hello')), $sut);
 
         $this->assertFalse($sut->converted);
+    }
+
+    // Graph path: a plain EmailMessage must reach GraphMailer as a raw payload array,
+    // built straight from Magento's own mail objects -- no Symfony\Component\Mime\Email/
+    // Address is created for this (see buildGraphPayload()), which is what lets the Graph
+    // path work on Magento < 2.4.8 where egulias/email-validator is not installed.
+
+    public function testAroundSendMessageDoesNotConvertOnGraphPathForNonEmailMessage(): void
+    {
+        $this->helper->method('shouldUseGraphApi')->willReturn(true);
+
+        // Subclass instead of a spy mock: the SUT itself must never be mocked.
+        $sut = new class (
+            $this->resourceMail,
+            $this->logFactory,
+            $this->registry,
+            $this->helper,
+            $this->logger,
+            $this->graphMailer
+        ) extends Transport {
+            /** @var bool */
+            public bool $converted = false;
+
+            protected function convertToSymfonyEmail($laminasMessage)
+            {
+                $this->converted = true;
+
+                return parent::convertToSymfonyEmail($laminasMessage);
+            }
+        };
+
+        $message = $this->createMock(EmailMessage::class);
+        $message->method('getTo')->willReturn([]);
+        $message->method('getFrom')->willReturn([]);
+        $message->method('getCc')->willReturn([]);
+        $message->method('getBcc')->willReturn([]);
+        $message->method('getReplyTo')->willReturn([]);
+        $message->method('getSubject')->willReturn('Subject');
+        $message->method('getBody')->willReturn(new TextPart('hello'));
+
+        $called = false;
+        $sut->aroundSendMessage($this->createSubject($message), $this->createProceed($called));
+
+        $this->assertFalse($sut->converted);
+    }
+
+    public function testAroundSendMessageSendsGraphPayloadBuiltFromEmailMessage(): void
+    {
+        $this->helper->method('shouldUseGraphApi')->willReturn(true);
+
+        $from = $this->createMock(Address::class);
+        $from->method('getEmail')->willReturn('sender@example.com');
+        $from->method('getName')->willReturn('Sender');
+
+        $to = $this->createMock(Address::class);
+        $to->method('getEmail')->willReturn('to@example.com');
+        $to->method('getName')->willReturn('To Name');
+
+        $message = $this->createMock(EmailMessage::class);
+        $message->method('getFrom')->willReturn([$from]);
+        $message->method('getTo')->willReturn([$to]);
+        $message->method('getCc')->willReturn([]);
+        $message->method('getBcc')->willReturn([]);
+        $message->method('getReplyTo')->willReturn([]);
+        $message->method('getSubject')->willReturn('Order confirmation');
+        $message->method('getBody')->willReturn(
+            new MixedPart(
+                new TextPart('<p>Hi</p>', 'utf-8', 'html'),
+                new DataPart('PDFDATA', 'invoice.pdf', 'application/pdf')
+            )
+        );
+
+        $this->graphMailer->expects($this->never())->method('sendEmail');
+        $this->graphMailer->expects($this->once())->method('sendEmailPayload')->with(
+            $this->callback(static function (array $payload): bool {
+                return $payload['message']['subject'] === 'Order confirmation'
+                    && $payload['message']['body']['contentType'] === 'HTML'
+                    && $payload['message']['body']['content'] === '<p>Hi</p>'
+                    && $payload['message']['toRecipients'][0]['emailAddress']['address'] === 'to@example.com'
+                    && $payload['message']['toRecipients'][0]['emailAddress']['name'] === 'To Name'
+                    && $payload['message']['attachments'][0]['name'] === 'invoice.pdf'
+                    && $payload['message']['attachments'][0]['contentBytes'] === base64_encode('PDFDATA')
+                    && $payload['saveToSentItems'] === false;
+            }),
+            'sender@example.com',
+            self::STORE_ID,
+            []
+        );
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($message),
+            $this->createProceed($called)
+        );
+    }
+
+    public function testAroundSendMessageUsesSendEmailWhenMessageIsAlreadySymfonyEmail(): void
+    {
+        $this->helper->method('shouldUseGraphApi')->willReturn(true);
+
+        $email = (new Email())
+            ->from('sender@example.com')
+            ->to('to@example.com')
+            ->subject('Already Symfony')
+            ->text('body');
+
+        $this->graphMailer->expects($this->never())->method('sendEmailPayload');
+        $this->graphMailer->expects($this->once())->method('sendEmail')->with($email, self::STORE_ID, []);
+
+        $subject = $this->createMock(TransportInterface::class);
+        $subject->method('getMessage')->willReturn($email);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage($subject, $this->createProceed($called));
     }
 
     public function testAroundSendMessagePreservesNestedMultipartTree(): void
@@ -335,11 +469,294 @@ class TransportTest extends TestCase
         $this->assertSame('legacy body', $captured->getTextBody());
     }
 
+    // SMTP-2: a send failure must be logged with a reason, not just swallowed
+    // into a bare emailLog($message, false) + rethrow.
+
+    public function testAroundSendMessageLogsErrorReasonWhenSendFails(): void
+    {
+        if (!class_exists(\Laminas\Mail\Message::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
+        $this->helper = $this->legacyHelper();
+
+        $laminasMessage = new \Laminas\Mail\Message();
+        $laminasMessage->setSubject('Test Subject');
+        $laminasMessage->addTo('victim@example.com');
+        $this->resourceMail->method('processMessage')->willReturn($laminasMessage);
+
+        $transport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
+        $transport->method('send')->willThrowException(new \RuntimeException('Connection refused by host'));
+        $this->resourceMail->method('getTransport')->willReturn($transport);
+
+        // describeSendFailure() prefixes the exception class, and the store/recipient/subject
+        // moved out of the message string into the logger's structured context array.
+        $this->logger->expects($this->once())->method('error')->with(
+            'Mageplaza_Smtp: failed to send email. RuntimeException: Connection refused by host',
+            $this->callback(static function (array $context): bool {
+                return (string) $context['store_id'] === (string) self::STORE_ID
+                    && $context['recipient'] === 'victim@example.com'
+                    && $context['subject'] === 'Test Subject';
+            })
+        );
+
+        $called = false;
+
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createMock(EmailMessage::class)),
+                $this->createProceed($called)
+            );
+            $this->fail('Expected MailException to propagate.');
+        } catch (MailException $e) {
+            // Expected: the retry logic does not retry a plain \RuntimeException,
+            // so the outer catch in aroundSendMessage() wraps and rethrows it.
+        }
+    }
+
+    public function testAroundSendMessageLoggedReasonIsTruncatedTo2000Characters(): void
+    {
+        if (!class_exists(\Laminas\Mail\Message::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
+        $this->helper = $this->legacyHelper();
+
+        $laminasMessage = new \Laminas\Mail\Message();
+        $this->resourceMail->method('processMessage')->willReturn($laminasMessage);
+
+        $transport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
+        $transport->method('send')->willThrowException(new \RuntimeException(str_repeat('x', 3000)));
+        $this->resourceMail->method('getTransport')->willReturn($transport);
+
+        $this->logger->expects($this->once())->method('error')->with(
+            $this->callback(static function (string $logged): bool {
+                return substr_count($logged, 'x') <= 2000;
+            })
+        );
+
+        $called = false;
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createMock(EmailMessage::class)),
+                $this->createProceed($called)
+            );
+        } catch (MailException $e) {
+            // Expected.
+        }
+    }
+
+    // SMTP-1: legacy (< 2.4.8) transport retry on a transient send failure.
+    // A cached Laminas\Mail\Transport\Smtp reuses a socket that the remote
+    // server may have dropped; a single retry after resetTransport() should
+    // recover, but a second consecutive failure must still propagate.
+
+    private function legacyHelper(): Data&MockObject
+    {
+        $helper = $this->createMock(Data::class);
+        $helper->method('versionCompare')->willReturnCallback(
+            static fn (string $version): bool => !in_array($version, ['2.4.8', '2.2.8', '2.3.3'], true)
+        );
+        $helper->method('shouldUseGraphApi')->willReturn(false);
+        $helper->method('isTestEmail')->willReturn(true);
+
+        return $helper;
+    }
+
+    private function invokeRedactCredentials(string $text): string
+    {
+        $sut = $this->createSut();
+
+        $storeIdProperty = new ReflectionProperty(Transport::class, '_storeId');
+        $storeIdProperty->setAccessible(true);
+        $storeIdProperty->setValue($sut, self::STORE_ID);
+
+        $method = new ReflectionMethod(Transport::class, 'redactCredentials');
+        $method->setAccessible(true);
+
+        return $method->invoke($sut, $text);
+    }
+
+    public function testRedactCredentialsMasksConfiguredUsernameAndPasswordRaw(): void
+    {
+        $this->helper->method('getSmtpConfig')->with('username', self::STORE_ID)->willReturn('smtp-user');
+        $this->helper->method('getPassword')->with(self::STORE_ID)->willReturn('sup3rSecret!');
+
+        $result = $this->invokeRedactCredentials('535 Authentication failed for smtp-user with sup3rSecret!');
+
+        $this->assertSame('535 Authentication failed for *** with ***', $result);
+    }
+
+    public function testRedactCredentialsMasksConfiguredUsernameAndPasswordAsBase64(): void
+    {
+        $this->helper->method('getSmtpConfig')->with('username', self::STORE_ID)->willReturn('smtp-user');
+        $this->helper->method('getPassword')->with(self::STORE_ID)->willReturn('sup3rSecret!');
+
+        $text = '535 Auth rejected: ' . base64_encode('smtp-user') . ' / ' . base64_encode('sup3rSecret!');
+
+        $this->assertSame('535 Auth rejected: *** / ***', $this->invokeRedactCredentials($text));
+    }
+
+    public function testRedactCredentialsMasksAuthPlainBase64Blob(): void
+    {
+        $this->helper->method('getSmtpConfig')->with('username', self::STORE_ID)->willReturn('smtp-user');
+        $this->helper->method('getPassword')->with(self::STORE_ID)->willReturn('sup3rSecret!');
+
+        // AUTH PLAIN sends "\0user\0pass" as a single base64 blob.
+        $authPlain = base64_encode("\0smtp-user\0sup3rSecret!");
+
+        $this->assertSame('AUTH PLAIN ***', $this->invokeRedactCredentials('AUTH PLAIN ' . $authPlain));
+    }
+
+    public function testRedactCredentialsMasksUnknownTokenThatLooksLikeBase64(): void
+    {
+        $this->helper->method('getSmtpConfig')->with('username', self::STORE_ID)->willReturn('');
+        $this->helper->method('getPassword')->with(self::STORE_ID)->willReturn('');
+
+        // Not reconstructible from config, but mixes upper/lower/digit/symbol classes, so the
+        // generic base64-shaped fallback must still catch it.
+        $token = 'aGVsbG8gd29ybGQ+MTIzNA==';
+
+        $this->assertSame(
+            '535 Authentication failed: ***',
+            $this->invokeRedactCredentials('535 Authentication failed: ' . $token)
+        );
+    }
+
+    public function testRedactCredentialsKeepsDiagnosticTextThatIsNotACredential(): void
+    {
+        $this->helper->method('getSmtpConfig')->with('username', self::STORE_ID)->willReturn('smtp-user');
+        $this->helper->method('getPassword')->with(self::STORE_ID)->willReturn('sup3rSecret!');
+
+        // A long run of a single character class (repeated filler, a numeric message id, or a
+        // lowercase MIME boundary) must survive -- redacting it would throw away the only
+        // diagnostic the admin has, without actually being a credential.
+        $repeatedFiller  = str_repeat('a', 40);
+        $numericMessageId = str_repeat('1', 30);
+        $lowercaseBoundary = 'boundary' . str_repeat('b', 24);
+        $hostname          = 'smtp.mailtrap.io';
+
+        $text = "conn to $hostname failed, id=$numericMessageId boundary=$lowercaseBoundary filler=$repeatedFiller";
+
+        $this->assertSame($text, $this->invokeRedactCredentials($text));
+    }
+
+    public function testAroundSendMessageRetriesOnceWhenLegacyTransportSendThrowsRuntimeExceptionThenSucceeds(): void
+    {
+        if (!class_exists(\Laminas\Mail\Message::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
+        $this->helper = $this->legacyHelper();
+
+        $laminasMessage = new \Laminas\Mail\Message();
+        $this->resourceMail->method('processMessage')->willReturn($laminasMessage);
+
+        $sendCallCount = 0;
+        $transport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
+        $transport->method('send')->willReturnCallback(
+            function () use (&$sendCallCount) {
+                $sendCallCount++;
+                if ($sendCallCount === 1) {
+                    throw new \Laminas\Mail\Protocol\Exception\RuntimeException('Could not read from remote host');
+                }
+
+                return null;
+            }
+        );
+        $this->resourceMail->method('getTransport')->willReturn($transport);
+        $this->resourceMail->expects($this->once())->method('resetTransport');
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createMock(EmailMessage::class)),
+            $this->createProceed($called)
+        );
+
+        $this->assertSame(2, $sendCallCount);
+    }
+
+    public function testAroundSendMessageRethrowsWhenLegacyTransportSendFailsTwice(): void
+    {
+        if (!class_exists(\Laminas\Mail\Message::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
+        $this->helper = $this->legacyHelper();
+
+        $laminasMessage = new \Laminas\Mail\Message();
+        $this->resourceMail->method('processMessage')->willReturn($laminasMessage);
+
+        $sendCallCount = 0;
+        $transport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
+        $transport->method('send')->willReturnCallback(
+            function () use (&$sendCallCount) {
+                $sendCallCount++;
+                throw new \Laminas\Mail\Protocol\Exception\RuntimeException('Could not read from remote host');
+            }
+        );
+        $this->resourceMail->method('getTransport')->willReturn($transport);
+        $this->resourceMail->expects($this->once())->method('resetTransport');
+
+        $called = false;
+
+        $this->expectException(MailException::class);
+
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createMock(EmailMessage::class)),
+                $this->createProceed($called)
+            );
+        } finally {
+            $this->assertSame(2, $sendCallCount);
+        }
+    }
+
+    public function testAroundSendMessageResetsTransportWhenConnectionIsNoLongerAlive(): void
+    {
+        if (!class_exists(\Laminas\Mail\Message::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
+        $this->helper = $this->legacyHelper();
+
+        $laminasMessage = new \Laminas\Mail\Message();
+        $this->resourceMail->method('processMessage')->willReturn($laminasMessage);
+
+        $connection = $this->createMock(\Laminas\Mail\Protocol\Smtp::class);
+        $connection->method('hasSession')->willReturn(true);
+        $connection->method('noop')->willThrowException(new \RuntimeException('socket closed by peer'));
+
+        $staleTransport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
+        $staleTransport->method('getConnection')->willReturn($connection);
+        // isConnectionAlive() must retire this socket without ever calling send() on it.
+        $staleTransport->expects($this->never())->method('send');
+
+        $freshTransport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
+        $freshTransport->expects($this->once())->method('send');
+
+        $getTransportCallCount = 0;
+        $this->resourceMail->method('getTransport')->willReturnCallback(
+            function () use (&$getTransportCallCount, $staleTransport, $freshTransport) {
+                $getTransportCallCount++;
+
+                return $getTransportCallCount === 1 ? $staleTransport : $freshTransport;
+            }
+        );
+        $this->resourceMail->expects($this->once())->method('resetTransport')->willReturnSelf();
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createMock(EmailMessage::class)),
+            $this->createProceed($called)
+        );
+    }
+
     // Conversion (Graph + log paths) must survive every MIME shape.
 
     public function testConvertPlainTextRootIsUnchanged(): void
     {
-        $email = $this->convertViaGraph(new TextPart('plain body'));
+        $email = $this->convertViaEmailLog(new TextPart('plain body'));
 
         $this->assertSame('plain body', $email->getTextBody());
         $this->assertSame([], $email->getAttachments());
@@ -347,7 +764,7 @@ class TransportTest extends TestCase
 
     public function testConvertHtmlRootIsUnchanged(): void
     {
-        $email = $this->convertViaGraph(new TextPart('<p>html body</p>', 'utf-8', 'html'));
+        $email = $this->convertViaEmailLog(new TextPart('<p>html body</p>', 'utf-8', 'html'));
 
         $this->assertSame('<p>html body</p>', $email->getHtmlBody());
         $this->assertSame([], $email->getAttachments());
@@ -355,7 +772,7 @@ class TransportTest extends TestCase
 
     public function testConvertAlternativePartKeepsBothBodies(): void
     {
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new AlternativePart(new TextPart('plain'), new TextPart('<p>html</p>', 'utf-8', 'html'))
         );
 
@@ -366,7 +783,7 @@ class TransportTest extends TestCase
 
     public function testConvertMixedAlternativeWithAttachmentKeepsBodyAndAttachment(): void
     {
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(
                 new AlternativePart(new TextPart('plain'), new TextPart('<p>html</p>', 'utf-8', 'html')),
                 new DataPart('id,name', 'export.csv', 'text/csv')
@@ -380,7 +797,7 @@ class TransportTest extends TestCase
 
     public function testConvertMixedWithTwoAttachmentsKeepsOrder(): void
     {
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(
                 new TextPart('plain'),
                 new DataPart('A', 'first.pdf', 'application/pdf'),
@@ -395,7 +812,7 @@ class TransportTest extends TestCase
     public function testConvertNestedRelatedTreeKeepsBodiesAndAttachments(): void
     {
         $png = new DataPart('PNGDATA', 'logo.png', 'image/png');
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(
                 new RelatedPart(
                     new AlternativePart(new TextPart('plain'), new TextPart('<p>html</p>', 'utf-8', 'html')),
@@ -413,7 +830,7 @@ class TransportTest extends TestCase
     public function testConvertBinaryAttachmentPayloadIsByteIdentical(): void
     {
         $payload = random_bytes(64);
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(new TextPart('plain'), new DataPart($payload, 'blob.pdf', 'application/pdf'))
         );
 
@@ -423,7 +840,7 @@ class TransportTest extends TestCase
     public function testConvertUtf8BodyIsByteIdentical(): void
     {
         $body = 'Xin chào — tiếng Việt có dấu';
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(new TextPart($body), new DataPart('X', 'a.txt', 'text/plain'))
         );
 
@@ -432,7 +849,7 @@ class TransportTest extends TestCase
 
     public function testConvertBareDataPartRootBecomesAttachmentNotBody(): void
     {
-        $email = $this->convertViaGraph(new DataPart('FILEDATA', 'only.pdf', 'application/pdf'));
+        $email = $this->convertViaEmailLog(new DataPart('FILEDATA', 'only.pdf', 'application/pdf'));
 
         $this->assertSame(['only.pdf'], $this->attachmentNames($email));
         $this->assertNull($email->getTextBody());
@@ -441,7 +858,7 @@ class TransportTest extends TestCase
 
     public function testConvertHtmlDataPartRootIsNotUsedAsBody(): void
     {
-        $email = $this->convertViaGraph(new DataPart('<h1>file</h1>', 'page.html', 'text/html'));
+        $email = $this->convertViaEmailLog(new DataPart('<h1>file</h1>', 'page.html', 'text/html'));
 
         $this->assertSame(['page.html'], $this->attachmentNames($email));
         $this->assertNull($email->getHtmlBody());
@@ -450,7 +867,7 @@ class TransportTest extends TestCase
     public function testConvertTextPlainAttachmentDoesNotOverwriteHtmlBody(): void
     {
         // DataPart extends TextPart, so an attachment-first tree used to hijack the body.
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(
                 new DataPart('attached text', 'note.txt', 'text/plain'),
                 new TextPart('<p>real body</p>', 'utf-8', 'html')
@@ -466,21 +883,21 @@ class TransportTest extends TestCase
     {
         $smime = new SMimePart('ENCRYPTED', 'application', 'pkcs7-mime', ['smime-type' => 'enveloped-data']);
 
-        $email = $this->convertViaGraph($smime);
+        $email = $this->convertViaEmailLog($smime);
 
         $this->assertSame($smime, $email->getBody());
     }
 
     public function testConvertPreservesNonUtf8Charset(): void
     {
-        $email = $this->convertViaGraph(new TextPart('body', 'iso-8859-1', 'html'));
+        $email = $this->convertViaEmailLog(new TextPart('body', 'iso-8859-1', 'html'));
 
         $this->assertSame('iso-8859-1', $email->getHtmlCharset());
     }
 
     public function testConvertAttachmentsOnlyDoesNotInjectPlaceholder(): void
     {
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(
                 new DataPart('A', 'a.pdf', 'application/pdf'),
                 new DataPart('B', 'b.pdf', 'application/pdf')
@@ -494,7 +911,7 @@ class TransportTest extends TestCase
 
     public function testConvertCalendarPartBecomesAttachmentNotBody(): void
     {
-        $email = $this->convertViaGraph(
+        $email = $this->convertViaEmailLog(
             new MixedPart(new TextPart('plain body'), new TextPart('BEGIN:VCALENDAR', 'utf-8', 'calendar'))
         );
 
@@ -507,9 +924,102 @@ class TransportTest extends TestCase
         $part = new TextPart('body');
         $part->getHeaders()->addTextHeader('Content-Type', 'text/plain');
 
-        $email = $this->convertViaGraph($part);
+        $email = $this->convertViaEmailLog($part);
 
         $this->assertSame('utf-8', $email->getTextCharset());
+    }
+
+    // SMTP-5: on Magento < 2.4.8, EmailMessage::getBody() returns a real
+    // Laminas\Mime\Message (see Magento\Framework\Mail\Message::getBody()),
+    // not a Symfony\Component\Mime\Part\AbstractPart. convertToSymfonyEmail()
+    // must not silently drop that body as "No readable content.".
+    // A mock EmailMessage is used deliberately (not a Laminas one) because
+    // this is the exact object aroundSendMessage() hands to convertToSymfonyEmail()
+    // in production; only getBody()'s return value needs to be the real
+    // Laminas\Mime\Message type this bug is about.
+
+    public function testConvertHandlesLaminasMimeMessageBodyWithHtmlAndAttachment(): void
+    {
+        if (!class_exists(\Laminas\Mime\Part::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
+        $htmlPart = new \Laminas\Mime\Part('<p>Hello</p>');
+        $htmlPart->type = 'text/html';
+        $htmlPart->charset = 'utf-8';
+
+        $attachmentPart = new \Laminas\Mime\Part('PDFDATA');
+        $attachmentPart->type = 'application/pdf';
+        $attachmentPart->disposition = \Laminas\Mime\Mime::DISPOSITION_ATTACHMENT;
+        $attachmentPart->encoding = \Laminas\Mime\Mime::ENCODING_BASE64;
+        $attachmentPart->filename = 'invoice.pdf';
+
+        $mimeMessage = new \Laminas\Mime\Message();
+        $mimeMessage->setParts([$htmlPart, $attachmentPart]);
+
+        $message = $this->createMock(EmailMessage::class);
+        $message->method('getTo')->willReturn([]);
+        $message->method('getFrom')->willReturn([]);
+        $message->method('getCc')->willReturn([]);
+        $message->method('getBcc')->willReturn([]);
+        $message->method('getReplyTo')->willReturn([]);
+        $message->method('getSubject')->willReturn('Subject');
+        $message->method('getBody')->willReturn($mimeMessage);
+
+        $email = $this->convertViaEmailLog(null, $message);
+
+        $this->assertNotSame('No readable content.', $email->getHtmlBody());
+        $this->assertSame('<p>Hello</p>', $email->getHtmlBody());
+        $this->assertCount(1, $email->getAttachments());
+        $this->assertSame(['invoice.pdf'], $this->attachmentNames($email));
+    }
+
+    // Production shape: TransportBuilder/EmailMessage hand
+    // Laminas\Mime\Message::setParts() an array of Magento\Framework\Mail\MimePart
+    // objects (Magento's own MimePartInterface wrapper), NOT raw
+    // Laminas\Mime\Part -- they only expose the same accessor method names.
+    // A mock-only test using Laminas\Mime\Part alone would miss this.
+    public function testConvertHandlesMagentoMimePartObjectsInsideLaminasMimeMessage(): void
+    {
+        if (!class_exists(\Laminas\Mime\Message::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
+        $htmlPart = new MimePart(
+            '<p>Real Magento part</p>',
+            MimeInterface::TYPE_HTML,
+            null,
+            MimeInterface::DISPOSITION_INLINE,
+            MimeInterface::ENCODING_QUOTED_PRINTABLE,
+            null,
+            [],
+            'utf-8'
+        );
+        $attachmentPart = new MimePart(
+            'PDFDATA',
+            'application/pdf',
+            'invoice.pdf',
+            MimeInterface::DISPOSITION_ATTACHMENT,
+            MimeInterface::ENCODING_BASE64
+        );
+
+        $mimeMessage = new \Laminas\Mime\Message();
+        $mimeMessage->setParts([$htmlPart, $attachmentPart]);
+
+        $message = $this->createMock(EmailMessage::class);
+        $message->method('getTo')->willReturn([]);
+        $message->method('getFrom')->willReturn([]);
+        $message->method('getCc')->willReturn([]);
+        $message->method('getBcc')->willReturn([]);
+        $message->method('getReplyTo')->willReturn([]);
+        $message->method('getSubject')->willReturn('Subject');
+        $message->method('getBody')->willReturn($mimeMessage);
+
+        $email = $this->convertViaEmailLog(null, $message);
+
+        $this->assertSame('<p>Real Magento part</p>', $email->getHtmlBody());
+        $this->assertCount(1, $email->getAttachments());
+        $this->assertSame(['invoice.pdf'], $this->attachmentNames($email));
     }
 
     public function testConvertEmptyBodyFallsBackToPlaceholder(): void
@@ -524,7 +1034,7 @@ class TransportTest extends TestCase
         $message->method('getBody')->willThrowException(new TypeError('no body'));
         $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage(new Headers()));
 
-        $email = $this->convertViaGraph(null, $message);
+        $email = $this->convertViaEmailLog(null, $message);
 
         $this->assertSame('No readable content.', $email->getTextBody());
     }
@@ -624,7 +1134,7 @@ class TransportTest extends TestCase
         $message->method('getBody')->willReturn(new TextPart('x'));
         $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage(new Headers(), new TextPart('x')));
 
-        $this->assertCount(2, $this->convertViaGraph(null, $message)->getReplyTo());
+        $this->assertCount(2, $this->convertViaEmailLog(null, $message)->getReplyTo());
     }
 
     public function testConvertDoesNotDuplicateCcFromClonedHeaders(): void
@@ -646,7 +1156,7 @@ class TransportTest extends TestCase
         $message->method('getBody')->willReturn(new TextPart('x'));
         $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage($headers, new TextPart('x')));
 
-        $this->assertCount(1, $this->convertViaGraph(null, $message)->getCc());
+        $this->assertCount(1, $this->convertViaEmailLog(null, $message)->getCc());
     }
 
     public function testEmailLogConvertsMessageOutsideDeveloperMode(): void
@@ -686,6 +1196,422 @@ class TransportTest extends TestCase
 
         $this->assertInstanceOf(Email::class, $logged);
         $this->assertSame('logged body', $logged->getTextBody());
+    }
+
+    // SMTP-2 (DB): emailLog() must persist the failure reason alongside the existing
+    // saveLogSymfony() call. The Graph API path is used deliberately here (not SMTP/Symfony
+    // Mailer) since it never touches getSymfonyMessage()/Symfony\Component\Mailer\Transport\
+    // TransportInterface -- both unavailable in this Magento < 2.4.8 test environment and
+    // already responsible for the accepted 43-error baseline; a manually-built EmailMessage
+    // mock (no getSymfonyMessage stub) keeps these new tests out of that bucket.
+
+    // $withSymfonyMessage stubs getSymfonyMessage() so convertToSymfonyEmail() -- called from
+    // emailLog()'s saveLogSymfony branch -- gets a real Symfony\Component\Mime\Message instead
+    // of relying on PHPUnit's auto-generated return value for the unstubbed method. On Magento
+    // >= 2.4.8, EmailMessage::getSymfonyMessage() really exists, so method_exists() on the mock
+    // is true there too; without this stub, PHPUnit auto-generates a return value and then fails
+    // trying to mock the final Symfony\Component\Mime\Header\Headers class when getHeaders() is
+    // called on it -- an exception that emailLog()'s catch (Exception $e) swallows silently,
+    // so saveLogSymfony() is never reached.
+    private function createBasicMessage(
+        ?AbstractPart $body = null,
+        bool $withSymfonyMessage = false
+    ): EmailMessage&MockObject {
+        $message = $this->createMock(EmailMessage::class);
+        $message->method('getTo')->willReturn([]);
+        $message->method('getFrom')->willReturn([]);
+        $message->method('getCc')->willReturn([]);
+        $message->method('getBcc')->willReturn([]);
+        $message->method('getReplyTo')->willReturn([]);
+        $message->method('getSubject')->willReturn('Subject');
+        $message->method('getBody')->willReturn($body ?? new TextPart('body'));
+        if ($withSymfonyMessage) {
+            // EmailMessage::getSymfonyMessage() only exists on Magento >= 2.4.8 -- stubbing a
+            // method the mocked class doesn't declare throws MethodCannotBeConfiguredException,
+            // so skip rather than let that surface as an error on older Magento.
+            if (!method_exists(EmailMessage::class, 'getSymfonyMessage')) {
+                $this->markTestSkipped('EmailMessage::getSymfonyMessage() is not available (Magento >= 2.4.8).');
+            }
+            $message->method('getSymfonyMessage')->willReturn(
+                new SymfonyMessage(new Headers(), $body ?? new TextPart('body'))
+            );
+        }
+
+        return $message;
+    }
+
+    // $useSymfonyBranch controls the mocked versionCompare('2.4.8') result, which is what
+    // emailLog() branches on to call saveLog() (legacy) vs saveLogSymfony() -- independent of
+    // which Magento version phpunit actually runs on, so both branches are covered on either
+    // version. Every other version check (e.g. getMessage()'s versionCompare('2.2.0'), which
+    // picks $transport->getMessage() vs a reflection fallback for Magento < 2.2.0) must still
+    // resolve true -- this environment is always >= 2.2.0 -- so only the '2.4.8' argument is
+    // pinned to $useSymfonyBranch.
+    private function enableLoggingViaGraphHelper(bool $useSymfonyBranch = false): Data&MockObject
+    {
+        $helper = $this->createMock(Data::class);
+        $helper->method('versionCompare')->willReturnCallback(
+            static fn (string $version): bool => $version === '2.4.8' ? $useSymfonyBranch : true
+        );
+        $helper->method('isTestEmail')->willReturn(true);
+        $helper->method('isEnabled')->willReturn(true);
+        $helper->method('shouldUseGraphApi')->willReturn(true);
+
+        return $helper;
+    }
+
+    private function enableLoggingResourceMail(): Mail&MockObject
+    {
+        $resourceMail = $this->createMock(Mail::class);
+        $resourceMail->method('isModuleEnable')->willReturn(true);
+        $resourceMail->method('isDeveloperMode')->willReturn(false);
+        $resourceMail->method('getSmtpOptions')->willReturn([]);
+        $resourceMail->method('isEnableEmailLog')->willReturn(true);
+
+        return $resourceMail;
+    }
+
+    public function testEmailLogPassesErrorMessageWhenSendFails(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper();
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willThrowException(new \RuntimeException('smtp exploded'));
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLog')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createBasicMessage()),
+                $this->createProceed($called)
+            );
+            $this->fail('Expected MailException to propagate.');
+        } catch (MailException $e) {
+            // Expected.
+        }
+
+        $this->assertSame('RuntimeException: smtp exploded', $capturedExtra['error_message']);
+    }
+
+    public function testEmailLogPassesErrorMessageWhenSendFailsSymfonyBranch(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper(true);
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willThrowException(new \RuntimeException('smtp exploded'));
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLogSymfony')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createBasicMessage(withSymfonyMessage: true)),
+                $this->createProceed($called)
+            );
+            $this->fail('Expected MailException to propagate.');
+        } catch (MailException $e) {
+            // Expected.
+        }
+
+        $this->assertSame('RuntimeException: smtp exploded', $capturedExtra['error_message']);
+    }
+
+    public function testEmailLogTruncatesErrorMessageTo2000Characters(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper();
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willThrowException(
+            new \RuntimeException(str_repeat('y', 3000))
+        );
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLog')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createBasicMessage()),
+                $this->createProceed($called)
+            );
+        } catch (MailException $e) {
+            // Expected.
+        }
+
+        $this->assertSame(2000, strlen($capturedExtra['error_message']));
+    }
+
+    public function testEmailLogTruncatesErrorMessageTo2000CharactersSymfonyBranch(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper(true);
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willThrowException(
+            new \RuntimeException(str_repeat('y', 2000))
+        );
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLogSymfony')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createBasicMessage(withSymfonyMessage: true)),
+                $this->createProceed($called)
+            );
+        } catch (MailException $e) {
+            // Expected.
+        }
+
+        $this->assertSame(2000, strlen($capturedExtra['error_message']));
+    }
+
+    public function testEmailLogDoesNotIncludeErrorMessageWhenSendSucceeds(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper();
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLog')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage()),
+            $this->createProceed($called)
+        );
+
+        $this->assertArrayNotHasKey('error_message', $capturedExtra);
+    }
+
+    public function testEmailLogDoesNotIncludeErrorMessageWhenSendSucceedsSymfonyBranch(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper(true);
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLogSymfony')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage(withSymfonyMessage: true)),
+            $this->createProceed($called)
+        );
+
+        $this->assertArrayNotHasKey('error_message', $capturedExtra);
+    }
+
+    // SMTP-4: emailLog() must pick up the entity_type/entity_id that
+    // Observer\Email\SetTemplateVarsEntity stashed in the registry while the email template
+    // was being built, persist them alongside the log row, and always clear the registry key
+    // afterwards -- even when logging itself is disabled -- so it can never leak onto the
+    // next, unrelated email sent in the same request.
+
+    public function testEmailLogPassesEntityFromRegistryAndClearsIt(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper();
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
+
+        $registry = $this->createMock(Registry::class);
+        $registry->method('registry')->willReturnCallback(
+            static fn (string $key) => $key === SetTemplateVarsEntity::REGISTRY_KEY
+                ? ['entity_type' => 'order', 'entity_id' => 42]
+                : null
+        );
+        $registry->expects($this->once())->method('unregister')->with(SetTemplateVarsEntity::REGISTRY_KEY);
+        $this->registry = $registry;
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLog')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage()),
+            $this->createProceed($called)
+        );
+
+        $this->assertSame('order', $capturedExtra['entity_type']);
+        $this->assertSame(42, $capturedExtra['entity_id']);
+    }
+
+    public function testEmailLogPassesEntityFromRegistryAndClearsItSymfonyBranch(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper(true);
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
+
+        $registry = $this->createMock(Registry::class);
+        $registry->method('registry')->willReturnCallback(
+            static fn (string $key) => $key === SetTemplateVarsEntity::REGISTRY_KEY
+                ? ['entity_type' => 'order', 'entity_id' => 42]
+                : null
+        );
+        $registry->expects($this->once())->method('unregister')->with(SetTemplateVarsEntity::REGISTRY_KEY);
+        $this->registry = $registry;
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLogSymfony')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage(withSymfonyMessage: true)),
+            $this->createProceed($called)
+        );
+
+        $this->assertSame('order', $capturedExtra['entity_type']);
+        $this->assertSame(42, $capturedExtra['entity_id']);
+    }
+
+    public function testEmailLogOmitsEntityDataWhenRegistryEmpty(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper();
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLog')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage()),
+            $this->createProceed($called)
+        );
+
+        $this->assertArrayNotHasKey('entity_type', $capturedExtra);
+        $this->assertArrayNotHasKey('entity_id', $capturedExtra);
+    }
+
+    public function testEmailLogOmitsEntityDataWhenRegistryEmptySymfonyBranch(): void
+    {
+        $this->helper = $this->enableLoggingViaGraphHelper(true);
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
+
+        $capturedExtra = null;
+        $log = $this->createMock(Log::class);
+        $log->method('saveLogSymfony')->willReturnCallback(
+            function ($message, $status, $storeId, array $extra = []) use (&$capturedExtra) {
+                $capturedExtra = $extra;
+
+                return true;
+            }
+        );
+        $this->logFactory->method('create')->willReturn($log);
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage(withSymfonyMessage: true)),
+            $this->createProceed($called)
+        );
+
+        $this->assertArrayNotHasKey('entity_type', $capturedExtra);
+        $this->assertArrayNotHasKey('entity_id', $capturedExtra);
+    }
+
+    public function testEmailLogClearsRegistryEvenWhenLoggingDisabled(): void
+    {
+        // isEnabled() false -> emailLog() no-ops before ever creating a Log row. The registry
+        // key must still be cleared, or it would leak onto the next email sent in this
+        // request. Graph path + createBasicMessage() (not createMessage()/getSymfonyMessage())
+        // to stay clear of the accepted < 2.4.8 baseline errors, same as the SMTP-2 tests above.
+        $helper = $this->createMock(Data::class);
+        $helper->method('versionCompare')->willReturn(true);
+        $helper->method('isTestEmail')->willReturn(true);
+        $helper->method('isEnabled')->willReturn(false);
+        $helper->method('shouldUseGraphApi')->willReturn(true);
+        $this->helper = $helper;
+        $this->resourceMail = $this->enableLoggingResourceMail();
+        $this->graphMailer->method('sendEmailPayload')->willReturn(true);
+
+        $registry = $this->createMock(Registry::class);
+        $registry->method('registry')->willReturnCallback(
+            static fn (string $key) => $key === SetTemplateVarsEntity::REGISTRY_KEY
+                ? ['entity_type' => 'order', 'entity_id' => 42]
+                : ($key === 'mp_smtp_store_id' ? self::STORE_ID : null)
+        );
+        $registry->expects($this->once())->method('unregister')->with(SetTemplateVarsEntity::REGISTRY_KEY);
+        $this->registry = $registry;
+
+        $this->logFactory->expects($this->never())->method('create');
+
+        $called = false;
+        $this->createSut()->aroundSendMessage(
+            $this->createSubject($this->createBasicMessage()),
+            $this->createProceed($called)
+        );
     }
 
     public function testGetRecipientJoinsAddresses(): void

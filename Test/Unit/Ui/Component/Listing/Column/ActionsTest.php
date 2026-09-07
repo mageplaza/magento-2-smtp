@@ -98,9 +98,13 @@ class ActionsTest extends TestCase
         $this->assertSame('http://shop/adminhtml/smtp/email/id/7', $actions['resend']['href']);
         $this->assertSame((string) __('Resend'), (string) $actions['resend']['label']);
         $this->assertSame((string) __('Resend Email'), (string) $actions['resend']['confirm']['title']);
+        // SMTP-3: resend now replays both the logged HTML and any attachment stored with
+        // the log entry (attachments are captured on send, see Model/Log.php).
         $this->assertSame(
             (string) __(
-                'Are you sure you want to resend the email <strong>"%1"</strong>?',
+                'Are you sure you want to resend the email <strong>"%1"</strong>?'
+                . ' The HTML content and any attachment stored with this log entry'
+                . ' are sent again.',
                 'Order confirmation'
             ),
             (string) $actions['resend']['confirm']['message']

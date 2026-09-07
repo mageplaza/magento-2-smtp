@@ -82,7 +82,7 @@
                         <item name="url" xsi:type="url" path="adminhtml/smtp/massresend"/>
                         <item name="confirm" xsi:type="array">
                             <item name="title" xsi:type="string" translate="true">Resend items</item>
-                            <item name="message" xsi:type="string" translate="true">Are you sure to resend selected log(s)?</item>
+                            <item name="message" xsi:type="string" translate="true">Are you sure to resend selected log(s)? The HTML content and any attachment stored with each log entry are sent again.</item>
                         </item>
                     </item>
                 </argument>
@@ -172,6 +172,17 @@
                     <item name="align" xsi:type="string">left</item>
                     <item name="label" xsi:type="string" translate="true">Bcc</item>
                     <item name="sortOrder" xsi:type="number">24</item>
+                    <item name="visible" xsi:type="boolean">false</item>
+                </item>
+            </argument>
+        </column>
+        <column name="error_message">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="align" xsi:type="string">left</item>
+                    <item name="label" xsi:type="string" translate="true">Error Message</item>
+                    <item name="sortOrder" xsi:type="number">28</item>
                     <item name="visible" xsi:type="boolean">false</item>
                 </item>
             </argument>

@@ -32,6 +32,8 @@ use Mageplaza\Smtp\Mail\Rse\Mail;
  */
 class TransportBuilder
 {
+    const ENTITY_KEYS = ['invoice', 'shipment', 'creditmemo', 'order'];
+
     /**
      * @var Registry $registry
      */
@@ -81,6 +83,43 @@ class TransportBuilder
         }
 
         return [$templateOptions];
+    }
+
+    /**
+     * @param \Magento\Framework\Mail\Template\TransportBuilder $subject
+     * @param $templateVars
+     *
+     * @return array
+     */
+    public function beforeSetTemplateVars(
+        \Magento\Framework\Mail\Template\TransportBuilder $subject,
+        $templateVars
+    ) {
+        $this->registry->unregister('mp_smtp_entity');
+
+        if (!is_array($templateVars)) {
+            return [$templateVars];
+        }
+
+        foreach (self::ENTITY_KEYS as $key) {
+            if (!isset($templateVars[$key]) || !is_object($templateVars[$key])) {
+                continue;
+            }
+
+            $entity = $templateVars[$key];
+            if (!method_exists($entity, 'getId') || !$entity->getId()) {
+                continue;
+            }
+
+            $this->registry->register('mp_smtp_entity', [
+                'type' => $key,
+                'id'   => $entity->getId(),
+            ]);
+
+            break;
+        }
+
+        return [$templateVars];
     }
 
     /**

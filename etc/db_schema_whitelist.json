@@ -1,0 +1,83 @@
+{
+    "mageplaza_smtp_log": {
+        "column": {
+            "id": true,
+            "subject": true,
+            "email_content": true,
+            "status": true,
+            "created_at": true,
+            "from": true,
+            "to": true,
+            "cc": true,
+            "bcc": true,
+            "sender": true,
+            "recipient": true,
+            "error_message": true,
+            "entity_type": true,
+            "entity_id": true
+        },
+        "index": {
+            "MAGEPLAZA_SMTP_LOG_STATUS": true,
+            "MAGEPLAZA_SMTP_LOG_ENTITY_TYPE_ENTITY_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "mageplaza_smtp_abandonedcart": {
+        "column": {
+            "id": true,
+            "log_ids": true,
+            "token": true,
+            "quote_id": true,
+            "status": true,
+            "created_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "MAGEPLAZA_SMTP_ABANDONEDCART_QUOTE_ID_QUOTE_ENTITY_ID": true
+        },
+        "index": {}
+    },
+    "quote": {
+        "column": {
+            "mp_smtp_ace_token": true,
+            "mp_smtp_ace_sent": true,
+            "mp_smtp_ace_log_ids": true,
+            "mp_smtp_ace_log_data": true
+        }
+    },
+    "sales_order": {
+        "column": {
+            "mp_smtp_email_marketing_synced": true,
+            "mp_smtp_email_marketing_order_created": true
+        }
+    },
+    "customer_entity": {
+        "column": {
+            "mp_smtp_email_marketing_synced": true
+        }
+    },
+    "newsletter_subscriber": {
+        "column": {
+            "mp_smtp_email_marketing_synced": true
+        }
+    },
+    "mageplaza_smtp_log_attachment": {
+        "column": {
+            "id": true,
+            "log_id": true,
+            "filename": true,
+            "mime_type": true,
+            "disposition": true,
+            "content": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "MP_SMTP_LOG_ATTACHMENT_LOG_ID_MP_SMTP_LOG_ID": true
+        },
+        "index": {
+            "MAGEPLAZA_SMTP_LOG_ATTACHMENT_LOG_ID": true
+        }
+    }
+}
