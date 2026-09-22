@@ -264,6 +264,27 @@ class Host extends Field
                     'protocol' => 'tls'
                 ]
             ],
+            'turbosmtp'   => [
+                'label' => __('turboSMTP'),
+                'info'  => [
+                    'global' => [
+                        'label' => __('Global'),
+                        'info'  => [
+                            'host'     => 'pro.turbo-smtp.com',
+                            'port'     => '465',
+                            'protocol' => 'ssl'
+                        ]
+                    ],
+                    'eu'     => [
+                        'label' => __('EU'),
+                        'info'  => [
+                            'host'     => 'pro.eu.turbo-smtp.com',
+                            'port'     => '465',
+                            'protocol' => 'ssl'
+                        ]
+                    ]
+                ]
+            ],
             'aol'         => [
                 'label' => __('AOL Mail'),
                 'info'  => [
