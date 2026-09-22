@@ -1,4 +1,4 @@
-<?xml version="1.0"?><!--
+<?php
 /**
  * Mageplaza
  *
@@ -18,15 +18,24 @@
  * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
  * @license     https://www.mageplaza.com/LICENSE.txt
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="Mageplaza_Smtp" setup_version="1.2.6">
-        <sequence>
-            <module name="Mageplaza_Core"/>
-            <module name="Magento_Customer"/>
-            <module name="Magento_Newsletter"/>
-            <module name="Magento_Quote"/>
-            <module name="Magento_Sales"/>
-        </sequence>
-    </module>
-</config>
+
+namespace Mageplaza\Smtp\Model;
+
+/**
+ * Class AbandonedCartToken
+ * @package Mageplaza\Smtp\Model
+ */
+class AbandonedCartToken
+{
+    const LENGTH = 32;
+
+    /**
+     * @param mixed $token
+     *
+     * @return bool
+     */
+    public static function isValid($token)
+    {
+        return is_string($token) && preg_match('/^[A-Za-z0-9]{' . self::LENGTH . '}\z/', $token) === 1;
+    }
+}

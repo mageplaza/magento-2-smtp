@@ -33,6 +33,7 @@ use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\ResourceModel\Quote\Collection;
 use Magento\Store\Model\StoreManagerInterface;
 use Mageplaza\Smtp\Helper\Data;
+use Mageplaza\Smtp\Model\AbandonedCartToken;
 
 /**
  * Class Recover
@@ -142,20 +143,7 @@ class Recover extends Action
             throw new LocalizedException(__('Marketing Automation is disabled.'));
         }
 
-        $token              = explode('_', $token);
-        $quoteId            = isset($token[1]) ? base64_decode($token[1]) : '';
-        $abandonedCartToken = isset($token[0]) ? $token[0] : '';
-
-        /**
-         * @var Quote $quote
-         */
-        $quote = $this->quoteCollection
-            ->addFieldToFilter('entity_id', $quoteId)
-            ->addFieldToFilter('mp_smtp_ace_token', $abandonedCartToken)
-            ->getFirstItem();
-        if (!$quote->getId()) {
-            throw new LocalizedException(__('The link is not available for your use'));
-        }
+        $quote = $this->getQuoteByToken($token);
 
         if (!$quote->getIsActive()) {
             throw new LocalizedException(__('An error occurred while recovering your cart.'));
@@ -164,7 +152,7 @@ class Recover extends Action
         $customerId = (int) $quote->getCustomerId();
 
         if (!$customerId) {
-            $this->checkoutSession->setQuoteId($quoteId);
+            $this->checkoutSession->setQuoteId($quote->getId());
 
             return true;
         }
@@ -184,5 +172,40 @@ class Recover extends Action
         }
 
         return true;
+    }
+
+    /**
+     * @param mixed $token
+     *
+     * @return Quote
+     * @throws LocalizedException
+     */
+    protected function getQuoteByToken($token)
+    {
+        $parts              = is_string($token) ? explode('_', $token, 2) : [];
+        $abandonedCartToken = isset($parts[0]) ? $parts[0] : '';
+        $quoteId            = isset($parts[1]) ? base64_decode($parts[1], true) : false;
+
+        if (!AbandonedCartToken::isValid($abandonedCartToken)
+            || !is_string($quoteId)
+            || !ctype_digit($quoteId)
+            || (int) $quoteId < 1
+        ) {
+            throw new LocalizedException(__('The link is not available for your use'));
+        }
+
+        /**
+         * @var Quote $quote
+         */
+        $quote = $this->quoteCollection
+            ->addFieldToFilter('entity_id', (int) $quoteId)
+            ->getFirstItem();
+        if (!$quote->getId()
+            || !hash_equals((string) $quote->getData('mp_smtp_ace_token'), $abandonedCartToken)
+        ) {
+            throw new LocalizedException(__('The link is not available for your use'));
+        }
+
+        return $quote;
     }
 }

@@ -27,6 +27,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Math\Random;
 use Magento\Quote\Model\Quote;
+use Mageplaza\Smtp\Model\AbandonedCartToken;
 
 /**
  * Class SetToken
@@ -60,7 +61,7 @@ class SetToken implements ObserverInterface
     {
         /* @var Quote $quote */
         $quote = $observer->getEvent()->getQuote();
-        if (!$quote->getData('mp_smtp_ace_token')) {
+        if (!AbandonedCartToken::isValid($quote->getData('mp_smtp_ace_token'))) {
             $quote->setData('mp_smtp_ace_token', $this->random->getUniqueHash());
         }
     }

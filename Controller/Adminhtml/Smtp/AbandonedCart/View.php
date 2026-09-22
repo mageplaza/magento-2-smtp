@@ -30,6 +30,7 @@ use Magento\Framework\Registry;
 use Magento\Framework\View\Result\Page;
 use Magento\Framework\View\Result\PageFactory;
 use Magento\Quote\Model\QuoteRepository;
+use Mageplaza\Smtp\Model\AbandonedCartToken;
 
 /**
  * Class View
@@ -94,7 +95,7 @@ class View extends Action
             return $this->_redirect('adminhtml/smtp/abandonedcart');
         }
 
-        if (!$quote->getData('mp_smtp_ace_token')) {
+        if (!AbandonedCartToken::isValid($quote->getData('mp_smtp_ace_token'))) {
             $quote->setData('mp_smtp_ace_token', $this->random->getUniqueHash())->save();
         }
 
