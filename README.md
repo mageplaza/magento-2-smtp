@@ -122,14 +122,14 @@ In the general general configuration area, scroll down to the SMTP Configuration
 	- Login: Authentication by login to the account through Username and Password that will be filled in the next field. Most of provider will require this method.
 	- Plain
 	- CRAM-MD5
-- Account: where you enter the account name matching format of the SMTP Provider you had selected
+- Username: where you enter the account name matching format of the SMTP Provider you had selected
 - Password: password of the Username. After saving, the password will be encrypted into ******
 - Protocol: pass this step if you had chosen Auto fill, or you can select one of the providing protocol below here
 	- None: when you select this protocol, you have to accept all the risk may occur in the process of sending.
 	- SSL stands for Secure Socket Layer. This protocol ensures that all data exchanged between the web server and the browser is secure and stay safe.
 	- TLS means Transport Layer Security. This protocol secures data or messages and validates the integrity of messages through message authentication codes.
 - Return-path email: leave it empty if you want to ignore this.
-- Test email recipient: This is the field for you to test the operation of the extension. After filling all fields, click Test Now button. If the information entered is valid, a successful email notification will be sent from Username to Email Test. That email will have the following content:
+- Test email recipient: This is the field for you to test the operation of the extension. After filling all fields, click Test Now button. If the information entered is valid, a successful email notification will be sent from the selected Sender to the Test Email recipient. That email will have the following content:
 
 ![magento 2 smtp test result](https://i.imgur.com/D0cw3ta.png)
 
