@@ -234,7 +234,6 @@ class Data extends AbstractData
 
         // Use Microsoft Graph API scope for sendMail API
         $scope = trim($config['oauth_scope'] ?? 'https://graph.microsoft.com/.default');
-        $ttl   = (int) ($config['oauth_cache_ttl'] ?? 3300);
 
         if (!$tenantId || !$clientId || !$clientSecret) {
             // Add more detailed error message
@@ -283,12 +282,33 @@ class Data extends AbstractData
             throw new LocalizedException(__('OAuth token response missing access_token.'));
         }
 
-        $token     = $data['access_token'];
-        $expiresIn = isset($data['expires_in']) ? (int) $data['expires_in'] : $ttl;
-        $lifetime  = $ttl ?: max(300, $expiresIn - 120);
-        $this->cache->save($token, $cacheKey, [], $lifetime);
+        $token = $data['access_token'];
+        $this->cache->save($token, $cacheKey, [], $this->getOauthTokenLifetime($data));
 
         return $token;
+    }
+
+    /**
+     * @param array $data Token endpoint response
+     *
+     * @return int
+     */
+    public function getOauthTokenLifetime($data)
+    {
+        $expiresIn = isset($data['expires_in']) ? (int) $data['expires_in'] : 0;
+
+        if ($expiresIn <= 0) {
+            $parts   = explode('.', (string) $data['access_token']);
+            $payload = isset($parts[1])
+                ? json_decode((string) base64_decode(strtr($parts[1], '-_', '+/')), true)
+                : null;
+
+            if (!empty($payload['exp'])) {
+                $expiresIn = (int) $payload['exp'] - time();
+            }
+        }
+
+        return $expiresIn > 0 ? max(60, $expiresIn - 120) : 3300;
     }
 
     /**
