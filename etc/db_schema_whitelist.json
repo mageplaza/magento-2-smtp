@@ -14,11 +14,13 @@
             "recipient": true,
             "error_message": true,
             "entity_type": true,
-            "entity_id": true
+            "entity_id": true,
+            "store_id": true
         },
         "index": {
             "MAGEPLAZA_SMTP_LOG_STATUS": true,
-            "MAGEPLAZA_SMTP_LOG_ENTITY_TYPE_ENTITY_ID": true
+            "MAGEPLAZA_SMTP_LOG_ENTITY_TYPE_ENTITY_ID": true,
+            "MAGEPLAZA_SMTP_LOG_CREATED_AT": true
         },
         "constraint": {
             "PRIMARY": true

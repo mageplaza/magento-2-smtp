@@ -588,6 +588,13 @@ class Transport
             ];
         }
 
+        // Set From explicitly (see GraphMailer::buildGraphMessage()): otherwise Exchange Online
+        // sends from the mailbox's primary SMTP address instead of the store sender/alias.
+        $fromList = $message->getFrom();
+        if (is_array($fromList) && count($fromList)) {
+            $payload['message']['from'] = $this->buildGraphAddressList([reset($fromList)])[0];
+        }
+
         $replyTo = $message->getReplyTo();
         if ($replyTo) {
             $replyToAddresses = [];

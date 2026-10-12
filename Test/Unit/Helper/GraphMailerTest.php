@@ -219,6 +219,45 @@ class GraphMailerTest extends TestCase
         $this->assertSame('noreply@example.com', $decoded['message']['replyTo'][1]['emailAddress']['name']);
     }
 
+    public function testSendEmailSetsFromAddressAndNameInPayload(): void
+    {
+        $this->helper->method('getOauthAccessToken')->willReturn('access-token');
+        $captured = [];
+        $this->captureSuccessfulPostPayload($captured);
+
+        $email = (new Email())
+            ->from(new Address('alias@example.nl', 'Store NL'))
+            ->to('recipient@example.com')
+            ->subject('Alias sender')
+            ->text('body');
+
+        $this->createSut()->sendEmail($email);
+
+        $decoded = json_decode($captured['payload'], true);
+        $this->assertStringContainsString('alias%40example.nl', $captured['url']);
+        $this->assertSame('alias@example.nl', $decoded['message']['from']['emailAddress']['address']);
+        $this->assertSame('Store NL', $decoded['message']['from']['emailAddress']['name']);
+    }
+
+    public function testSendEmailOmitsFromNameWhenSenderHasNoName(): void
+    {
+        $this->helper->method('getOauthAccessToken')->willReturn('access-token');
+        $captured = [];
+        $this->captureSuccessfulPostPayload($captured);
+
+        $email = (new Email())
+            ->from('sender@example.com')
+            ->to('recipient@example.com')
+            ->subject('No name')
+            ->text('body');
+
+        $this->createSut()->sendEmail($email);
+
+        $decoded = json_decode($captured['payload'], true);
+        $this->assertSame('sender@example.com', $decoded['message']['from']['emailAddress']['address']);
+        $this->assertArrayNotHasKey('name', $decoded['message']['from']['emailAddress']);
+    }
+
     public function testSendEmailEncodesAttachmentAsBase64FileAttachment(): void
     {
         $this->helper->method('getOauthAccessToken')->willReturn('access-token');

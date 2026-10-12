@@ -334,6 +334,8 @@ class TransportTest extends TestCase
         $this->graphMailer->expects($this->once())->method('sendEmailPayload')->with(
             $this->callback(static function (array $payload): bool {
                 return $payload['message']['subject'] === 'Order confirmation'
+                    && $payload['message']['from']['emailAddress']['address'] === 'sender@example.com'
+                    && $payload['message']['from']['emailAddress']['name'] === 'Sender'
                     && $payload['message']['body']['contentType'] === 'HTML'
                     && $payload['message']['body']['content'] === '<p>Hi</p>'
                     && $payload['message']['toRecipients'][0]['emailAddress']['address'] === 'to@example.com'

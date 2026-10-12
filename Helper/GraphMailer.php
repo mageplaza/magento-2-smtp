@@ -239,6 +239,23 @@ class GraphMailer
             $message['message']['bccRecipients'][] = $recipient;
         }
 
+        // Set From explicitly. Without it Exchange Online falls back to the mailbox's primary
+        // SMTP address, so a store sender that is a proxy address (alias) and the sender
+        // name are lost. With SendFromAliasEnabled the alias is preserved.
+        $fromAddresses = $email->getFrom();
+        if (!empty($fromAddresses)) {
+            $fromAddress = reset($fromAddresses);
+            $from        = [
+                'emailAddress' => [
+                    'address' => $fromAddress->getAddress()
+                ]
+            ];
+            if ($fromAddress->getName()) {
+                $from['emailAddress']['name'] = $fromAddress->getName();
+            }
+            $message['message']['from'] = $from;
+        }
+
         // Set Reply-To
         if ($email->getReplyTo()) {
             $replyToAddresses = [];
