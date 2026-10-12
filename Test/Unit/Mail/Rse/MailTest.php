@@ -180,9 +180,31 @@ class MailTest extends TestCase
         $helper->expects($this->never())->method('getSmtpConfig');
         $mail = new Mail($helper);
         $cachedTransport = new \stdClass();
-        $this->setProtectedProperty($mail, '_transport', $cachedTransport);
+        $this->setProtectedProperty($mail, '_transport', [self::STORE_ID => $cachedTransport]);
 
         $this->assertSame($cachedTransport, $mail->getTransport(self::STORE_ID));
+    }
+
+    public function testGetTransportKeepsSeparateTransportPerStore(): void
+    {
+        if (!class_exists(\Laminas\Mail\Transport\Smtp::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
+        $helper = $this->createMock(Data::class);
+        $helper->method('getSmtpConfig')->willReturnCallback(
+            static fn ($path, $storeId) => ['host' => 'smtp-' . $storeId . '.example.com', 'port' => 25]
+        );
+        $helper->method('versionCompare')->willReturn(true);
+        $mail = new Mail($helper);
+
+        $first  = $mail->getTransport(1);
+        $second = $mail->getTransport(2);
+
+        $this->assertNotSame($first, $second);
+        $this->assertSame('smtp-1.example.com', $first->getOptions()->getHost());
+        $this->assertSame('smtp-2.example.com', $second->getOptions()->getHost());
+        $this->assertSame($first, $mail->getTransport(1));
     }
 
     public function testResetTransportForcesNewTransportOnNextGetTransport(): void
@@ -196,11 +218,11 @@ class MailTest extends TestCase
         $helper->method('versionCompare')->willReturn(false);
         $mail = new Mail($helper);
         $cachedTransport = new \stdClass();
-        $this->setProtectedProperty($mail, '_transport', $cachedTransport);
+        $this->setProtectedProperty($mail, '_transport', [self::STORE_ID => $cachedTransport]);
 
         $mail->resetTransport();
 
-        $this->assertNull($this->getProtectedProperty($mail, '_transport'));
+        $this->assertSame([], $this->getProtectedProperty($mail, '_transport'));
         $this->assertNotSame($cachedTransport, $mail->getTransport(self::STORE_ID));
     }
 

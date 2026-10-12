@@ -73,9 +73,9 @@ class Mail
     protected $_returnPath = [];
 
     /**
-     * @var Smtp
+     * @var Smtp[]
      */
-    protected $_transport;
+    protected $_transport = [];
 
     /**
      * @var array
@@ -135,7 +135,7 @@ class Mail
      */
     public function getTransport($storeId)
     {
-        if ($this->_transport === null) {
+        if (!isset($this->_transport[$storeId])) {
             if (!isset($this->_smtpOptions[$storeId])) {
                 $configData = $this->smtpHelper->getSmtpConfig('', $storeId);
                 $options    = [
@@ -180,13 +180,13 @@ class Mail
 
                 $options = new SmtpOptions($options);
 
-                $this->_transport = new Smtp($options);
+                $this->_transport[$storeId] = new Smtp($options);
             } else {
-                $this->_transport = new Smtp();
+                $this->_transport[$storeId] = new Smtp();
             }
         }
 
-        return $this->_transport;
+        return $this->_transport[$storeId];
     }
 
     /**
@@ -194,15 +194,17 @@ class Mail
      */
     public function resetTransport()
     {
-        if ($this->_transport instanceof Smtp) {
-            try {
-                $this->retireConnection($this->_transport->getConnection());
-            } catch (\Throwable $e) {
-                // The transport is being discarded; closing it cannot be worth an error.
+        foreach ($this->_transport as $transport) {
+            if ($transport instanceof Smtp) {
+                try {
+                    $this->retireConnection($transport->getConnection());
+                } catch (\Throwable $e) {
+                    // The transport is being discarded; closing it cannot be worth an error.
+                }
             }
         }
 
-        $this->_transport = null;
+        $this->_transport = [];
 
         return $this;
     }
@@ -210,8 +212,10 @@ class Mail
     public function __destruct()
     {
         try {
-            if ($this->_transport instanceof Smtp) {
-                $this->retireConnection($this->_transport->getConnection());
+            foreach ($this->_transport as $transport) {
+                if ($transport instanceof Smtp) {
+                    $this->retireConnection($transport->getConnection());
+                }
             }
         } catch (\Throwable $e) {
             // Shutdown is underway; there is nowhere left to report this.
