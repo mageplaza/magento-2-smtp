@@ -155,6 +155,32 @@ class EmailSentFlagUpdater
     }
 
     /**
+     * @param string|null $entityType
+     * @param int|string|null $entityId
+     *
+     * @return int|null
+     */
+    public function getEntityStoreId(?string $entityType, $entityId): ?int
+    {
+        if (!$entityType || !$entityId) {
+            return null;
+        }
+
+        [$repository] = $this->resolve($entityType);
+        if (!$repository) {
+            return null;
+        }
+
+        try {
+            $storeId = $repository->get($entityId)->getStoreId();
+        } catch (NoSuchEntityException $e) {
+            return null;
+        }
+
+        return $storeId === null ? null : (int) $storeId;
+    }
+
+    /**
      * Map the given entity type to its repository and resource pair, or [null, null] if unsupported.
      *
      * @param string $entityType

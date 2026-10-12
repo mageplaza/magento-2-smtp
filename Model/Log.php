@@ -706,12 +706,13 @@ class Log extends AbstractModel
             }
         }
 
-        $this->mailResource->setSmtpOptions(Store::DEFAULT_STORE_ID, ['force_sent' => true]);
+        $storeId = $this->getResendStoreId();
+        $this->mailResource->setSmtpOptions($storeId, ['force_sent' => true]);
 
         try {
             $this->_transportBuilder
                 ->setTemplateIdentifier('mpsmtp_resend_email_template')
-                ->setTemplateOptions(['area' => Area::AREA_FRONTEND, 'store' => Store::DEFAULT_STORE_ID])
+                ->setTemplateOptions(['area' => Area::AREA_FRONTEND, 'store' => $storeId])
                 ->setTemplateVars($data)
                 ->setFrom($sender);
 
@@ -732,6 +733,31 @@ class Log extends AbstractModel
         $this->flagLinkedEntityAsEmailed();
 
         return true;
+    }
+
+    /**
+     * Store the email was originally sent from: the logged store_id, else (rows logged before
+     * that column existed) the store of the linked order/invoice/shipment/creditmemo, else
+     * the default scope.
+     *
+     * @return int
+     */
+    protected function getResendStoreId()
+    {
+        $storeId = $this->getData('store_id');
+        if ($storeId !== null && $storeId !== '') {
+            return (int) $storeId;
+        }
+
+        try {
+            $storeId = $this->getEmailSentFlagUpdater()
+                ->getEntityStoreId($this->getEntityType(), $this->getEntityId());
+        } catch (Exception $e) {
+            $this->_logger->critical($e->getMessage());
+            $storeId = null;
+        }
+
+        return $storeId ?? Store::DEFAULT_STORE_ID;
     }
 
     /**

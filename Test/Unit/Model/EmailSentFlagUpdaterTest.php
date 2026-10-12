@@ -196,4 +196,36 @@ class EmailSentFlagUpdaterTest extends TestCase
 
         $this->subject->updateEmailSent('order', 999);
     }
+
+    // getEntityStoreId() -- recovers the sending scope for Resend of log rows that predate store_id.
+
+    public function testGetEntityStoreIdReturnsStoreOfInvoice(): void
+    {
+        $invoice = $this->createMock(Invoice::class);
+        $invoice->method('getStoreId')->willReturn('3');
+        $this->invoiceRepository->method('get')->with(7)->willReturn($invoice);
+
+        $this->assertSame(3, $this->subject->getEntityStoreId('invoice', 7));
+    }
+
+    public function testGetEntityStoreIdReturnsNullForUnsupportedType(): void
+    {
+        $this->assertNull($this->subject->getEntityStoreId('customer', 5));
+    }
+
+    public function testGetEntityStoreIdReturnsNullWhenLinkMissing(): void
+    {
+        $this->orderRepository->expects($this->never())->method('get');
+
+        $this->assertNull($this->subject->getEntityStoreId(null, 5));
+        $this->assertNull($this->subject->getEntityStoreId('order', null));
+    }
+
+    public function testGetEntityStoreIdReturnsNullWhenEntityNotFound(): void
+    {
+        $this->orderRepository->method('get')->with(999)
+            ->willThrowException(new NoSuchEntityException(new Phrase('not found')));
+
+        $this->assertNull($this->subject->getEntityStoreId('order', 999));
+    }
 }

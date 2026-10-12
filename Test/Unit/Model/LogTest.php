@@ -1080,6 +1080,75 @@ class LogTest extends TestCase
         $this->assertTrue($log->resendEmail());
     }
 
+    private function captureResendStore(array $data): array
+    {
+        $this->helper->method('versionCompare')->willReturn(true);
+        $this->transportBuilder->method('setTemplateIdentifier')->willReturnSelf();
+        $this->transportBuilder->method('setTemplateVars')->willReturnSelf();
+        $this->transportBuilder->method('getTransport')->willReturn($this->createMock(TransportInterface::class));
+
+        $captured = ['smtp' => null, 'template' => null];
+        $this->mailResource->method('setSmtpOptions')->willReturnCallback(
+            static function ($storeId) use (&$captured): void {
+                $captured['smtp'] = $storeId;
+            }
+        );
+        $this->transportBuilder->method('setTemplateOptions')->willReturnCallback(
+            function (array $options) use (&$captured) {
+                $captured['template'] = $options['store'];
+
+                return $this->transportBuilder;
+            }
+        );
+
+        $log = $this->createLog($data + [
+            'sender'        => 'John <john@example.com>',
+            'recipient'     => 'Jane <jane@example.com>',
+            'email_content' => htmlspecialchars('<p>Hi</p>'),
+        ]);
+        $this->assertTrue($log->resendEmail());
+
+        return $captured;
+    }
+
+    public function testResendEmailUsesLoggedStoreId(): void
+    {
+        $this->emailSentFlagUpdater->expects($this->never())->method('getEntityStoreId');
+
+        $this->assertSame(['smtp' => 3, 'template' => 3], $this->captureResendStore(['store_id' => '3']));
+    }
+
+    public function testResendEmailFallsBackToLinkedEntityStoreForLegacyRows(): void
+    {
+        $this->emailSentFlagUpdater->method('getEntityStoreId')->with('order', 42)->willReturn(5);
+
+        $this->assertSame(
+            ['smtp' => 5, 'template' => 5],
+            $this->captureResendStore(['entity_type' => 'order', 'entity_id' => 42])
+        );
+    }
+
+    public function testResendEmailFallsBackToDefaultStoreWhenScopeUnknown(): void
+    {
+        $this->emailSentFlagUpdater->method('getEntityStoreId')->willReturn(null);
+
+        $this->assertSame(
+            ['smtp' => Store::DEFAULT_STORE_ID, 'template' => Store::DEFAULT_STORE_ID],
+            $this->captureResendStore([])
+        );
+    }
+
+    public function testResendEmailFallsBackToDefaultStoreWhenEntityLookupThrows(): void
+    {
+        $this->emailSentFlagUpdater->method('getEntityStoreId')->willThrowException(new Exception('db down'));
+        $this->logger->expects($this->once())->method('critical')->with('db down');
+
+        $this->assertSame(
+            ['smtp' => Store::DEFAULT_STORE_ID, 'template' => Store::DEFAULT_STORE_ID],
+            $this->captureResendStore(['entity_type' => 'order', 'entity_id' => 42])
+        );
+    }
+
     // extractEmailInfo() — protected, invoked via ReflectionMethod.
 
     public function testExtractEmailInfoParsesNamedAddressWhenVersion228Available(): void
