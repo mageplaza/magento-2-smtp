@@ -242,7 +242,7 @@ class Log extends AbstractModel
 
         $this->setEmailContent($content)
             ->setStatus($status)
-            ->setStoreId($storeId ?? Store::DEFAULT_STORE_ID);
+            ->setStoreId($storeId);
         $this->applyExtraData($extra);
         $this->save();
 

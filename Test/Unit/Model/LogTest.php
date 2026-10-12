@@ -527,7 +527,7 @@ class LogTest extends TestCase
         $this->assertFalse($log->hasData('recipient'));
     }
 
-    public function testSaveLogDefaultsStoreIdWhenNull(): void
+    public function testSaveLogKeepsStoreIdNullWhenUnknown(): void
     {
         $this->helper->method('versionCompare')->willReturn(true);
 
@@ -536,7 +536,7 @@ class LogTest extends TestCase
         $log = $this->createLog();
         $log->saveLog($message, Status::STATUS_SUCCESS, null);
 
-        $this->assertSame(Store::DEFAULT_STORE_ID, $log->getStoreId());
+        $this->assertNull($log->getStoreId());
     }
 
     // saveLogSymfony() — Magento 2.4.8+ Symfony Mailer message path.
