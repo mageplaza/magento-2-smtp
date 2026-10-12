@@ -21,6 +21,8 @@
 
 namespace Mageplaza\Smtp\Mail\Rse;
 
+use Magento\Framework\App\ObjectManager;
+use Magento\Store\Model\StoreManagerInterface;
 use Mageplaza\Smtp\Helper\Data;
 use Laminas\Mail\Message;
 use Laminas\Mail\Transport\Smtp;
@@ -41,6 +43,11 @@ class Mail
      * @var Data
      */
     protected $smtpHelper;
+
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $_storeManager;
 
     /**
      * @var array Is module enable by store
@@ -86,10 +93,12 @@ class Mail
      * Mail constructor.
      *
      * @param Data $helper
+     * @param StoreManagerInterface|null $storeManager
      */
-    public function __construct(Data $helper)
+    public function __construct(Data $helper, ?StoreManagerInterface $storeManager = null)
     {
-        $this->smtpHelper = $helper;
+        $this->smtpHelper    = $helper;
+        $this->_storeManager = $storeManager;
     }
 
     /**
@@ -177,6 +186,9 @@ class Mail
                     unset($options['ssl']);
                 }
                 unset($options['type']);
+                if ($localHostname = $this->getLocalHostname($storeId)) {
+                    $options['name'] = $localHostname;
+                }
 
                 $options = new SmtpOptions($options);
 
@@ -398,11 +410,36 @@ class Mail
 
         $transport = new EsmtpTransport($host, $port, $tls);
 
+        if ($localHostname = $this->getLocalHostname($storeId)) {
+            $transport->setLocalDomain($localHostname);
+        }
+
         if ($username && $password) {
             $transport->setUsername($username);
             $transport->setPassword($password);
         }
 
         return $transport;
+    }
+
+    /**
+     * Hostname of the store's base URL, used as the EHLO/HELO name instead of "localhost"
+     *
+     * @param $storeId
+     *
+     * @return string|null
+     */
+    protected function getLocalHostname($storeId)
+    {
+        try {
+            if ($this->_storeManager === null) {
+                $this->_storeManager = ObjectManager::getInstance()->get(StoreManagerInterface::class);
+            }
+            $host = parse_url($this->_storeManager->getStore($storeId)->getBaseUrl(), PHP_URL_HOST);
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        return $host ?: null;
     }
 }
