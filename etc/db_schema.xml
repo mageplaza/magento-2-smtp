@@ -22,6 +22,9 @@
     <index referenceId="MAGEPLAZA_SMTP_LOG_STATUS" indexType="btree">
       <column name="status"/>
     </index>
+    <index referenceId="MAGEPLAZA_SMTP_LOG_CREATED_AT" indexType="btree">
+      <column name="created_at"/>
+    </index>
     <index referenceId="MAGEPLAZA_SMTP_LOG_ENTITY_TYPE_ENTITY_ID" indexType="btree">
       <column name="entity_type"/>
       <column name="entity_id"/>

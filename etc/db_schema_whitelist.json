@@ -19,7 +19,8 @@
         },
         "index": {
             "MAGEPLAZA_SMTP_LOG_STATUS": true,
-            "MAGEPLAZA_SMTP_LOG_ENTITY_TYPE_ENTITY_ID": true
+            "MAGEPLAZA_SMTP_LOG_ENTITY_TYPE_ENTITY_ID": true,
+            "MAGEPLAZA_SMTP_LOG_CREATED_AT": true
         },
         "constraint": {
             "PRIMARY": true
