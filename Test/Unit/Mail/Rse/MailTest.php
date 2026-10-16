@@ -39,7 +39,6 @@ class MailTest extends TestCase
     private function getProtectedProperty(object $object, string $property): mixed
     {
         $reflectionProperty = new ReflectionProperty($object, $property);
-        $reflectionProperty->setAccessible(true);
 
         return $reflectionProperty->getValue($object);
     }
@@ -47,7 +46,6 @@ class MailTest extends TestCase
     private function setProtectedProperty(object $object, string $property, mixed $value): void
     {
         $reflectionProperty = new ReflectionProperty($object, $property);
-        $reflectionProperty->setAccessible(true);
         $reflectionProperty->setValue($object, $value);
     }
 
