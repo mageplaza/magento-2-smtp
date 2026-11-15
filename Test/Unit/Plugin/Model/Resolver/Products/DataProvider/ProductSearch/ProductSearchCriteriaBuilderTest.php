@@ -197,6 +197,35 @@ class ProductSearchCriteriaBuilderTest extends TestCase
         $this->assertSame($resultCriteria, $actual);
     }
 
+    public function testAroundBuildKeepsFilterGroupsProducedByProceed(): void
+    {
+        $this->helperData->method('isEnabled')->willReturn(true);
+
+        $searchCriteria = $this->createMock(SearchCriteriaInterface::class);
+        $searchCriteria->method('getFilterGroups')->willReturn([
+            $this->makeFilterGroup([$this->makeFilter('created_at', '2024-01-01', 'gteq')]),
+        ]);
+
+        $this->filterBuilder->method('setField')->willReturnSelf();
+        $this->filterBuilder->method('setValue')->willReturnSelf();
+        $this->filterBuilder->method('setConditionType')->willReturnSelf();
+        $this->filterBuilder->method('create')->willReturn(new Filter());
+
+        $categoryGroup = $this->makeFilterGroup([$this->makeFilter('category_id', '5')]);
+        $createdGroup = new FilterGroup();
+        $this->filterGroupBuilder->method('addFilter')->willReturnSelf();
+        $this->filterGroupBuilder->method('create')->willReturn($createdGroup);
+
+        $resultCriteria = $this->createMock(SearchCriteria::class);
+        $resultCriteria->method('getFilterGroups')->willReturn([$categoryGroup]);
+        $resultCriteria->expects($this->once())->method('setFilterGroups')
+            ->with($this->identicalTo([$categoryGroup, $createdGroup]));
+
+        $proceed = static fn (SearchCriteriaInterface $sc) => $resultCriteria;
+
+        $this->createSut()->aroundBuild($this->createSubject(), $proceed, $searchCriteria);
+    }
+
     public function testAroundBuildInvokesProceedExactlyOnceWithOriginalSearchCriteria(): void
     {
         $this->helperData->method('isEnabled')->willReturn(false);

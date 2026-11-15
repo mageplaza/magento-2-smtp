@@ -108,7 +108,9 @@ class ProductSearchCriteriaBuilder
             }
 
             if (!empty($filterGroups)) {
-                $searchCriteriaForCollection->setFilterGroups($filterGroups);
+                $searchCriteriaForCollection->setFilterGroups(
+                    array_merge($searchCriteriaForCollection->getFilterGroups() ?? [], $filterGroups)
+                );
             }
         }
 
