@@ -1,0 +1,34 @@
+<?php
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Smtp
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+/** @var \Mageplaza\Smtp\Block\Adminhtml\FailureBanner $block */
+?>
+<?php if ($block->isFailing()): ?>
+<div class="mageplaza-smtp-alert-banner" role="alert">
+    <span class="mageplaza-smtp-alert-icon" aria-hidden="true">&#9888;</span>
+    <span class="mageplaza-smtp-alert-text">
+        <?= $block->escapeHtml($block->getNoticeText()) ?>
+        <a class="mageplaza-smtp-alert-link" href="<?= $block->escapeUrl($block->getConfigUrl()) ?>">
+            <?= $block->escapeHtml(__('Open SMTP configuration')) ?>
+        </a>
+    </span>
+</div>
+<?php endif; ?>

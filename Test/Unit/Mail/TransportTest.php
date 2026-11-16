@@ -34,6 +34,7 @@ use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Helper\GraphMailer;
 use Mageplaza\Smtp\Mail\Rse\Mail;
 use Mageplaza\Smtp\Mail\Transport;
+use Mageplaza\Smtp\Model\FailureState;
 use Mageplaza\Smtp\Model\Log;
 use Mageplaza\Smtp\Model\LogFactory;
 use Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity;
@@ -81,6 +82,9 @@ class TransportTest extends TestCase
     /** @var GraphMailer&MockObject */
     private GraphMailer&MockObject $graphMailer;
 
+    /** @var FailureState&MockObject */
+    private FailureState&MockObject $failureState;
+
     protected function setUp(): void
     {
         $this->resourceMail = $this->createMock(Mail::class);
@@ -89,6 +93,7 @@ class TransportTest extends TestCase
         $this->helper       = $this->createMock(Data::class);
         $this->logger       = $this->createMock(LoggerInterface::class);
         $this->graphMailer  = $this->createMock(GraphMailer::class);
+        $this->failureState = $this->createMock(FailureState::class);
 
         // Only the store-id key resolves; 'smtp_abandoned_cart' must stay null or the log path
         // treats the store id as a quote object.
@@ -114,7 +119,8 @@ class TransportTest extends TestCase
             $this->registry,
             $this->helper,
             $this->logger,
-            $this->graphMailer
+            $this->graphMailer,
+            $this->failureState
         );
     }
 
@@ -513,6 +519,49 @@ class TransportTest extends TestCase
         } catch (MailException $e) {
             // Expected: the retry logic does not retry a plain \RuntimeException,
             // so the outer catch in aroundSendMessage() wraps and rethrows it.
+        }
+    }
+
+    public function testAroundSendMessageClearsFailureStateAfterSuccessfulSend(): void
+    {
+        $this->failureState->expects($this->once())->method('clear')->with(self::STORE_ID);
+        $this->failureState->expects($this->never())->method('recordFailure');
+
+        $this->sendViaSmtp($this->createMessage());
+    }
+
+    public function testAroundSendMessageRecordsFailureStateWhenSendFails(): void
+    {
+        if (!class_exists(\Laminas\Mail\Message::class)) {
+            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        }
+
+        $this->helper = $this->legacyHelper();
+
+        $laminasMessage = new \Laminas\Mail\Message();
+        $laminasMessage->setSubject('Test Subject');
+        $laminasMessage->addTo('victim@example.com');
+        $this->resourceMail->method('processMessage')->willReturn($laminasMessage);
+
+        $transport = $this->createMock(\Laminas\Mail\Transport\Smtp::class);
+        $transport->method('send')->willThrowException(new \RuntimeException('Connection refused by host'));
+        $this->resourceMail->method('getTransport')->willReturn($transport);
+
+        $this->failureState->expects($this->once())->method('recordFailure')->with(
+            self::STORE_ID,
+            $this->stringContains('Connection refused by host')
+        );
+        $this->failureState->expects($this->never())->method('clear');
+
+        $called = false;
+        try {
+            $this->createSut()->aroundSendMessage(
+                $this->createSubject($this->createMock(EmailMessage::class)),
+                $this->createProceed($called)
+            );
+            $this->fail('Expected MailException to propagate.');
+        } catch (MailException $e) {
+            // Expected.
         }
     }
 

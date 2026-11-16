@@ -1,0 +1,49 @@
+/**
+ * Mageplaza
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Mageplaza.com license that is
+ * available through the world-wide-web at this URL:
+ * https://www.mageplaza.com/LICENSE.txt
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Mageplaza
+ * @package     Mageplaza_Smtp
+ * @copyright   Copyright (c) Mageplaza (https://www.mageplaza.com/)
+ * @license     https://www.mageplaza.com/LICENSE.txt
+ */
+
+/* Sticky on every admin page until SMTP sending recovers.
+   Stays below the admin menu (z-index 700) and submenu (698). */
+.mageplaza-smtp-alert-banner {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    background-color: #c0121a;
+    border: 2px solid #8f0d13;
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 600;
+    line-height: 1.4;
+    padding: 1.2rem 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.mageplaza-smtp-alert-icon {
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+
+.mageplaza-smtp-alert-link {
+    color: #fff;
+    margin-left: .6rem;
+    text-decoration: underline;
+}
