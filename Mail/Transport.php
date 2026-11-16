@@ -40,6 +40,7 @@ use Magento\Framework\Registry;
 use Mageplaza\Smtp\Helper\Data;
 use Mageplaza\Smtp\Helper\GraphMailer;
 use Mageplaza\Smtp\Mail\Rse\Mail;
+use Mageplaza\Smtp\Model\FailureState;
 use Mageplaza\Smtp\Model\Log;
 use Mageplaza\Smtp\Model\LogFactory;
 use Mageplaza\Smtp\Observer\Email\SetTemplateVarsEntity;
@@ -107,6 +108,11 @@ class Transport
     protected $graphMailer;
 
     /**
+     * @var FailureState
+     */
+    protected $failureState;
+
+    /**
      * Transport constructor.
      *
      * @param Mail $resourceMail
@@ -115,6 +121,7 @@ class Transport
      * @param Data $helper
      * @param LoggerInterface $logger
      * @param GraphMailer $graphMailer
+     * @param FailureState $failureState
      */
     public function __construct(
         Mail $resourceMail,
@@ -122,7 +129,8 @@ class Transport
         Registry $registry,
         Data $helper,
         LoggerInterface $logger,
-        GraphMailer $graphMailer
+        GraphMailer $graphMailer,
+        FailureState $failureState
     ) {
         $this->resourceMail = $resourceMail;
         $this->logFactory   = $logFactory;
@@ -130,6 +138,7 @@ class Transport
         $this->helper       = $helper;
         $this->logger       = $logger;
         $this->graphMailer  = $graphMailer;
+        $this->failureState = $failureState;
     }
 
     /**
@@ -210,6 +219,9 @@ class Transport
                             }
                         }
                     }
+                    // A real send succeeded, so this store view is no longer failing.
+                    // Developer mode never reaches SMTP, so it must not clear a live failure.
+                    $this->failureState->clear($this->_storeId);
                 }
 
                 $this->emailLog($message, true, null, $loggedBody);
@@ -217,6 +229,11 @@ class Transport
                 $errorMessage = $this->describeSendFailure($e);
                 $this->logSendFailureReason($e, $message, $errorMessage);
                 $this->emailLog($message, false, $errorMessage, $loggedBody);
+                // Store the redacted message. A rejecting server can echo the AUTH payload.
+                $this->failureState->recordFailure(
+                    $this->_storeId,
+                    mb_substr($this->redactCredentials($e->getMessage()), 0, self::ERROR_MESSAGE_LIMIT)
+                );
                 throw new MailException(
                     new Phrase($this->redactCredentials($e->getMessage())),
                     $e instanceof Exception ? $e : null

@@ -27,6 +27,7 @@
             <module name="Magento_Newsletter"/>
             <module name="Magento_Quote"/>
             <module name="Magento_Sales"/>
+            <module name="Magento_AdminNotification"/>
         </sequence>
     </module>
 </config>

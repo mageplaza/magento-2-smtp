@@ -23,4 +23,11 @@
     <type name="Magento\Email\Model\Template\Config">
         <plugin name="mageplaza_smtp_template_abandoned_cart" type="Mageplaza\Smtp\Plugin\Model\Template\Config" />
     </type>
+    <type name="Magento\Framework\Notification\MessageList">
+        <arguments>
+            <argument name="messages" xsi:type="array">
+                <item name="mageplaza_smtp_send_failure" xsi:type="string">Mageplaza\Smtp\Model\AdminNotification\SmtpFailureMessage</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
