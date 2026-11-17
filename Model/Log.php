@@ -47,6 +47,7 @@ use Mageplaza\Smtp\Model\ResourceModel\LogAttachment\CollectionFactory as Attach
 use Mageplaza\Smtp\Model\Source\Status;
 use Mageplaza\Smtp\Model\EmailSentFlagUpdater;
 use Mageplaza\Smtp\Model\ResourceModel\LogAttachment as AttachmentResource;
+use Mageplaza\Smtp\Model\ResourceModel\Log as LogResource;
 
 /**
  * Persists a record of each outgoing email (recipients, subject, content, status) together
@@ -98,6 +99,11 @@ class Log extends AbstractModel
     protected $attachmentResource;
 
     /**
+     * @var LogResource
+     */
+    protected $logResource;
+
+    /**
      * Log constructor.
      *
      * @param Context $context
@@ -106,6 +112,7 @@ class Log extends AbstractModel
      * @param Mail $mailResource
      * @param Data $helper
      * @param AttachmentResource $attachmentResource
+     * @param LogResource $logResource
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
      * @param array $data
@@ -120,6 +127,7 @@ class Log extends AbstractModel
         Mail $mailResource,
         Data $helper,
         AttachmentResource $attachmentResource,
+        LogResource $logResource,
         ?AbstractResource $resource = null,
         ?AbstractDb $resourceCollection = null,
         array $data = [],
@@ -128,6 +136,7 @@ class Log extends AbstractModel
         ?EmailSentFlagUpdater $emailSentFlagUpdater = null
     ) {
         $this->attachmentResource = $attachmentResource;
+        $this->logResource = $logResource;
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
 
         $this->_transportBuilder    = $transportBuilder;
@@ -253,7 +262,7 @@ class Log extends AbstractModel
             ->setStatus($status)
             ->setStoreId($storeId);
         $this->applyExtraData($extra);
-        $this->_getResource()->save($this);
+        $this->logResource->save($this);
 
         $this->saveAttachments();
     }
@@ -317,7 +326,7 @@ class Log extends AbstractModel
             ->setStatus($status)
             ->setStoreId($storeId);
         $this->applyExtraData($extra);
-        $this->_getResource()->save($this);
+        $this->logResource->save($this);
 
         $this->saveAttachments();
     }

@@ -179,17 +179,17 @@ class Mail
                 unset($options['type']);
 
                 if (!class_exists(SmtpOptions::class)) {
-                    throw new \Error('Class "' . SmtpOptions::class . '" not found');
+                    throw new \Error('Class "Laminas\\Mail\\Transport\\SmtpOptions" not found');
                 }
                 $options = new SmtpOptions($options);
 
                 if (!class_exists(Smtp::class)) {
-                    throw new \Error('Class "' . Smtp::class . '" not found');
+                    throw new \Error('Class "Laminas\\Mail\\Transport\\Smtp" not found');
                 }
                 $this->_transport[$storeId] = new Smtp($options);
             } else {
                 if (!class_exists(Smtp::class)) {
-                    throw new \Error('Class "' . Smtp::class . '" not found');
+                    throw new \Error('Class "Laminas\\Mail\\Transport\\Smtp" not found');
                 }
                 $this->_transport[$storeId] = new Smtp();
             }
@@ -372,7 +372,7 @@ class Mail
     public function getSymfonyTransport($storeId)
     {
         if (!class_exists(EsmtpTransport::class)) {
-            throw new \Error('Class "' . EsmtpTransport::class . '" not found');
+            throw new \Error('Class "Symfony\\Component\\Mailer\\Transport\\Smtp\\EsmtpTransport" not found');
         }
 
         $override = $this->_smtpOptions[$storeId] ?? [];

@@ -23,6 +23,7 @@ declare(strict_types=1);
 namespace Mageplaza\Smtp\Test\Unit\Mail;
 
 use Closure;
+use Egulias\EmailValidator\EmailValidator;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\Address;
 use Magento\Framework\Mail\EmailMessage;
@@ -106,6 +107,13 @@ class TransportTest extends TestCase
         $this->resourceMail->method('getSmtpOptions')->willReturn([]);
     }
 
+    private function requireSymfonyMime(): void
+    {
+        if (!class_exists(EmailValidator::class)) {
+            $this->markTestSkipped('Symfony MIME address validation requires egulias/email-validator.');
+        }
+    }
+
     private function createSut(): Transport
     {
         return new Transport(
@@ -139,9 +147,11 @@ class TransportTest extends TestCase
         $message->method('getReplyTo')->willReturn([]);
         $message->method('getSubject')->willReturn('Subject');
         $message->method('getBody')->willReturn($body ?? new TextPart('body'));
-        $message->method('getSymfonyMessage')->willReturn(
-            $symfonyMessage ?? new SymfonyMessage(new Headers(), $body)
-        );
+        if (method_exists(EmailMessage::class, 'getSymfonyMessage')) {
+            $message->method('getSymfonyMessage')->willReturn(
+                $symfonyMessage ?? new SymfonyMessage(new Headers(), $body)
+            );
+        }
 
         return $message;
     }
@@ -202,6 +212,7 @@ class TransportTest extends TestCase
     // instead via a subclass that exposes it.
     private function convertViaEmailLog(?AbstractPart $body, ?EmailMessage $message = null): Email
     {
+        $this->requireSymfonyMime();
         $sut = new class (
             $this->resourceMail,
             $this->logFactory,
@@ -362,6 +373,7 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessageUsesSendEmailWhenMessageIsAlreadySymfonyEmail(): void
     {
+        $this->requireSymfonyMime();
         $this->helper->method('shouldUseGraphApi')->willReturn(true);
 
         $email = (new Email())
@@ -382,6 +394,7 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessagePreservesNestedMultipartTree(): void
     {
+        $this->requireSymfonyMime();
         $png = new DataPart('PNGDATA', 'logo.png', 'image/png');
         $tree = new MixedPart(
             new RelatedPart(
@@ -400,6 +413,7 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessagePreservesCustomHeaders(): void
     {
+        $this->requireSymfonyMime();
         $headers = new Headers();
         $headers->addTextHeader('X-Custom', 'kept');
         $headers->addIdHeader('Message-ID', 'abc@example.com');
@@ -831,6 +845,7 @@ class TransportTest extends TestCase
 
     public function testConvertNestedRelatedTreeKeepsBodiesAndAttachments(): void
     {
+        $this->requireSymfonyMime();
         $png = new DataPart('PNGDATA', 'logo.png', 'image/png');
         $email = $this->convertViaEmailLog(
             new MixedPart(
@@ -1046,6 +1061,7 @@ class TransportTest extends TestCase
 
     public function testConvertEmptyBodyFallsBackToPlaceholder(): void
     {
+        $this->requireSymfonyMime();
         $message = $this->createMock(EmailMessage::class);
         $message->method('getTo')->willReturn([]);
         $message->method('getFrom')->willReturn([]);
@@ -1054,7 +1070,9 @@ class TransportTest extends TestCase
         $message->method('getReplyTo')->willReturn([]);
         $message->method('getSubject')->willReturn('Subject');
         $message->method('getBody')->willThrowException(new TypeError('no body'));
-        $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage(new Headers()));
+        if (method_exists(EmailMessage::class, 'getSymfonyMessage')) {
+            $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage(new Headers()));
+        }
 
         $email = $this->convertViaEmailLog(null, $message);
 
@@ -1140,6 +1158,7 @@ class TransportTest extends TestCase
 
     public function testConvertKeepsEveryReplyToAddress(): void
     {
+        $this->requireSymfonyMime();
         $replyTo = [];
         foreach (['a@example.com', 'b@example.com'] as $email) {
             $address = $this->createMock(Address::class);
@@ -1158,13 +1177,16 @@ class TransportTest extends TestCase
         $message->method('getReplyTo')->willReturn($replyTo);
         $message->method('getSubject')->willReturn('Subject');
         $message->method('getBody')->willReturn(new TextPart('x'));
-        $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage(new Headers(), new TextPart('x')));
+        if (method_exists(EmailMessage::class, 'getSymfonyMessage')) {
+            $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage(new Headers(), new TextPart('x')));
+        }
 
         $this->assertCount(2, $this->convertViaEmailLog(null, $message)->getReplyTo());
     }
 
     public function testConvertDoesNotDuplicateCcFromClonedHeaders(): void
     {
+        $this->requireSymfonyMime();
         $ccAddress = $this->createMock(Address::class);
         $ccAddress->method('getEmail')->willReturn('cc@example.com');
         $ccAddress->method('getName')->willReturn('');
@@ -1180,7 +1202,9 @@ class TransportTest extends TestCase
         $message->method('getReplyTo')->willReturn([]);
         $message->method('getSubject')->willReturn('Subject');
         $message->method('getBody')->willReturn(new TextPart('x'));
-        $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage($headers, new TextPart('x')));
+        if (method_exists(EmailMessage::class, 'getSymfonyMessage')) {
+            $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage($headers, new TextPart('x')));
+        }
 
         $this->assertCount(1, $this->convertViaEmailLog(null, $message)->getCc());
     }

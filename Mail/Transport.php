@@ -26,8 +26,6 @@ use Exception;
 use Laminas\Mail\Message;
 use Laminas\Mail\Protocol\Smtp as SmtpProtocol;
 use Laminas\Mail\Transport\Smtp;
-use Laminas\Mail\Protocol\Exception\RuntimeException as LaminasProtocolRuntimeException;
-use Laminas\Mail\Transport\Exception\RuntimeException as LaminasTransportRuntimeException;
 use Laminas\Mime\Message as LaminasMimeMessage;
 use Laminas\Mime\Mime as LaminasMime;
 use Laminas\Mime\Part as LaminasMimePart;
@@ -184,14 +182,14 @@ class Transport
                         if ($this->helper->versionCompare('2.4.8')) {
                             $transport = $this->resourceMail->getSymfonyTransport($this->_storeId);
                             if (!class_exists(Mailer::class)) {
-                                throw new \Error('Class "' . Mailer::class . '" not found');
+                                throw new \Error('Class "Symfony\\Component\\Mailer\\Mailer" not found');
                             }
                             $mailer = new Mailer($transport);
                             $mailer->send($this->resolveSymfonyMessage($message));
                         } else {
                             if ($this->helper->versionCompare('2.2.8')) {
                                 if (!class_exists(Message::class)) {
-                                    throw new \Error('Class "' . Message::class . '" not found');
+                                    throw new \Error('Class "Laminas\\Mail\\Message" not found');
                                 }
                                 $message = Message::fromString($message->getRawMessage())->setEncoding('utf-8');
                             }
@@ -250,8 +248,8 @@ class Transport
         try {
             $transport->send($message);
         } catch (\Throwable $e) {
-            if (!is_a($e, LaminasProtocolRuntimeException::class)
-                && !is_a($e, LaminasTransportRuntimeException::class)
+            if (!is_a($e, 'Laminas\\Mail\\Protocol\\Exception\\RuntimeException')
+                && !is_a($e, 'Laminas\\Mail\\Transport\\Exception\\RuntimeException')
             ) {
                 throw $e;
             }
