@@ -52,7 +52,9 @@ class DataTest extends TestCase
     private function setProperty(object $object, string $property, mixed $value): void
     {
         $ref = new ReflectionProperty(Data::class, $property);
-        $ref->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $ref->setAccessible(true);
+        }
         $ref->setValue($object, $value);
     }
 

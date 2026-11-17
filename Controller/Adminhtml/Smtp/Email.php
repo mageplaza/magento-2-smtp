@@ -30,6 +30,7 @@ use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Translate\Inline\StateInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Mageplaza\Smtp\Model\LogFactory;
+use Mageplaza\Smtp\Model\ResourceModel\Log as LogResource;
 
 /**
  * Class Email
@@ -63,6 +64,11 @@ class Email extends Action
     protected $logFactory;
 
     /**
+     * @var LogResource
+     */
+    protected $logResource;
+
+    /**
      * Email constructor.
      *
      * @param Context $context
@@ -71,6 +77,7 @@ class Email extends Action
      * @param ScopeConfigInterface $scopeConfig
      * @param TransportBuilder $transportBuilder
      * @param StoreManagerInterface $storeManager
+     * @param LogResource $logResource
      */
     public function __construct(
         Context $context,
@@ -78,8 +85,10 @@ class Email extends Action
         StateInterface $inlineTranslation,
         ScopeConfigInterface $scopeConfig,
         TransportBuilder $transportBuilder,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        LogResource $logResource
     ) {
+        $this->logResource = $logResource;
         $this->logFactory        = $logFactory;
         $this->scopeConfig       = $scopeConfig;
         $this->storeManager      = $storeManager;
@@ -99,7 +108,8 @@ class Email extends Action
             return $this->_redirect('*/*/log');
         }
 
-        $email = $this->logFactory->create()->load($logId);
+        $email = $this->logFactory->create();
+        $this->logResource->load($email, $logId);
         if ($email->resendEmail()) {
             $this->messageManager->addSuccessMessage(__('Email re-sent successfully!'));
         } else {

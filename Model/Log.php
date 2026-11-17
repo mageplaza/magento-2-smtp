@@ -46,6 +46,7 @@ use Mageplaza\Smtp\Mail\Rse\Mail;
 use Mageplaza\Smtp\Model\ResourceModel\LogAttachment\CollectionFactory as AttachmentCollectionFactory;
 use Mageplaza\Smtp\Model\Source\Status;
 use Mageplaza\Smtp\Model\EmailSentFlagUpdater;
+use Mageplaza\Smtp\Model\ResourceModel\LogAttachment as AttachmentResource;
 
 /**
  * Persists a record of each outgoing email (recipients, subject, content, status) together
@@ -92,6 +93,11 @@ class Log extends AbstractModel
     protected $emailSentFlagUpdater;
 
     /**
+     * @var AttachmentResource
+     */
+    protected $attachmentResource;
+
+    /**
      * Log constructor.
      *
      * @param Context $context
@@ -99,6 +105,7 @@ class Log extends AbstractModel
      * @param TransportBuilder $transportBuilder
      * @param Mail $mailResource
      * @param Data $helper
+     * @param AttachmentResource $attachmentResource
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
      * @param array $data
@@ -112,6 +119,7 @@ class Log extends AbstractModel
         TransportBuilder $transportBuilder,
         Mail $mailResource,
         Data $helper,
+        AttachmentResource $attachmentResource,
         ?AbstractResource $resource = null,
         ?AbstractDb $resourceCollection = null,
         array $data = [],
@@ -119,6 +127,7 @@ class Log extends AbstractModel
         ?AttachmentCollectionFactory $attachmentCollectionFactory = null,
         ?EmailSentFlagUpdater $emailSentFlagUpdater = null
     ) {
+        $this->attachmentResource = $attachmentResource;
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
 
         $this->_transportBuilder    = $transportBuilder;
@@ -244,7 +253,7 @@ class Log extends AbstractModel
             ->setStatus($status)
             ->setStoreId($storeId);
         $this->applyExtraData($extra);
-        $this->save();
+        $this->_getResource()->save($this);
 
         $this->saveAttachments();
     }
@@ -308,7 +317,7 @@ class Log extends AbstractModel
             ->setStatus($status)
             ->setStoreId($storeId);
         $this->applyExtraData($extra);
-        $this->save();
+        $this->_getResource()->save($this);
 
         $this->saveAttachments();
     }
@@ -379,7 +388,7 @@ class Log extends AbstractModel
             }
         }
 
-        if (!$body instanceof MimeMessage) {
+        if (!(class_exists(MimeMessage::class) && $body instanceof MimeMessage)) {
             if (is_string($body) && $body !== '') {
                 return ['html' => $body, 'attachments' => []];
             }
@@ -460,7 +469,7 @@ class Log extends AbstractModel
      */
     protected function normalizeMimePart($part)
     {
-        if (!$part instanceof MimePart && !$part instanceof MagentoMimePart) {
+        if (!(class_exists(MimePart::class) && $part instanceof MimePart) && !$part instanceof MagentoMimePart) {
             return null;
         }
 
@@ -481,6 +490,10 @@ class Log extends AbstractModel
      */
     protected function splitMultipart(array $part)
     {
+        if (!class_exists(Decode::class)) {
+            return [];
+        }
+
         if (!preg_match('#boundary\s*=\s*"?([^";\s]+)"?#i', $part['type'], $matches)) {
             return [];
         }
@@ -613,10 +626,10 @@ class Log extends AbstractModel
 
         foreach ($this->pendingAttachments as $attachment) {
             try {
-                $this->getAttachmentFactory()->create()
+                $attachmentModel = $this->getAttachmentFactory()->create()
                     ->addData($attachment)
-                    ->setLogId($this->getId())
-                    ->save();
+                    ->setLogId($this->getId());
+                $this->attachmentResource->save($attachmentModel);
             } catch (Exception $e) {
                 $this->_logger->critical($e->getMessage());
             }
@@ -808,7 +821,11 @@ class Log extends AbstractModel
 
             $body = $message->getBody();
 
-            if (!$body instanceof MimeMessage && !$body instanceof MagentoMimeMessage) {
+            if (!(class_exists(MimeMessage::class) && $body instanceof MimeMessage) && !$body instanceof MagentoMimeMessage) {
+                return;
+            }
+
+            if (!class_exists(MimePart::class) || !class_exists(Mime::class)) {
                 return;
             }
 

@@ -98,6 +98,7 @@ class LogTest extends TestCase
             $this->transportBuilder,
             $this->mailResource,
             $this->helper,
+            $this->createMock(\Mageplaza\Smtp\Model\ResourceModel\LogAttachment::class),
             $this->resource,
             null,
             [],
@@ -123,7 +124,9 @@ class LogTest extends TestCase
     private function invokeExtractEmailInfo(Log $log, string $emailList): array
     {
         $method = new ReflectionMethod(Log::class, 'extractEmailInfo');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         return $method->invoke($log, $emailList);
     }

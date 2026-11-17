@@ -45,8 +45,11 @@ class CustomerNameTest extends TestCase
     private QuoteFactory&MockObject $quoteFactory;
     private EmailMarketing&MockObject $helper;
 
+    private \Magento\Quote\Model\ResourceModel\Quote&MockObject $quoteResource;
+
     protected function setUp(): void
     {
+        $this->quoteResource = $this->createMock(\Magento\Quote\Model\ResourceModel\Quote::class);
         $this->context = $this->createMock(ContextInterface::class);
         $this->uiComponentFactory = $this->createMock(UiComponentFactory::class);
         $this->urlBuilder = $this->createMock(UrlInterface::class);
@@ -65,6 +68,7 @@ class CustomerNameTest extends TestCase
             $this->urlBuilder,
             $this->quoteFactory,
             $this->helper,
+            $this->quoteResource,
             [],
             ['name' => 'customer_name']
         );
@@ -79,13 +83,8 @@ class CustomerNameTest extends TestCase
         $quote = $this->createPartialMockWithReflection(Quote::class, ['getCustomerId']);
         $quote->method('getCustomerId')->willReturn($customerId);
 
-        $loader = $this->getMockBuilder(Quote::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['load'])
-            ->getMock();
-        $loader->expects($this->once())->method('load')->with($quoteId)->willReturn($quote);
-
-        $this->quoteFactory->method('create')->willReturn($loader);
+        $this->quoteResource->expects($this->once())->method('load')->with($quote, $quoteId);
+        $this->quoteFactory->method('create')->willReturn($quote);
 
         return $quote;
     }

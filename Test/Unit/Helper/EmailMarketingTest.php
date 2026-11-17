@@ -105,11 +105,13 @@ class EmailMarketingTest extends TestCase
 
     protected function setUp(): void
     {
-        // 39 constructor dependencies; skip it and inject only what each test needs.
+        // Skip the constructor and inject only what each test needs.
         $this->helper = $this->getMockBuilder(EmailMarketing::class)
             ->disableOriginalConstructor()
             ->onlyMethods([])
             ->getMock();
+
+        $this->setResourceMocks($this->helper);
 
         // EmailMarketing (via Mageplaza\Core\Helper\AbstractData) resolves jsonEncode()/
         // jsonDecode() through the global ObjectManager; stub it so the static calls
@@ -128,12 +130,24 @@ class EmailMarketingTest extends TestCase
         $ref->setValue($target ?? $this->helper, $value);
     }
 
+    private function setResourceMocks(EmailMarketing $helper): void
+    {
+        $this->setProperty('customerResource', $this->createMock(\Magento\Customer\Model\ResourceModel\Customer::class), $helper);
+        $this->setProperty('groupResource', $this->createMock(\Magento\Customer\Model\ResourceModel\Group::class), $helper);
+        $this->setProperty('regionResource', $this->createMock(\Magento\Directory\Model\ResourceModel\Region::class), $helper);
+        $this->setProperty('quoteItemResource', $this->createMock(\Magento\Quote\Model\ResourceModel\Quote\Item::class), $helper);
+        $this->setProperty('categoryResource', $this->createMock(\Magento\Catalog\Model\ResourceModel\Category::class), $helper);
+    }
+
     private function partialHelper(array $onlyMethods): EmailMarketing&MockObject
     {
-        return $this->getMockBuilder(EmailMarketing::class)
+        $helper = $this->getMockBuilder(EmailMarketing::class)
             ->disableOriginalConstructor()
             ->onlyMethods($onlyMethods)
             ->getMock();
+        $this->setResourceMocks($helper);
+
+        return $helper;
     }
 
 
@@ -175,6 +189,9 @@ class EmailMarketingTest extends TestCase
         );
     }
 
+    /**
+     * @dataProvider emailMarketingConfigDelegateProvider
+     */
     #[DataProvider('emailMarketingConfigDelegateProvider')]
     public function testConfigDelegatesToGetEmailMarketingConfig(string $method, string $code): void
     {
@@ -386,7 +403,6 @@ class EmailMarketingTest extends TestCase
 
         $customerFactory = $this->createPartialMock(CustomerFactory::class, ['create']);
         $customer        = $this->createMock(Customer::class);
-        $customer->method('load')->willReturnSelf();
         $customerFactory->method('create')->willReturn($customer);
         $this->setProperty('customerFactory', $customerFactory, $helper);
 
@@ -551,7 +567,6 @@ class EmailMarketingTest extends TestCase
 
         $customerFactory = $this->createPartialMock(CustomerFactory::class, ['create']);
         $customer        = $this->createMock(Customer::class);
-        $customer->method('load')->willReturnSelf();
         $customerFactory->method('create')->willReturn($customer);
         $this->setProperty('customerFactory', $customerFactory, $helper);
 
@@ -919,10 +934,12 @@ class EmailMarketingTest extends TestCase
         $address->method('getName')->willReturn('John');
 
         $region = $this->createPartialMockWithReflection(Region::class, ['load', 'getCode', 'getName']);
-        $region->method('load')->with(15)->willReturnSelf();
         $region->method('getCode')->willReturn('CA');
         $region->method('getName')->willReturn('California');
         $this->setProperty('region', $region);
+        $resource = $this->createMock(\Magento\Directory\Model\ResourceModel\Region::class);
+        $resource->expects($this->exactly(2))->method('load')->with($region, 15);
+        $this->setProperty('regionResource', $resource);
 
         $addr = ['shippingAddress.region_id' => 15];
 
@@ -1803,7 +1820,6 @@ class EmailMarketingTest extends TestCase
         $this->setProperty('storeManager', $storeManager);
 
         $group = $this->createPartialMockWithReflection(Group::class, ['load', 'getCustomerGroupCode']);
-        $group->method('load')->willReturnSelf();
         $group->method('getCustomerGroupCode')->willReturn('General');
 
         $groupFactory = $this->createPartialMock(GroupFactory::class, ['create']);
@@ -2012,11 +2028,14 @@ class EmailMarketingTest extends TestCase
     public function testGetCustomerByIdDelegatesToFactory(): void
     {
         $customer = $this->createMock(Customer::class);
-        $customer->expects($this->once())->method('load')->with(5)->willReturnSelf();
 
         $customerFactory = $this->createPartialMock(CustomerFactory::class, ['create']);
         $customerFactory->method('create')->willReturn($customer);
         $this->setProperty('customerFactory', $customerFactory);
+
+        $resource = $this->createMock(\Magento\Customer\Model\ResourceModel\Customer::class);
+        $resource->expects($this->once())->method('load')->with($customer, 5);
+        $this->setProperty('customerResource', $resource);
 
         $this->assertSame($customer, $this->helper->getCustomerById(5));
     }
@@ -2390,12 +2409,10 @@ class EmailMarketingTest extends TestCase
     public function testGetCategoriesReturnsRowsForGivenIds(): void
     {
         $category1 = $this->createPartialMockWithReflection(Category::class, ['load', 'getId', 'getName']);
-        $category1->method('load')->willReturnSelf();
         $category1->method('getId')->willReturn(3);
         $category1->method('getName')->willReturn('Category Three');
 
         $category2 = $this->createPartialMockWithReflection(Category::class, ['load', 'getId', 'getName']);
-        $category2->method('load')->willReturnSelf();
         $category2->method('getId')->willReturn(4);
         $category2->method('getName')->willReturn('Category Four');
 

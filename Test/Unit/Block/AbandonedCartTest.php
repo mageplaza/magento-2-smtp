@@ -58,8 +58,11 @@ class AbandonedCartTest extends TestCase
 
     private AbandonedCart $block;
 
+    private \Magento\Quote\Model\ResourceModel\Quote&MockObject $quoteResource;
+
     protected function setUp(): void
     {
+        $this->quoteResource = $this->createMock(\Magento\Quote\Model\ResourceModel\Quote::class);
         $this->storeManager = $this->createMock(StoreManagerInterface::class);
         $this->taxHelper = $this->createMock(TaxHelper::class);
 
@@ -80,15 +83,15 @@ class AbandonedCartTest extends TestCase
             $this->productRepository,
             $this->priceCurrency,
             $this->quoteFactory,
-            $this->helperEmailMarketing
+            $this->helperEmailMarketing,
+            $this->quoteResource
         );
     }
 
     private function stubQuoteLoad(Quote $loadedQuote, int $quoteId): void
     {
-        $loader = $this->createMock(Quote::class);
-        $loader->expects($this->once())->method('load')->with($quoteId)->willReturn($loadedQuote);
-        $this->quoteFactory->method('create')->willReturn($loader);
+        $this->quoteResource->expects($this->once())->method('load')->with($loadedQuote, $quoteId);
+        $this->quoteFactory->method('create')->willReturn($loadedQuote);
     }
 
 

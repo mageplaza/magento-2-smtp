@@ -23,6 +23,7 @@ namespace Mageplaza\Smtp\Setup\Patch\Data;
 
 use Magento\Config\Model\ResourceModel\Config\Data\Collection;
 use Magento\Customer\Model\Customer;
+use Magento\Customer\Model\ResourceModel\Attribute as AttributeResource;
 use Magento\Customer\Setup\CustomerSetup;
 use Magento\Customer\Setup\CustomerSetupFactory;
 use Magento\Eav\Model\Entity\Attribute\Set as AttributeSet;
@@ -40,9 +41,7 @@ use Magento\Framework\Validator\ValidateException;
  */
 class UpgradeAttributeData implements DataPatchInterface, PatchRevertableInterface
 {
-    /**
-     * @var ModuleDataSetupInterface $moduleDataSetup
-     */
+    /** @var ModuleDataSetupInterface $moduleDataSetup */
     private $moduleDataSetup;
 
     /**
@@ -66,20 +65,28 @@ class UpgradeAttributeData implements DataPatchInterface, PatchRevertableInterfa
     protected $_cacheTypeList;
 
     /**
+     * @var AttributeResource
+     */
+    protected $attributeResource;
+
+    /**
      * UpgradeData constructor.
      *
      * @param AttributeSetFactory $attributeSetFactory
      * @param CustomerSetupFactory $customerSetupFactory
      * @param Collection $configCollection
      * @param TypeListInterface $cacheTypeList
+     * @param AttributeResource $attributeResource
      */
     public function __construct(
         ModuleDataSetupInterface $moduleDataSetup,
         AttributeSetFactory $attributeSetFactory,
         CustomerSetupFactory $customerSetupFactory,
         Collection $configCollection,
-        TypeListInterface $cacheTypeList
+        TypeListInterface $cacheTypeList,
+        AttributeResource $attributeResource
     ) {
+        $this->attributeResource = $attributeResource;
         $this->moduleDataSetup      = $moduleDataSetup;
         $this->attributeSetFactory  = $attributeSetFactory;
         $this->customerSetupFactory = $customerSetupFactory;
@@ -105,7 +112,9 @@ class UpgradeAttributeData implements DataPatchInterface, PatchRevertableInterfa
         $customerEntity = $customerSetup->getEavConfig()->getEntityType('customer');
         $attributeSetId = $customerEntity->getDefaultAttributeSetId();
 
-        /** @var $attributeSet AttributeSet */
+        /**
+     * @var $attributeSet AttributeSet
+     */
         $attributeSet = $this->attributeSetFactory->create();
         $attributeGroupId = $attributeSet->getDefaultGroupId($attributeSetId);
 
@@ -122,13 +131,13 @@ class UpgradeAttributeData implements DataPatchInterface, PatchRevertableInterfa
             'is_used_in_grid' => false,
         ]);
 
-        $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'mp_smtp_is_synced')
+        $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'mp_smtp_is_synced')
             ->addData([
                 'attribute_set_id' => $attributeSetId,
                 'attribute_group_id' => $attributeGroupId,
                 'used_in_forms' => ['adminhtml_customer']
-            ])
-            ->save();
+            ]);
+        $this->attributeResource->save($attribute);
 
         $connection = $setup->getConnection();
         $configCollection = $this->configCollection->addPathFilter('smtp/abandoned_cart');
@@ -149,6 +158,8 @@ class UpgradeAttributeData implements DataPatchInterface, PatchRevertableInterfa
             }
             $this->_cacheTypeList->cleanType('config');
         }
+
+        return $this;
     }
 
     /**

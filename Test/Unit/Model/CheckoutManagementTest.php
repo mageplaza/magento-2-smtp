@@ -44,8 +44,11 @@ class CheckoutManagementTest extends TestCase
 
     private CheckoutManagement $sut;
 
+    private \Magento\Quote\Model\ResourceModel\Quote\QuoteIdMask&MockObject $quoteIdMaskResource;
+
     protected function setUp(): void
     {
+        $this->quoteIdMaskResource = $this->createMock(\Magento\Quote\Model\ResourceModel\Quote\QuoteIdMask::class);
         $this->quoteIdMaskFactory = $this->getMockBuilder(QuoteIdMaskFactory::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['create'])
@@ -56,7 +59,8 @@ class CheckoutManagementTest extends TestCase
         $this->sut = new CheckoutManagement(
             $this->quoteIdMaskFactory,
             $this->cartRepository,
-            $this->helperEmailMarketing
+            $this->helperEmailMarketing,
+            $this->quoteIdMaskResource
         );
 
         // EmailMarketing::jsonDecode() resolves the Json helper through the global ObjectManager.
@@ -110,13 +114,13 @@ class CheckoutManagementTest extends TestCase
     {
         $this->enableGate();
 
-        // load() returns a DataObject whose magic getQuoteId() resolves the value.
         $quoteIdMask = $this->getMockBuilder(QuoteIdMask::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['load'])
+            ->onlyMethods([])
             ->getMock();
-        $quoteIdMask->expects($this->once())->method('load')->with('masked123', 'masked_id')
-            ->willReturn(new DataObject(['quote_id' => 99]));
+        $quoteIdMask->setData('quote_id', 99);
+        $this->quoteIdMaskResource->expects($this->once())->method('load')
+            ->with($quoteIdMask, 'masked123', 'masked_id');
         $this->quoteIdMaskFactory->method('create')->willReturn($quoteIdMask);
 
         $quote = new DataObject(['entity_id' => 99]);

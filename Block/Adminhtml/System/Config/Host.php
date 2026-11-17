@@ -37,15 +37,9 @@ class Host extends Field
     protected $_buttonLabel = '';
 
     /**
-     * Set template
-     *
-     * @return void
+     * @var string
      */
-    protected function _construct()
-    {
-        parent::_construct();
-        $this->setTemplate('Mageplaza_Smtp::system/config/host.phtml');
-    }
+    protected $_template = 'Mageplaza_Smtp::system/config/host.phtml';
 
     /**
      * Get the button

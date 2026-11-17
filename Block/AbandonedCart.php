@@ -31,6 +31,7 @@ use Magento\Framework\View\Element\Template;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Quote\Model\QuoteFactory;
+use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 use Magento\Store\Model\Store;
 use Magento\Tax\Helper\Data;
 use Magento\Tax\Model\Config;
@@ -68,6 +69,11 @@ class AbandonedCart extends Template
     protected $helperEmailMarketing;
 
     /**
+     * @var QuoteResource
+     */
+    protected $quoteResource;
+
+    /**
      * AbandonedCart constructor.
      *
      * @param Context $context
@@ -75,6 +81,7 @@ class AbandonedCart extends Template
      * @param PriceCurrency $priceCurrency
      * @param QuoteFactory $quoteFactory
      * @param EmailMarketing $helperEmailMarketing
+     * @param QuoteResource $quoteResource
      * @param array $data
      */
     public function __construct(
@@ -83,8 +90,10 @@ class AbandonedCart extends Template
         PriceCurrency $priceCurrency,
         QuoteFactory $quoteFactory,
         EmailMarketing $helperEmailMarketing,
+        QuoteResource $quoteResource,
         array $data = []
     ) {
+        $this->quoteResource = $quoteResource;
         $this->_productRepository = $productRepository;
         $this->priceCurrency = $priceCurrency;
         $this->taxHelper = $context->getTaxData();
@@ -99,7 +108,10 @@ class AbandonedCart extends Template
     public function getQuote()
     {
         if ($quoteId = $this->getData('quote_id')) {
-            return $this->quoteFactory->create()->load($quoteId);
+            $quote = $this->quoteFactory->create();
+            $this->quoteResource->load($quote, $quoteId);
+
+            return $quote;
         }
 
         return null;
