@@ -28,6 +28,7 @@ use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Mageplaza\Smtp\Model\LogFactory;
+use Mageplaza\Smtp\Model\ResourceModel\Log as LogResource;
 
 /**
  * Class Delete
@@ -41,15 +42,23 @@ class Delete extends Action
     protected $logFactory;
 
     /**
+     * @var LogResource
+     */
+    protected $logResource;
+
+    /**
      * Delete constructor.
      *
      * @param Action\Context $context
      * @param LogFactory $logFactory
+     * @param LogResource $logResource
      */
     public function __construct(
         LogFactory $logFactory,
-        Action\Context $context
+        Action\Context $context,
+        LogResource $logResource
     ) {
+        $this->logResource = $logResource;
         parent::__construct($context);
 
         $this->logFactory = $logFactory;
@@ -65,7 +74,9 @@ class Delete extends Action
 
         try {
             $logId = $this->getRequest()->getParam('id');
-            $this->logFactory->create()->load($logId)->delete();
+            $log = $this->logFactory->create();
+            $this->logResource->load($log, $logId);
+            $this->logResource->delete($log);
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage(
                 __('We can\'t process your request right now. %1', $e->getMessage())

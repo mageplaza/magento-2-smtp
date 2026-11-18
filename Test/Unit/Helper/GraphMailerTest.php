@@ -85,6 +85,10 @@ class GraphMailerTest extends TestCase
 
     public function testSendEmailThrowsWhenOauthTokenRetrievalFails(): void
     {
+        if (!class_exists(\Egulias\EmailValidator\EmailValidator::class)) {
+            $this->markTestSkipped('Symfony address validation is not installed.');
+        }
+
         $this->helper->method('getOauthAccessToken')->willThrowException(new \Exception('boom'));
 
         $this->logger->expects($this->once())->method('error')->with(
@@ -100,6 +104,10 @@ class GraphMailerTest extends TestCase
 
     public function testSendEmailThrowsWhenAccessTokenIsEmpty(): void
     {
+        if (!class_exists(\Egulias\EmailValidator\EmailValidator::class)) {
+            $this->markTestSkipped('Symfony address validation is not installed.');
+        }
+
         $this->helper->method('getOauthAccessToken')->willReturn('');
 
         $this->logger->expects($this->once())->method('error')->with('GraphMailer: OAuth2 token is empty');
@@ -112,6 +120,10 @@ class GraphMailerTest extends TestCase
 
     public function testSendEmailThrowsWhenNoSenderAddress(): void
     {
+        if (!class_exists(\Egulias\EmailValidator\EmailValidator::class)) {
+            $this->markTestSkipped('Symfony address validation is not installed.');
+        }
+
         $this->helper->method('getOauthAccessToken')->willReturn('access-token');
 
         $this->logger->expects($this->once())->method('error')->with('GraphMailer: No sender email address found');
@@ -127,6 +139,10 @@ class GraphMailerTest extends TestCase
 
     public function testSendEmailPostsGraphPayloadWithBearerTokenAndTimeout(): void
     {
+        if (!class_exists(\Egulias\EmailValidator\EmailValidator::class)) {
+            $this->markTestSkipped('Symfony address validation is not installed.');
+        }
+
         $this->helper->method('getOauthAccessToken')->willReturn('access-token');
 
         $options = [];
@@ -166,6 +182,10 @@ class GraphMailerTest extends TestCase
 
     public function testSendEmailSucceedsOnStatus200(): void
     {
+        if (!class_exists(\Egulias\EmailValidator\EmailValidator::class)) {
+            $this->markTestSkipped('Symfony address validation is not installed.');
+        }
+
         $this->helper->method('getOauthAccessToken')->willReturn('access-token');
         $this->curl->expects($this->once())->method('post');
         $this->curl->method('getStatus')->willReturn(200);
@@ -176,6 +196,10 @@ class GraphMailerTest extends TestCase
 
     public function testSendEmailUsesTextContentTypeWhenNoHtmlBodyPresent(): void
     {
+        if (!class_exists(\Egulias\EmailValidator\EmailValidator::class)) {
+            $this->markTestSkipped('Symfony address validation is not installed.');
+        }
+
         $this->helper->method('getOauthAccessToken')->willReturn('access-token');
         $captured = [];
         $this->captureSuccessfulPostPayload($captured);
@@ -195,6 +219,10 @@ class GraphMailerTest extends TestCase
 
     public function testSendEmailIncludesRecipientAndReplyToNames(): void
     {
+        if (!class_exists(\Egulias\EmailValidator\EmailValidator::class)) {
+            $this->markTestSkipped('Symfony address validation is not installed.');
+        }
+
         $this->helper->method('getOauthAccessToken')->willReturn('access-token');
         $captured = [];
         $this->captureSuccessfulPostPayload($captured);
@@ -221,6 +249,10 @@ class GraphMailerTest extends TestCase
 
     public function testSendEmailSetsFromAddressAndNameInPayload(): void
     {
+        if (!class_exists(\Egulias\EmailValidator\EmailValidator::class)) {
+            $this->markTestSkipped('Symfony address validation is not installed.');
+        }
+
         $this->helper->method('getOauthAccessToken')->willReturn('access-token');
         $captured = [];
         $this->captureSuccessfulPostPayload($captured);
@@ -241,6 +273,10 @@ class GraphMailerTest extends TestCase
 
     public function testSendEmailOmitsFromNameWhenSenderHasNoName(): void
     {
+        if (!class_exists(\Egulias\EmailValidator\EmailValidator::class)) {
+            $this->markTestSkipped('Symfony address validation is not installed.');
+        }
+
         $this->helper->method('getOauthAccessToken')->willReturn('access-token');
         $captured = [];
         $this->captureSuccessfulPostPayload($captured);
@@ -260,6 +296,10 @@ class GraphMailerTest extends TestCase
 
     public function testSendEmailEncodesAttachmentAsBase64FileAttachment(): void
     {
+        if (!class_exists(\Egulias\EmailValidator\EmailValidator::class)) {
+            $this->markTestSkipped('Symfony address validation is not installed.');
+        }
+
         $this->helper->method('getOauthAccessToken')->willReturn('access-token');
         $captured = [];
         $this->captureSuccessfulPostPayload($captured);
@@ -394,6 +434,10 @@ class GraphMailerTest extends TestCase
 
     public function testSendEmailThrowsOnApiErrorWithParseableBody(): void
     {
+        if (!class_exists(\Egulias\EmailValidator\EmailValidator::class)) {
+            $this->markTestSkipped('Symfony address validation is not installed.');
+        }
+
         $this->helper->method('getOauthAccessToken')->willReturn('access-token');
         $this->curl->method('getStatus')->willReturn(400);
         $this->curl->method('getBody')->willReturn('{"error":{"message":"Bad request"}}');
@@ -411,6 +455,10 @@ class GraphMailerTest extends TestCase
 
     public function testSendEmailLogsAndUsesRawBodyWhenErrorResponseIsUnparseable(): void
     {
+        if (!class_exists(\Egulias\EmailValidator\EmailValidator::class)) {
+            $this->markTestSkipped('Symfony address validation is not installed.');
+        }
+
         $this->helper->method('getOauthAccessToken')->willReturn('access-token');
         $this->curl->method('getStatus')->willReturn(400);
         $this->curl->method('getBody')->willReturn('not-json');

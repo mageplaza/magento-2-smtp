@@ -86,6 +86,9 @@ class HostTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider labelProvider
+     */
     #[DataProvider('labelProvider')]
     public function testGetLabelReturnsExpectedPhraseForKnownKeys(string $key, Phrase $expected): void
     {

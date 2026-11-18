@@ -24,6 +24,7 @@ namespace Mageplaza\Smtp\Model;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdMaskFactory;
+use Magento\Quote\Model\ResourceModel\Quote\QuoteIdMask as QuoteIdMaskResource;
 use Mageplaza\Smtp\Api\CheckoutManagementInterface;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 
@@ -49,24 +50,35 @@ class CheckoutManagement implements CheckoutManagementInterface
     protected $helperEmailMarketing;
 
     /**
+     * @var QuoteIdMaskResource
+     */
+    protected $quoteIdMaskResource;
+
+    /**
      * CheckoutManagement constructor.
      *
      * @param QuoteIdMaskFactory $quoteIdMaskFactory
      * @param CartRepositoryInterface $cartRepository
      * @param EmailMarketing $helperEmailMarketing
+     * @param QuoteIdMaskResource $quoteIdMaskResource
      */
     public function __construct(
         QuoteIdMaskFactory $quoteIdMaskFactory,
         CartRepositoryInterface $cartRepository,
-        EmailMarketing $helperEmailMarketing
+        EmailMarketing $helperEmailMarketing,
+        QuoteIdMaskResource $quoteIdMaskResource
     ) {
+        $this->quoteIdMaskResource = $quoteIdMaskResource;
         $this->quoteIdMaskFactory   = $quoteIdMaskFactory;
         $this->cartRepository       = $cartRepository;
         $this->helperEmailMarketing = $helperEmailMarketing;
     }
 
     /**
-     * {@inheritDoc}
+     * @param string $cartId
+     * @param string $address
+     * @param bool $isOsc
+     * @return null
      */
     public function updateOrder($cartId, $address, $isOsc)
     {
@@ -74,7 +86,8 @@ class CheckoutManagement implements CheckoutManagementInterface
             $this->helperEmailMarketing->getSecretKey() &&
             $this->helperEmailMarketing->getAppID()
         ) {
-            $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
+            $quoteIdMask = $this->quoteIdMaskFactory->create();
+            $this->quoteIdMaskResource->load($quoteIdMask, $cartId, 'masked_id');
             /** @var Quote $quote */
             $quote           = $this->cartRepository->getActive($quoteIdMask->getQuoteId());
             $newAddress = EmailMarketing::jsonDecode($address);

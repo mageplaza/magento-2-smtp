@@ -23,6 +23,7 @@ namespace Mageplaza\Smtp\Observer\Customer;
 
 use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\CustomerFactory;
+use Magento\Customer\Model\ResourceModel\Customer as CustomerResource;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Mageplaza\Smtp\Helper\EmailMarketing;
@@ -44,15 +45,23 @@ class ModelSaveBefore implements ObserverInterface
     protected $helperEmailMarketing;
 
     /**
+     * @var CustomerResource
+     */
+    protected $customerResource;
+
+    /**
      * ModelSaveBefore constructor.
      *
      * @param CustomerFactory $customerFactory
      * @param EmailMarketing $helperEmailMarketing
+     * @param CustomerResource $customerResource
      */
     public function __construct(
         CustomerFactory $customerFactory,
-        EmailMarketing $helperEmailMarketing
+        EmailMarketing $helperEmailMarketing,
+        CustomerResource $customerResource
     ) {
+        $this->customerResource = $customerResource;
         $this->customerFactory = $customerFactory;
         $this->helperEmailMarketing = $helperEmailMarketing;
     }
@@ -72,7 +81,8 @@ class ModelSaveBefore implements ObserverInterface
                 //isObjectNew can't use on this case
                 $dataObject->setIsNewRecord(true);
             } elseif ($dataObject instanceof Customer) {
-                $customOrigObject = $this->customerFactory->create()->load($dataObject->getId());
+                $customOrigObject = $this->customerFactory->create();
+                $this->customerResource->load($customOrigObject, $dataObject->getId());
                 $dataObject->setCustomOrigObject($customOrigObject);
             }
         }

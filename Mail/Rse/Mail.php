@@ -178,10 +178,19 @@ class Mail
                 }
                 unset($options['type']);
 
+                if (!class_exists(SmtpOptions::class)) {
+                    throw new \Error('Class "Laminas\\Mail\\Transport\\SmtpOptions" not found');
+                }
                 $options = new SmtpOptions($options);
 
+                if (!class_exists(Smtp::class)) {
+                    throw new \Error('Class "Laminas\\Mail\\Transport\\Smtp" not found');
+                }
                 $this->_transport[$storeId] = new Smtp($options);
             } else {
+                if (!class_exists(Smtp::class)) {
+                    throw new \Error('Class "Laminas\\Mail\\Transport\\Smtp" not found');
+                }
                 $this->_transport[$storeId] = new Smtp();
             }
         }
@@ -195,7 +204,7 @@ class Mail
     public function resetTransport()
     {
         foreach ($this->_transport as $transport) {
-            if ($transport instanceof Smtp) {
+            if (class_exists(Smtp::class) && $transport instanceof Smtp) {
                 try {
                     $this->retireConnection($transport->getConnection());
                 } catch (\Throwable $e) {
@@ -213,7 +222,7 @@ class Mail
     {
         try {
             foreach ($this->_transport as $transport) {
-                if ($transport instanceof Smtp) {
+                if (class_exists(Smtp::class) && $transport instanceof Smtp) {
                     $this->retireConnection($transport->getConnection());
                 }
             }
@@ -229,14 +238,16 @@ class Mail
      */
     protected function retireConnection($connection)
     {
-        if (!$connection instanceof SmtpProtocol) {
+        if (!(class_exists(SmtpProtocol::class) && $connection instanceof SmtpProtocol)) {
             return;
         }
 
         if ($connection->hasSession() && method_exists($connection, 'stopSession')) {
             try {
                 $stopSession = new ReflectionMethod($connection, 'stopSession');
-                $stopSession->setAccessible(true);
+                if (PHP_VERSION_ID < 80100) {
+                    $stopSession->setAccessible(true);
+                }
                 $stopSession->invoke($connection);
             } catch (\Throwable $e) {
                 // Leave the flag as it is; disconnect() below still releases the socket.
@@ -272,7 +283,7 @@ class Mail
 
         if (!empty($this->_fromByStore) &&
             ((is_array($message->getHeaders()) && !array_key_exists("From", $message->getHeaders())) ||
-                ($message instanceof Message && !$message->getFrom()->count()))
+                ((class_exists(Message::class) && $message instanceof Message) && !$message->getFrom()->count()))
         ) {
             $message->setFrom($this->_fromByStore['email'], $this->_fromByStore['name']);
         }
@@ -360,6 +371,10 @@ class Mail
      */
     public function getSymfonyTransport($storeId)
     {
+        if (!class_exists(EsmtpTransport::class)) {
+            throw new \Error('Class "Symfony\\Component\\Mailer\\Transport\\Smtp\\EsmtpTransport" not found');
+        }
+
         $override = $this->_smtpOptions[$storeId] ?? [];
         $config   = $this->smtpHelper->getSmtpConfig('', $storeId) ?: [];
 

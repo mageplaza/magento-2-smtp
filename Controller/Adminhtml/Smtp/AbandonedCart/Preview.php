@@ -32,6 +32,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Mail\Template\FactoryInterface;
 use Magento\Framework\View\Result\Page;
 use Magento\Quote\Model\QuoteFactory;
+use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 use Mageplaza\Smtp\Helper\Data as SmtpData;
 
 /**
@@ -58,19 +59,27 @@ class Preview extends Action
     protected $quoteFactory;
 
     /**
+     * @var QuoteResource
+     */
+    protected $quoteResource;
+
+    /**
      * Preview constructor.
      *
      * @param Context $context
      * @param FactoryInterface $templateFactory
      * @param SenderResolver $senderResolver
      * @param QuoteFactory $quoteFactory
+     * @param QuoteResource $quoteResource
      */
     public function __construct(
         Context $context,
         FactoryInterface $templateFactory,
         SenderResolver $senderResolver,
-        QuoteFactory $quoteFactory
+        QuoteFactory $quoteFactory,
+        QuoteResource $quoteResource
     ) {
+        $this->quoteResource = $quoteResource;
         $this->templateFactory = $templateFactory;
         $this->senderResolver  = $senderResolver;
         $this->quoteFactory    = $quoteFactory;
@@ -91,7 +100,8 @@ class Preview extends Action
         $result = ['status' => false];
 
         try {
-            $quote = $this->quoteFactory->create()->load($quoteId);
+            $quote = $this->quoteFactory->create();
+            $this->quoteResource->load($quote, $quoteId);
             if (!$quote->getId()) {
                 throw NoSuchEntityException::singleField('quote_id', $quoteId);
             }

@@ -43,12 +43,15 @@ class ModelSaveBeforeTest extends TestCase
     private EmailMarketing&MockObject $helper;
     private ModelSaveBefore $subject;
 
+    private \Magento\Customer\Model\ResourceModel\Customer&MockObject $customerResource;
+
     protected function setUp(): void
     {
+        $this->customerResource = $this->createMock(\Magento\Customer\Model\ResourceModel\Customer::class);
         $this->customerFactory = $this->createPartialMock(CustomerFactory::class, ['create']);
         $this->helper = $this->createMock(EmailMarketing::class);
 
-        $this->subject = new ModelSaveBefore($this->customerFactory, $this->helper);
+        $this->subject = new ModelSaveBefore($this->customerFactory, $this->helper, $this->customerResource);
     }
 
     private function enableGate(): void
@@ -97,12 +100,11 @@ class ModelSaveBeforeTest extends TestCase
         $customer = $this->createPartialMockWithReflection(Customer::class, ['getId', 'setCustomOrigObject']);
         $customer->method('getId')->willReturn(5);
 
-        $origCustomer = $this->createMock(Customer::class);
         $loadedCustomer = $this->createMock(Customer::class);
-        $loadedCustomer->expects($this->once())->method('load')->with(5)->willReturn($origCustomer);
+        $this->customerResource->expects($this->once())->method('load')->with($loadedCustomer, 5);
         $this->customerFactory->expects($this->once())->method('create')->willReturn($loadedCustomer);
 
-        $customer->expects($this->once())->method('setCustomOrigObject')->with($origCustomer);
+        $customer->expects($this->once())->method('setCustomOrigObject')->with($loadedCustomer);
 
         $this->subject->execute($this->observerWithDataObject($customer));
     }

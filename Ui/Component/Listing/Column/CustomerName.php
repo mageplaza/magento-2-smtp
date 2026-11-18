@@ -25,6 +25,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Quote\Model\QuoteFactory;
+use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 use Magento\Ui\Component\Listing\Columns\Column;
 use Mageplaza\Smtp\Helper\EmailMarketing;
 
@@ -50,6 +51,11 @@ class CustomerName extends Column
     protected $helperEmailMarketing;
 
     /**
+     * @var QuoteResource
+     */
+    protected $quoteResource;
+
+    /**
      * CustomerName constructor.
      *
      * @param ContextInterface $context
@@ -57,6 +63,7 @@ class CustomerName extends Column
      * @param UrlInterface $urlBuilder
      * @param QuoteFactory $quoteFactory
      * @param EmailMarketing $helperEmailMarketing
+     * @param QuoteResource $quoteResource
      * @param array $components
      * @param array $data
      */
@@ -66,9 +73,11 @@ class CustomerName extends Column
         UrlInterface $urlBuilder,
         QuoteFactory $quoteFactory,
         EmailMarketing $helperEmailMarketing,
+        QuoteResource $quoteResource,
         array $components = [],
         array $data = []
     ) {
+        $this->quoteResource = $quoteResource;
         parent::__construct($context, $uiComponentFactory, $components, $data);
 
         $this->urlBuilder = $urlBuilder;
@@ -86,7 +95,8 @@ class CustomerName extends Column
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as &$item) {
                 $quoteId = $item['entity_id'];
-                $quote = $this->quoteFactory->create()->load($quoteId);
+                $quote = $this->quoteFactory->create();
+                $this->quoteResource->load($quote, $quoteId);
                 $customerName = $this->helperEmailMarketing->getCustomerName($quote);
                 if ($quote->getCustomerId()) {
                     $url          = $this->urlBuilder->getUrl('customer/index/edit', ['id' => $item['customer_id']]);

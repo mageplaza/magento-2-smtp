@@ -34,6 +34,7 @@ use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Type;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ProductRepository;
+use Magento\Catalog\Model\ResourceModel\Category as CategoryResource;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\Address\Config;
 use Magento\Customer\Model\Attribute;
@@ -41,9 +42,12 @@ use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\GroupFactory;
 use Magento\Customer\Model\Metadata\ElementFactory;
+use Magento\Customer\Model\ResourceModel\Group as GroupResource;
+use Magento\Customer\Model\ResourceModel\Customer as CustomerResource;
 use Magento\Directory\Model\CountryFactory;
 use Magento\Directory\Model\Currency;
 use Magento\Directory\Model\Region;
+use Magento\Directory\Model\ResourceModel\Region as RegionResource;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ProductMetadataInterface;
@@ -74,6 +78,7 @@ use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Quote\Model\Quote\ItemFactory;
 use Magento\Quote\Model\ResourceModel\Quote as ResourceQuote;
+use Magento\Quote\Model\ResourceModel\Quote\Item as QuoteItemResource;
 use Magento\Reports\Model\ResourceModel\Order\CollectionFactory as ReportOrderCollectionFactory;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Config as OrderConfig;
@@ -322,6 +327,31 @@ class EmailMarketing extends Data
     protected $bundle;
 
     /**
+     * @var CustomerResource
+     */
+    protected $customerResource;
+
+    /**
+     * @var GroupResource
+     */
+    protected $groupResource;
+
+    /**
+     * @var RegionResource
+     */
+    protected $regionResource;
+
+    /**
+     * @var QuoteItemResource
+     */
+    protected $quoteItemResource;
+
+    /**
+     * @var CategoryResource
+     */
+    protected $categoryResource;
+
+    /**
      * EmailMarketing constructor.
      *
      * @param Context $context
@@ -363,6 +393,11 @@ class EmailMarketing extends Data
      * @param Configurable $configurable
      * @param Grouped $grouped
      * @param Bundle $bundle
+     * @param CustomerResource $customerResource
+     * @param GroupResource $groupResource
+     * @param RegionResource $regionResource
+     * @param QuoteItemResource $quoteItemResource
+     * @param CategoryResource $categoryResource
      */
     public function __construct(
         Context $context,
@@ -403,8 +438,18 @@ class EmailMarketing extends Data
         CategoryFactory $categoryFactory,
         Configurable $configurable,
         Grouped $grouped,
-        Bundle $bundle
+        Bundle $bundle,
+        CustomerResource $customerResource,
+        GroupResource $groupResource,
+        RegionResource $regionResource,
+        QuoteItemResource $quoteItemResource,
+        CategoryResource $categoryResource
     ) {
+        $this->categoryResource = $categoryResource;
+        $this->quoteItemResource = $quoteItemResource;
+        $this->regionResource = $regionResource;
+        $this->groupResource = $groupResource;
+        $this->customerResource = $customerResource;
         $this->frontendUrl                = $frontendUrl;
         $this->escaper                    = $escaper;
         $this->productConfig              = $catalogConfiguration;
@@ -687,7 +732,7 @@ class EmailMarketing extends Data
             'first_name' => $customerFirstname ?: '',
             'last_name'  => $customerLastname ?: '',
             'telephone'  => $object->getBillingAddress() ? $object->getBillingAddress()->getTelephone() : '',
-            'tags'       => $this->getTags($this->customerFactory->create()->load($customerId))
+            'tags'       => $this->getTags($this->getCustomerById($customerId))
         ];
 
         $shippingAddress = $object->getShippingAddress();
@@ -925,6 +970,17 @@ class EmailMarketing extends Data
     }
 
     /**
+     * @param int $regionId
+     * @return Region
+     */
+    protected function loadRegion($regionId)
+    {
+        $this->regionResource->load($this->region, $regionId);
+
+        return $this->region;
+    }
+
+    /**
      * @param Quote $quote
      * @param Address $addressObject
      * @param array|null $addr
@@ -950,10 +1006,10 @@ class EmailMarketing extends Data
                 'address2'      => $addr[$field . '.street.1'] ?? $addressObject->getStreetLine(2),
                 'city'          => $addr[$field . '.city'] ?? $addressObject->getCity(),
                 'province_code' => isset($addr[$field . '.region_id'])
-                    ? $this->region->load($addr[$field . '.region_id'])->getCode()
+                    ? $this->loadRegion($addr[$field . '.region_id'])->getCode()
                     : $addressObject->getRegionCode(),
                 'province'      => isset($addr[$field . '.region_id'])
-                    ? $this->region->load($addr[$field . '.region_id'])->getName()
+                    ? $this->loadRegion($addr[$field . '.region_id'])->getName()
                     : $addressObject->getRegion()
             ];
         }
@@ -1148,7 +1204,8 @@ class EmailMarketing extends Data
             $createdAt = $item->getCreatedAt();
             $updatedAt = $item->getUpdatedAt();
             if ($isQuote && (!$createdAt || !$updatedAt)) {
-                $quoteItem = $this->quoteItemFactory->create()->load($item->getItemId(), 'item_id');
+                $quoteItem = $this->quoteItemFactory->create();
+                $this->quoteItemResource->load($quoteItem, $item->getItemId(), 'item_id');
                 $createdAt = $quoteItem->getCreatedAt();
                 $updatedAt = $quoteItem->getUpdatedAt();
             }
@@ -1451,7 +1508,9 @@ class EmailMarketing extends Data
         $tags   = [];
         $tags[] = $this->storeManager->getStore($customer->getStoreId())->getName();
         $tags[] = $this->storeManager->getWebsite($customer->getWebsiteId())->getName();
-        $tags[] = $this->customerGroupFactory->create()->load($customer->getGroupId())->getCustomerGroupCode();
+        $group = $this->customerGroupFactory->create();
+        $this->groupResource->load($group, $customer->getGroupId());
+        $tags[] = $group->getCustomerGroupCode();
 
         return implode(',', $tags);
     }
@@ -1600,7 +1659,10 @@ class EmailMarketing extends Data
      */
     public function getCustomerById($id)
     {
-        return $this->customerFactory->create()->load($id);
+        $customer = $this->customerFactory->create();
+        $this->customerResource->load($customer, $id);
+
+        return $customer;
     }
 
     /**
@@ -1916,7 +1978,8 @@ class EmailMarketing extends Data
         if ($categoryIds) {
             foreach ($categoryIds as $categoryId) {
                 /** @var Category $category */
-                $category     = $this->categoryFactory->create()->load($categoryId);
+                $category = $this->categoryFactory->create();
+                $this->categoryResource->load($category, $categoryId);
                 $categories[] = [
                     'category_id'   => $category->getId(),
                     'category_name' => $category->getName()

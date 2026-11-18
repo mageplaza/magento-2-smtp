@@ -96,6 +96,9 @@ class SetTokenTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider legacyTokens
+     */
     #[DataProvider('legacyTokens')]
     public function testExecuteReplacesLegacyToken(mixed $legacyToken): void
     {

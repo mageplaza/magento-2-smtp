@@ -26,8 +26,6 @@ use Exception;
 use Laminas\Mail\Message;
 use Laminas\Mail\Protocol\Smtp as SmtpProtocol;
 use Laminas\Mail\Transport\Smtp;
-use Laminas\Mail\Protocol\Exception\RuntimeException as LaminasProtocolRuntimeException;
-use Laminas\Mail\Transport\Exception\RuntimeException as LaminasTransportRuntimeException;
 use Laminas\Mime\Message as LaminasMimeMessage;
 use Laminas\Mime\Mime as LaminasMime;
 use Laminas\Mime\Part as LaminasMimePart;
@@ -86,9 +84,7 @@ class Transport
      */
     protected $logFactory;
 
-    /**
-     * @var Registry $registry
-     */
+    /** @var Registry $registry */
     protected $registry;
 
     /**
@@ -185,10 +181,16 @@ class Transport
                         // Use SMTP transport (existing logic)
                         if ($this->helper->versionCompare('2.4.8')) {
                             $transport = $this->resourceMail->getSymfonyTransport($this->_storeId);
-                            $mailer    = new Mailer($transport);
+                            if (!class_exists(Mailer::class)) {
+                                throw new \Error('Class "Symfony\\Component\\Mailer\\Mailer" not found');
+                            }
+                            $mailer = new Mailer($transport);
                             $mailer->send($this->resolveSymfonyMessage($message));
                         } else {
                             if ($this->helper->versionCompare('2.2.8')) {
+                                if (!class_exists(Message::class)) {
+                                    throw new \Error('Class "Laminas\\Mail\\Message" not found');
+                                }
                                 $message = Message::fromString($message->getRawMessage())->setEncoding('utf-8');
                             }
                             $message = $this->resourceMail->processMessage($message, $this->_storeId);
@@ -245,7 +247,13 @@ class Transport
 
         try {
             $transport->send($message);
-        } catch (LaminasProtocolRuntimeException | LaminasTransportRuntimeException $e) {
+        } catch (\Throwable $e) {
+            if (!is_a($e, 'Laminas\\Mail\\Protocol\\Exception\\RuntimeException')
+                && !is_a($e, 'Laminas\\Mail\\Transport\\Exception\\RuntimeException')
+            ) {
+                throw $e;
+            }
+
             $this->resourceMail->resetTransport();
             $this->resourceMail->getTransport($this->_storeId)->send($message);
         }
@@ -260,12 +268,12 @@ class Transport
      */
     protected function isConnectionAlive($transport)
     {
-        if (!$transport instanceof Smtp || !method_exists($transport, 'getConnection')) {
+        if (!(class_exists(Smtp::class) && $transport instanceof Smtp) || !method_exists($transport, 'getConnection')) {
             return true;
         }
 
         $connection = $transport->getConnection();
-        if (!$connection instanceof SmtpProtocol || !$connection->hasSession()) {
+        if (!(class_exists(SmtpProtocol::class) && $connection instanceof SmtpProtocol) || !$connection->hasSession()) {
             return true;
         }
 
@@ -435,7 +443,7 @@ class Transport
         $attachments = [];
         if ($body instanceof AbstractPart) {
             $this->collectBodyParts($body, $textParts, $attachments);
-        } elseif ($body instanceof LaminasMimeMessage) {
+        } elseif (class_exists(LaminasMimeMessage::class) && $body instanceof LaminasMimeMessage) {
             // Magento < 2.4.8: Magento\Framework\Mail\Message::getBody() delegates to
             // Laminas\Mail\Message::getBody(), which returns a Laminas\Mime\Message,
             // not a Symfony\Component\Mime\Part\AbstractPart. Without this branch the
@@ -552,7 +560,7 @@ class Transport
         $attachments = [];
         if ($body instanceof AbstractPart) {
             $this->collectBodyParts($body, $textParts, $attachments);
-        } elseif ($body instanceof LaminasMimeMessage) {
+        } elseif (class_exists(LaminasMimeMessage::class) && $body instanceof LaminasMimeMessage) {
             $this->collectLaminasMimeParts($body, $textParts, $attachments);
         } elseif (is_string($body) && $body !== '') {
             $textParts['plain'] = ['content' => $body, 'charset' => 'utf-8'];
@@ -726,12 +734,16 @@ class Transport
     /**
      * Convert a Laminas\Mime\Message body (Magento < 2.4.8) into plain arrays.
      *
-     * @param LaminasMimeMessage $mimeMessage
+     * @param object $mimeMessage
      * @param array $textParts
      * @param array $attachments
      */
-    protected function collectLaminasMimeParts(LaminasMimeMessage $mimeMessage, &$textParts, &$attachments)
+    protected function collectLaminasMimeParts($mimeMessage, &$textParts, &$attachments)
     {
+        if (!class_exists(LaminasMime::class)) {
+            return;
+        }
+
         foreach ($mimeMessage->getParts() as $part) {
             // Magento's own EmailMessage/MimeMessage (used by TransportBuilder) hand
             // Laminas\Mime\Message::setParts() an array of Magento\Framework\Mail\MimePart
@@ -739,7 +751,7 @@ class Transport
             // accessor methods (getType/getDisposition/getFileName/getCharset/
             // getRawContent). A raw Laminas\Mime\Part is also accepted for callers that
             // build the body directly with Laminas.
-            if (!$part instanceof LaminasMimePart && !$part instanceof MimePartInterface) {
+            if (!(class_exists(LaminasMimePart::class) && $part instanceof LaminasMimePart) && !$part instanceof MimePartInterface) {
                 continue;
             }
 

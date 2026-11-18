@@ -23,6 +23,7 @@ declare(strict_types=1);
 namespace Mageplaza\Smtp\Test\Unit\Mail;
 
 use Closure;
+use Egulias\EmailValidator\EmailValidator;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\Address;
 use Magento\Framework\Mail\EmailMessage;
@@ -106,6 +107,13 @@ class TransportTest extends TestCase
         $this->resourceMail->method('getSmtpOptions')->willReturn([]);
     }
 
+    private function requireSymfonyMime(): void
+    {
+        if (!class_exists(EmailValidator::class)) {
+            $this->markTestSkipped('Symfony MIME address validation requires egulias/email-validator.');
+        }
+    }
+
     private function createSut(): Transport
     {
         return new Transport(
@@ -139,9 +147,11 @@ class TransportTest extends TestCase
         $message->method('getReplyTo')->willReturn([]);
         $message->method('getSubject')->willReturn('Subject');
         $message->method('getBody')->willReturn($body ?? new TextPart('body'));
-        $message->method('getSymfonyMessage')->willReturn(
-            $symfonyMessage ?? new SymfonyMessage(new Headers(), $body)
-        );
+        if (method_exists(EmailMessage::class, 'getSymfonyMessage')) {
+            $message->method('getSymfonyMessage')->willReturn(
+                $symfonyMessage ?? new SymfonyMessage(new Headers(), $body)
+            );
+        }
 
         return $message;
     }
@@ -163,6 +173,10 @@ class TransportTest extends TestCase
 
     private function sendViaSmtp(EmailMessage $message, ?Transport $sut = null): ?RawMessage
     {
+        if (!interface_exists(\Symfony\Component\Mailer\Transport\TransportInterface::class)) {
+            $this->markTestSkipped('The mail backend is not installed.');
+        }
+
         $this->helper->method('shouldUseGraphApi')->willReturn(false);
 
         $captured = null;
@@ -198,6 +212,7 @@ class TransportTest extends TestCase
     // instead via a subclass that exposes it.
     private function convertViaEmailLog(?AbstractPart $body, ?EmailMessage $message = null): Email
     {
+        $this->requireSymfonyMime();
         $sut = new class (
             $this->resourceMail,
             $this->logFactory,
@@ -358,6 +373,7 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessageUsesSendEmailWhenMessageIsAlreadySymfonyEmail(): void
     {
+        $this->requireSymfonyMime();
         $this->helper->method('shouldUseGraphApi')->willReturn(true);
 
         $email = (new Email())
@@ -378,6 +394,7 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessagePreservesNestedMultipartTree(): void
     {
+        $this->requireSymfonyMime();
         $png = new DataPart('PNGDATA', 'logo.png', 'image/png');
         $tree = new MixedPart(
             new RelatedPart(
@@ -396,6 +413,7 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessagePreservesCustomHeaders(): void
     {
+        $this->requireSymfonyMime();
         $headers = new Headers();
         $headers->addTextHeader('X-Custom', 'kept');
         $headers->addIdHeader('Message-ID', 'abc@example.com');
@@ -411,6 +429,10 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessageConvertsWhenSymfonyMessageUnavailable(): void
     {
+        if (!interface_exists(\Symfony\Component\Mailer\Transport\TransportInterface::class)) {
+            $this->markTestSkipped('The mail backend is not installed.');
+        }
+
         $legacyMessage = new class {
             public function getTo(): array
             {
@@ -476,8 +498,8 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessageLogsErrorReasonWhenSendFails(): void
     {
-        if (!class_exists(\Laminas\Mail\Message::class)) {
-            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        if (!class_exists(\Laminas\Mail\Message::class) || !class_exists(\Laminas\Mail\Transport\Smtp::class)) {
+            $this->markTestSkipped('The mail backend is not installed.');
         }
 
         $this->helper = $this->legacyHelper();
@@ -518,8 +540,8 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessageLoggedReasonIsTruncatedTo2000Characters(): void
     {
-        if (!class_exists(\Laminas\Mail\Message::class)) {
-            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        if (!class_exists(\Laminas\Mail\Message::class) || !class_exists(\Laminas\Mail\Transport\Smtp::class)) {
+            $this->markTestSkipped('The mail backend is not installed.');
         }
 
         $this->helper = $this->legacyHelper();
@@ -570,11 +592,15 @@ class TransportTest extends TestCase
         $sut = $this->createSut();
 
         $storeIdProperty = new ReflectionProperty(Transport::class, '_storeId');
-        $storeIdProperty->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $storeIdProperty->setAccessible(true);
+        }
         $storeIdProperty->setValue($sut, self::STORE_ID);
 
         $method = new ReflectionMethod(Transport::class, 'redactCredentials');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         return $method->invoke($sut, $text);
     }
@@ -645,8 +671,8 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessageRetriesOnceWhenLegacyTransportSendThrowsRuntimeExceptionThenSucceeds(): void
     {
-        if (!class_exists(\Laminas\Mail\Message::class)) {
-            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        if (!class_exists(\Laminas\Mail\Message::class) || !class_exists(\Laminas\Mail\Transport\Smtp::class)) {
+            $this->markTestSkipped('The mail backend is not installed.');
         }
 
         $this->helper = $this->legacyHelper();
@@ -660,6 +686,9 @@ class TransportTest extends TestCase
             function () use (&$sendCallCount) {
                 $sendCallCount++;
                 if ($sendCallCount === 1) {
+                    if (!class_exists(\Laminas\Mail\Protocol\Exception\RuntimeException::class)) {
+                        $this->markTestSkipped('Laminas Mail is not installed.');
+                    }
                     throw new \Laminas\Mail\Protocol\Exception\RuntimeException('Could not read from remote host');
                 }
 
@@ -680,8 +709,8 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessageRethrowsWhenLegacyTransportSendFailsTwice(): void
     {
-        if (!class_exists(\Laminas\Mail\Message::class)) {
-            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        if (!class_exists(\Laminas\Mail\Message::class) || !class_exists(\Laminas\Mail\Transport\Smtp::class)) {
+            $this->markTestSkipped('The mail backend is not installed.');
         }
 
         $this->helper = $this->legacyHelper();
@@ -694,6 +723,9 @@ class TransportTest extends TestCase
         $transport->method('send')->willReturnCallback(
             function () use (&$sendCallCount) {
                 $sendCallCount++;
+                if (!class_exists(\Laminas\Mail\Protocol\Exception\RuntimeException::class)) {
+                    $this->markTestSkipped('Laminas Mail is not installed.');
+                }
                 throw new \Laminas\Mail\Protocol\Exception\RuntimeException('Could not read from remote host');
             }
         );
@@ -716,8 +748,8 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessageResetsTransportWhenConnectionIsNoLongerAlive(): void
     {
-        if (!class_exists(\Laminas\Mail\Message::class)) {
-            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        if (!class_exists(\Laminas\Mail\Message::class) || !class_exists(\Laminas\Mail\Protocol\Smtp::class) || !class_exists(\Laminas\Mail\Transport\Smtp::class)) {
+            $this->markTestSkipped('The mail backend is not installed.');
         }
 
         $this->helper = $this->legacyHelper();
@@ -813,6 +845,7 @@ class TransportTest extends TestCase
 
     public function testConvertNestedRelatedTreeKeepsBodiesAndAttachments(): void
     {
+        $this->requireSymfonyMime();
         $png = new DataPart('PNGDATA', 'logo.png', 'image/png');
         $email = $this->convertViaEmailLog(
             new MixedPart(
@@ -942,8 +975,10 @@ class TransportTest extends TestCase
 
     public function testConvertHandlesLaminasMimeMessageBodyWithHtmlAndAttachment(): void
     {
-        if (!class_exists(\Laminas\Mime\Part::class)) {
-            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+        if (!class_exists(\Laminas\Mime\Part::class)
+            || !class_exists(\Laminas\Mime\Mime::class)
+            || !class_exists(\Laminas\Mime\Message::class)) {
+            $this->markTestSkipped('The mail backend is not installed.');
         }
 
         $htmlPart = new \Laminas\Mime\Part('<p>Hello</p>');
@@ -984,7 +1019,7 @@ class TransportTest extends TestCase
     public function testConvertHandlesMagentoMimePartObjectsInsideLaminasMimeMessage(): void
     {
         if (!class_exists(\Laminas\Mime\Message::class)) {
-            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+            $this->markTestSkipped('The mail backend is not installed.');
         }
 
         $htmlPart = new MimePart(
@@ -1026,6 +1061,7 @@ class TransportTest extends TestCase
 
     public function testConvertEmptyBodyFallsBackToPlaceholder(): void
     {
+        $this->requireSymfonyMime();
         $message = $this->createMock(EmailMessage::class);
         $message->method('getTo')->willReturn([]);
         $message->method('getFrom')->willReturn([]);
@@ -1034,7 +1070,9 @@ class TransportTest extends TestCase
         $message->method('getReplyTo')->willReturn([]);
         $message->method('getSubject')->willReturn('Subject');
         $message->method('getBody')->willThrowException(new TypeError('no body'));
-        $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage(new Headers()));
+        if (method_exists(EmailMessage::class, 'getSymfonyMessage')) {
+            $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage(new Headers()));
+        }
 
         $email = $this->convertViaEmailLog(null, $message);
 
@@ -1098,6 +1136,10 @@ class TransportTest extends TestCase
 
     public function testAroundSendMessageWrapsTransportFailureInMailException(): void
     {
+        if (!interface_exists(\Symfony\Component\Mailer\Transport\TransportInterface::class)) {
+            $this->markTestSkipped('The mail backend is not installed.');
+        }
+
         $this->helper->method('shouldUseGraphApi')->willReturn(false);
 
         $transport = $this->createMock(SymfonyTransportInterface::class);
@@ -1116,6 +1158,7 @@ class TransportTest extends TestCase
 
     public function testConvertKeepsEveryReplyToAddress(): void
     {
+        $this->requireSymfonyMime();
         $replyTo = [];
         foreach (['a@example.com', 'b@example.com'] as $email) {
             $address = $this->createMock(Address::class);
@@ -1134,13 +1177,16 @@ class TransportTest extends TestCase
         $message->method('getReplyTo')->willReturn($replyTo);
         $message->method('getSubject')->willReturn('Subject');
         $message->method('getBody')->willReturn(new TextPart('x'));
-        $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage(new Headers(), new TextPart('x')));
+        if (method_exists(EmailMessage::class, 'getSymfonyMessage')) {
+            $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage(new Headers(), new TextPart('x')));
+        }
 
         $this->assertCount(2, $this->convertViaEmailLog(null, $message)->getReplyTo());
     }
 
     public function testConvertDoesNotDuplicateCcFromClonedHeaders(): void
     {
+        $this->requireSymfonyMime();
         $ccAddress = $this->createMock(Address::class);
         $ccAddress->method('getEmail')->willReturn('cc@example.com');
         $ccAddress->method('getName')->willReturn('');
@@ -1156,13 +1202,19 @@ class TransportTest extends TestCase
         $message->method('getReplyTo')->willReturn([]);
         $message->method('getSubject')->willReturn('Subject');
         $message->method('getBody')->willReturn(new TextPart('x'));
-        $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage($headers, new TextPart('x')));
+        if (method_exists(EmailMessage::class, 'getSymfonyMessage')) {
+            $message->method('getSymfonyMessage')->willReturn(new SymfonyMessage($headers, new TextPart('x')));
+        }
 
         $this->assertCount(1, $this->convertViaEmailLog(null, $message)->getCc());
     }
 
     public function testEmailLogConvertsMessageOutsideDeveloperMode(): void
     {
+        if (!interface_exists(\Symfony\Component\Mailer\Transport\TransportInterface::class)) {
+            $this->markTestSkipped('The mail backend is not installed.');
+        }
+
         $helper = $this->createMock(Data::class);
         $helper->method('versionCompare')->willReturn(true);
         $helper->method('isTestEmail')->willReturn(true);
@@ -1632,6 +1684,9 @@ class TransportTest extends TestCase
         );
     }
 
+    /**
+     * @dataProvider blacklistProvider
+     */
     #[DataProvider('blacklistProvider')]
     public function testValidateBlacklistMatchesConfiguredPatterns(
         string $blacklist,

@@ -267,9 +267,7 @@ class GraphMailer
                     ]
                 ];
             }
-            if (!empty($replyToAddresses)) {
-                $message['message']['replyTo'] = $replyToAddresses;
-            }
+            $message['message']['replyTo'] = $replyToAddresses;
         }
 
         // Handle attachments

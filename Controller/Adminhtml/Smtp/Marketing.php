@@ -44,5 +44,7 @@ class Marketing extends AbstractAction
         $this->_view->loadLayout();
         $this->_view->getPage()->getConfig()->getTitle()->set(__('Email Marketing'));
         $this->_view->renderLayout();
+
+        return $this->getResponse();
     }
 }

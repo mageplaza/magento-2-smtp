@@ -39,7 +39,9 @@ class MailTest extends TestCase
     private function getProtectedProperty(object $object, string $property): mixed
     {
         $reflectionProperty = new ReflectionProperty($object, $property);
-        $reflectionProperty->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $reflectionProperty->setAccessible(true);
+        }
 
         return $reflectionProperty->getValue($object);
     }
@@ -47,7 +49,9 @@ class MailTest extends TestCase
     private function setProtectedProperty(object $object, string $property, mixed $value): void
     {
         $reflectionProperty = new ReflectionProperty($object, $property);
-        $reflectionProperty->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $reflectionProperty->setAccessible(true);
+        }
         $reflectionProperty->setValue($object, $value);
     }
 
@@ -188,7 +192,7 @@ class MailTest extends TestCase
     public function testGetTransportKeepsSeparateTransportPerStore(): void
     {
         if (!class_exists(\Laminas\Mail\Transport\Smtp::class)) {
-            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+            $this->markTestSkipped('The mail backend is not installed.');
         }
 
         $helper = $this->createMock(Data::class);
@@ -210,7 +214,7 @@ class MailTest extends TestCase
     public function testResetTransportForcesNewTransportOnNextGetTransport(): void
     {
         if (!class_exists(\Laminas\Mail\Transport\Smtp::class)) {
-            $this->markTestSkipped('Laminas mail/mime is not installed (Magento >= 2.4.8).');
+            $this->markTestSkipped('The mail backend is not installed.');
         }
 
         $helper = $this->createMock(Data::class);
@@ -490,6 +494,10 @@ class MailTest extends TestCase
 
     public function testGetSymfonyTransportUsesDefaultsWhenConfigEmpty(): void
     {
+        if (!class_exists(\Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport::class)) {
+            $this->markTestSkipped('The mail backend is not installed.');
+        }
+
         $mail = new Mail($this->createHelperForSymfonyTransport([]));
 
         $transport = $mail->getSymfonyTransport(self::STORE_ID);
@@ -503,6 +511,10 @@ class MailTest extends TestCase
 
     public function testGetSymfonyTransportForcesPort465ForSslProtocol(): void
     {
+        if (!class_exists(\Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport::class)) {
+            $this->markTestSkipped('Symfony Mailer is not installed.');
+        }
+
         $mail = new Mail($this->createHelperForSymfonyTransport(['protocol' => 'ssl', 'port' => 587]));
 
         $stream = $mail->getSymfonyTransport(self::STORE_ID)->getStream();
@@ -513,6 +525,10 @@ class MailTest extends TestCase
 
     public function testGetSymfonyTransportAutoDetectsTlsFromPort465(): void
     {
+        if (!class_exists(\Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport::class)) {
+            $this->markTestSkipped('Symfony Mailer is not installed.');
+        }
+
         $mail = new Mail($this->createHelperForSymfonyTransport(['port' => 465]));
 
         $stream = $mail->getSymfonyTransport(self::STORE_ID)->getStream();
@@ -523,6 +539,10 @@ class MailTest extends TestCase
 
     public function testGetSymfonyTransportKeepsStartTlsPlainWhenPortIsNotImplicitSsl(): void
     {
+        if (!class_exists(\Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport::class)) {
+            $this->markTestSkipped('Symfony Mailer is not installed.');
+        }
+
         $mail = new Mail($this->createHelperForSymfonyTransport(['protocol' => 'tls', 'port' => 587]));
 
         $stream = $mail->getSymfonyTransport(self::STORE_ID)->getStream();
@@ -533,6 +553,10 @@ class MailTest extends TestCase
 
     public function testGetSymfonyTransportPort465WinsOverTlsProtocol(): void
     {
+        if (!class_exists(\Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport::class)) {
+            $this->markTestSkipped('Symfony Mailer is not installed.');
+        }
+
         // Mail.php:317-329 — `$port === 465` short-circuits the implicit-SSL `if` branch before
         // the STARTTLS `elseif ($protocol === 'tls')` branch is ever reached, so a config of
         // protocol=tls + port=465 resolves to tls=true/port=465, not the STARTTLS pathway.
@@ -546,6 +570,10 @@ class MailTest extends TestCase
 
     public function testGetSymfonyTransportStripsSslPrefixFromHost(): void
     {
+        if (!class_exists(\Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport::class)) {
+            $this->markTestSkipped('Symfony Mailer is not installed.');
+        }
+
         $mail = new Mail($this->createHelperForSymfonyTransport(['host' => 'ssl://smtp.x.com']));
 
         $stream = $mail->getSymfonyTransport(self::STORE_ID)->getStream();
@@ -555,6 +583,10 @@ class MailTest extends TestCase
 
     public function testGetSymfonyTransportStripsTlsPrefixFromHost(): void
     {
+        if (!class_exists(\Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport::class)) {
+            $this->markTestSkipped('Symfony Mailer is not installed.');
+        }
+
         $mail = new Mail($this->createHelperForSymfonyTransport(['host' => 'tls://smtp.x.com']));
 
         $stream = $mail->getSymfonyTransport(self::STORE_ID)->getStream();
@@ -564,6 +596,10 @@ class MailTest extends TestCase
 
     public function testGetSymfonyTransportSetsCredentialsWhenUsernameAndPasswordPresent(): void
     {
+        if (!class_exists(\Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport::class)) {
+            $this->markTestSkipped('Symfony Mailer is not installed.');
+        }
+
         $mail = new Mail($this->createHelperForSymfonyTransport(['username' => 'user@x.com'], 'secret'));
 
         $transport = $mail->getSymfonyTransport(self::STORE_ID);
@@ -574,6 +610,10 @@ class MailTest extends TestCase
 
     public function testGetSymfonyTransportDoesNotSetCredentialsWhenPasswordMissing(): void
     {
+        if (!class_exists(\Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport::class)) {
+            $this->markTestSkipped('Symfony Mailer is not installed.');
+        }
+
         $mail = new Mail($this->createHelperForSymfonyTransport(['username' => 'user@x.com'], ''));
 
         $transport = $mail->getSymfonyTransport(self::STORE_ID);
@@ -584,6 +624,10 @@ class MailTest extends TestCase
 
     public function testGetSymfonyTransportDoesNotSetCredentialsWhenUsernameMissing(): void
     {
+        if (!class_exists(\Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport::class)) {
+            $this->markTestSkipped('Symfony Mailer is not installed.');
+        }
+
         $mail = new Mail($this->createHelperForSymfonyTransport([], 'secret'));
 
         $transport = $mail->getSymfonyTransport(self::STORE_ID);

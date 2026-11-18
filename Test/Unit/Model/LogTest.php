@@ -29,7 +29,7 @@ use Magento\Framework\App\Area;
 use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Mail\TransportInterface;
 use Magento\Framework\Model\Context;
-use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Mageplaza\Smtp\Model\ResourceModel\Log as LogResource;
 use Magento\Framework\Registry;
 use Magento\Store\Model\Store;
 use Mageplaza\Smtp\Helper\Data;
@@ -61,8 +61,8 @@ class LogTest extends TestCase
     /** @var Data&MockObject */
     private Data&MockObject $helper;
 
-    /** @var AbstractDb&MockObject */
-    private AbstractDb&MockObject $resource;
+    /** @var LogResource&MockObject */
+    private LogResource&MockObject $resource;
 
     /** @var LoggerInterface&MockObject */
     private LoggerInterface&MockObject $logger;
@@ -86,7 +86,7 @@ class LogTest extends TestCase
 
         // AbstractDb (not bare AbstractResource) so _init()'s _getResource()->getIdFieldName()
         // resolves to this mock instead of falling through to the real ObjectManager.
-        $this->resource = $this->createMock(AbstractDb::class);
+        $this->resource = $this->createMock(LogResource::class);
         $this->resource->method('getIdFieldName')->willReturn('id');
     }
 
@@ -98,6 +98,8 @@ class LogTest extends TestCase
             $this->transportBuilder,
             $this->mailResource,
             $this->helper,
+            $this->createMock(\Mageplaza\Smtp\Model\ResourceModel\LogAttachment::class),
+            $this->resource,
             $this->resource,
             null,
             [],
@@ -123,7 +125,9 @@ class LogTest extends TestCase
     private function invokeExtractEmailInfo(Log $log, string $emailList): array
     {
         $method = new ReflectionMethod(Log::class, 'extractEmailInfo');
-        $method->setAccessible(true);
+        if (PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         return $method->invoke($log, $emailList);
     }

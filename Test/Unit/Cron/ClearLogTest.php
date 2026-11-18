@@ -89,8 +89,9 @@ class ClearLogTest extends TestCase
         }
 
         $collection = $this->createMock(Collection::class);
+        $collection->method('addFieldToSelect')->with([])->willReturnSelf();
         $collection->method('addFieldToFilter')->willReturnSelf();
-        $collection->method('setPageSize')->with(100)->willReturnSelf();
+        $collection->method('setPageSize')->with(1000)->willReturnSelf();
         $collection->method('getLastPageNumber')->willReturn(2);
         $collection->expects($this->exactly(2))->method('setCurPage')->willReturnSelf();
         $collection->method('getIterator')->willReturn(
@@ -116,6 +117,7 @@ class ClearLogTest extends TestCase
         $survivingLog->expects($this->once())->method('delete');
 
         $collection = $this->createMock(Collection::class);
+        $collection->method('addFieldToSelect')->with([])->willReturnSelf();
         $collection->method('addFieldToFilter')->willReturnSelf();
         $collection->method('setPageSize')->willReturnSelf();
         $collection->method('getLastPageNumber')->willReturn(1);
