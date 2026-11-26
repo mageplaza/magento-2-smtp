@@ -38,6 +38,13 @@ use Mageplaza\Smtp\Model\LogFactory;
 class Email extends Action
 {
     /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Mageplaza_Smtp::log';
+
+    /**
      * @var TransportBuilder
      */
     protected $_transportBuilder;
@@ -100,6 +107,11 @@ class Email extends Action
         }
 
         $email = $this->logFactory->create()->load($logId);
+        if (!$email->getId()) {
+            $this->messageManager->addErrorMessage(__('This email log no longer exists.'));
+
+            return $this->_redirect('*/smtp/log');
+        }
         if ($email->resendEmail()) {
             $this->messageManager->addSuccessMessage(__('Email re-sent successfully!'));
         } else {

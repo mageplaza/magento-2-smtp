@@ -41,6 +41,13 @@ use Mageplaza\Smtp\Helper\Data as SmtpData;
 class Preview extends Action
 {
     /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Mageplaza_Smtp::abandoned_cart';
+
+    /**
      * Template Factory
      *
      * @var FactoryInterface

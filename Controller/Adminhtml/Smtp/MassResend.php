@@ -37,6 +37,13 @@ use Mageplaza\Smtp\Model\ResourceModel\Log\CollectionFactory;
 class MassResend extends Action
 {
     /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Mageplaza_Smtp::log';
+
+    /**
      * @var Filter
      */
     protected $filter;

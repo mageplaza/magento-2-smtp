@@ -21,6 +21,7 @@
 
 namespace Mageplaza\Smtp\Ui\Component\Listing\Column;
 
+use Magento\Framework\Escaper;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
@@ -44,12 +45,18 @@ class Actions extends Column
     protected $helperData;
 
     /**
+     * @var Escaper
+     */
+    protected $escaper;
+
+    /**
      * Actions constructor.
      *
      * @param ContextInterface $context
      * @param UiComponentFactory $uiComponentFactory
      * @param UrlInterface $urlBuilder
      * @param Data $helperData
+     * @param Escaper $escaper
      * @param array $components
      * @param array $data
      */
@@ -58,6 +65,7 @@ class Actions extends Column
         UiComponentFactory $uiComponentFactory,
         UrlInterface $urlBuilder,
         Data $helperData,
+        Escaper $escaper,
         array $components = [],
         array $data = []
     ) {
@@ -65,6 +73,7 @@ class Actions extends Column
 
         $this->helperData = $helperData;
         $this->urlBuilder = $urlBuilder;
+        $this->escaper = $escaper;
     }
 
     /**
@@ -91,7 +100,7 @@ class Actions extends Column
                                 'Are you sure you want to resend the email <strong>"%1"</strong>?'
                                 . ' The HTML content and any attachment stored with this log entry'
                                 . ' are sent again.',
-                                $item['subject']
+                                $this->escaper->escapeHtml($item['subject'])
                             )
                         ]
                     ],

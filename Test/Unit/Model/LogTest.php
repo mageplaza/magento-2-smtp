@@ -123,7 +123,6 @@ class LogTest extends TestCase
     private function invokeExtractEmailInfo(Log $log, string $emailList): array
     {
         $method = new ReflectionMethod(Log::class, 'extractEmailInfo');
-        $method->setAccessible(true);
 
         return $method->invoke($log, $emailList);
     }

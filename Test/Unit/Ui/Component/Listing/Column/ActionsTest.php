@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace Mageplaza\Smtp\Test\Unit\Ui\Component\Listing\Column;
 
+use Magento\Framework\Escaper;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
@@ -38,6 +39,7 @@ class ActionsTest extends TestCase
     private UiComponentFactory&MockObject $uiComponentFactory;
     private UrlInterface&MockObject $urlBuilder;
     private Data&MockObject $helperData;
+    private Escaper $escaper;
     private Actions $subject;
 
     protected function setUp(): void
@@ -46,12 +48,14 @@ class ActionsTest extends TestCase
         $this->uiComponentFactory = $this->createMock(UiComponentFactory::class);
         $this->urlBuilder = $this->createMock(UrlInterface::class);
         $this->helperData = $this->createMock(Data::class);
+        $this->escaper = new Escaper();
 
         $this->subject = new Actions(
             $this->context,
             $this->uiComponentFactory,
             $this->urlBuilder,
             $this->helperData,
+            $this->escaper,
             [],
             ['name' => 'actions']
         );
@@ -117,6 +121,26 @@ class ActionsTest extends TestCase
             (string) __('Are you sure you want to delete this log?'),
             (string) $actions['delete']['confirm']['message']
         );
+    }
+
+    public function testPrepareDataSourceEscapesSubjectInResendConfirmMessage(): void
+    {
+        $this->urlBuilder->method('getUrl')->willReturn('http://shop/x');
+
+        $dataSource = [
+            'data' => [
+                'items' => [
+                    ['id' => 3, 'subject' => '<img src=x onerror=alert(1)>'],
+                ],
+            ],
+        ];
+
+        $result = $this->subject->prepareDataSource($dataSource);
+        $message = (string) $result['data']['items'][0]['actions']['resend']['confirm']['message'];
+
+        $this->assertStringNotContainsString('<img', $message);
+        $this->assertStringContainsString('&lt;img src=x onerror=alert(1)&gt;', $message);
+        $this->assertStringContainsString('<strong>', $message);
     }
 
     public function testPrepareDataSourceMutatesEveryItemByReference(): void

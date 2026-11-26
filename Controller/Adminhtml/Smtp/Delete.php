@@ -36,6 +36,13 @@ use Mageplaza\Smtp\Model\LogFactory;
 class Delete extends Action
 {
     /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Mageplaza_Smtp::log';
+
+    /**
      * @var LogFactory
      */
     protected $logFactory;
@@ -65,7 +72,13 @@ class Delete extends Action
 
         try {
             $logId = $this->getRequest()->getParam('id');
-            $this->logFactory->create()->load($logId)->delete();
+            $log   = $this->logFactory->create()->load($logId);
+            if (!$log->getId()) {
+                $this->messageManager->addErrorMessage(__('This email log no longer exists.'));
+
+                return $resultRedirect->setPath('*/smtp/log');
+            }
+            $log->delete();
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage(
                 __('We can\'t process your request right now. %1', $e->getMessage())

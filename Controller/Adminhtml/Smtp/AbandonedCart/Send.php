@@ -30,6 +30,7 @@ use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Result\Page;
@@ -43,6 +44,13 @@ use Psr\Log\LoggerInterface;
  */
 class Send extends Action
 {
+    /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Mageplaza_Smtp::abandoned_cart';
+
     /**
      * @var QuoteRepository
      */
@@ -128,6 +136,13 @@ class Send extends Action
 
         try {
             $quote = $this->quoteRepository->get($id);
+        } catch (NoSuchEntityException $e) {
+            $this->messageManager->addErrorMessage(__('This abandoned cart no longer exists.'));
+
+            return $this->_redirect('adminhtml/smtp/abandonedcart');
+        }
+
+        try {
             $customerEmail = $quote->getCustomerEmail();
             $customerName = $this->helperEmailMarketing->getCustomerName($quote);
 

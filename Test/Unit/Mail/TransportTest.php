@@ -570,11 +570,9 @@ class TransportTest extends TestCase
         $sut = $this->createSut();
 
         $storeIdProperty = new ReflectionProperty(Transport::class, '_storeId');
-        $storeIdProperty->setAccessible(true);
         $storeIdProperty->setValue($sut, self::STORE_ID);
 
         $method = new ReflectionMethod(Transport::class, 'redactCredentials');
-        $method->setAccessible(true);
 
         return $method->invoke($sut, $text);
     }
