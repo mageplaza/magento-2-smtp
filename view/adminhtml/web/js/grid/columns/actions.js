@@ -63,7 +63,7 @@ define([
                 this.modal[action.rowIndex] = $modalContent
                     .modal({
                         type: 'slide',
-                        title: strip(row['subject']),
+                        title: $('<div>').text(strip(row['subject'])).html(),
                         modalClass: 'mpsmtp-modal-email',
                         innerScroll: true,
                         buttons: []

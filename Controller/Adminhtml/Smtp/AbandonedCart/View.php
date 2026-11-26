@@ -25,6 +25,7 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Math\Random;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Result\Page;
@@ -38,6 +39,13 @@ use Mageplaza\Smtp\Model\AbandonedCartToken;
  */
 class View extends Action
 {
+    /**
+     * Authorization level of a basic admin session
+     *
+     * @see _isAllowed()
+     */
+    const ADMIN_RESOURCE = 'Mageplaza_Smtp::abandoned_cart';
+
     /**
      * @var PageFactory
      */
@@ -89,7 +97,13 @@ class View extends Action
     {
         $resultPage = $this->resultPageFactory->create();
         $id         = $this->getRequest()->getParam('id', 0);
-        $quote      = $this->quoteRepository->get($id);
+        try {
+            $quote = $this->quoteRepository->get($id);
+        } catch (NoSuchEntityException $e) {
+            $this->messageManager->addErrorMessage(__('This abandoned cart no longer exists.'));
+
+            return $this->_redirect('adminhtml/smtp/abandonedcart');
+        }
         $isActive   = (bool) $quote->getIsActive();
         if (!$isActive) {
             return $this->_redirect('adminhtml/smtp/abandonedcart');

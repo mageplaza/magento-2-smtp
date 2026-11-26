@@ -42,7 +42,7 @@ class TestConnection extends Action
      *
      * @see _isAllowed()
      */
-    const ADMIN_RESOURCE = 'Mageplaza_Smtp::smtp';
+    const ADMIN_RESOURCE = 'Mageplaza_Smtp::email_marketing';
 
     /**
      * @var EmailMarketing

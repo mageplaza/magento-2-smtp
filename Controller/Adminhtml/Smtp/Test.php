@@ -47,7 +47,7 @@ class Test extends Action
      *
      * @see _isAllowed()
      */
-    const ADMIN_RESOURCE = 'Mageplaza_Smtp::smtp';
+    const ADMIN_RESOURCE = 'Mageplaza_Smtp::configuration';
 
     /**
      * @var LoggerInterface

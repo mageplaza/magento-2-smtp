@@ -52,6 +52,6 @@ class Collection extends AbstractCollection
      */
     public function clearLog()
     {
-        $this->getConnection()->truncateTable($this->getMainTable());
+        $this->getConnection()->delete($this->getMainTable());
     }
 }
